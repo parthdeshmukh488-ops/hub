@@ -253,6 +253,22 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *No other Claude session was reachable from the cloud session, because the terminal sessions run on Parth's laptop. Claude set up a repo-based channel instead: [BOARD.md](../workstreams/BOARD.md) (state, start order, handoffs), [messages/](../workstreams/messages/README.md) (one file per message, conflict-free), kickoff messages to every workstream, and references to both in `CLAUDE.md` and every starter prompt.*
 
+## Turn 13
+
+**Parth:**
+
+> im left with 15 percentage of limit try to do something use full or tell me what you did and  whats next
+
+**Claude:** summarized the work so far and named the next step that can run in the cloud: WS2 build step 2, the SDK's policy evaluator, which needs no IDL.
+
+## Turn 14
+
+**Parth:**
+
+> start with whats next in the archetivture
+
+*Claude built WS2 build step 2 in `packages/sdk`: `evaluatePayment` (a mirror of the program's evaluation that passes all 60 vectors), the Subscriptions allowance math and delegation decoding (checked line by line against upstream), and the shared test keys. 100 tests, 100% coverage. The spec leaves four arithmetic edge cases open; Claude chose a behaviour for each and messaged WS1 to match. Details: [docs/workstreams/status/WS2.md](../workstreams/status/WS2.md).*
+
 ---
 
 ## Attachments

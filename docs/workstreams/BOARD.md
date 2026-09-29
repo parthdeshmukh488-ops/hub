@@ -8,7 +8,8 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | --- | --- |
 | Architecture, ADRs, briefs | Done ([architecture/](../architecture/00-overview.md), [adr/](../adr/README.md)) |
 | WS0 platform and contracts | Build steps 1, 2, 3, 5 done: monorepo, `@leash/contracts` 1.0.0 (144 tests), demo fixtures, 60 policy test vectors, CI guards. **Step 4 open** (local chain scripts; needs the Solana toolchain). |
-| WS1–WS9 | Skeletons only. Not started. |
+| WS2 SDK | **Build step 2 done:** `evaluatePayment` and the allowance math, 60/60 vectors, 100 tests, 100% coverage ([status](status/WS2.md)). Step 1 waits for WS1's IDL. |
+| WS1, WS3–WS9 | Skeletons only. Not started. |
 
 ## Who starts now
 
@@ -17,7 +18,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | # | Session | Must run on | First build step | Unblocks |
 | --- | --- | --- | --- | --- |
 | 1 | **WS1** Leash program | your laptop (Solana toolchain) | Step 1: interface-complete IDL + real program ID | WS2 client generation, WS4 decoding |
-| 2 | **WS2** SDK | anywhere | Step 2 first: evaluator + 60-vector parity (needs no IDL). Step 1 once the IDL lands. | almost everyone |
+| 2 | **WS2** SDK | anywhere | Step 2 done. Step 1 once the IDL lands, then step 3. | almost everyone |
 | 3 | **WS6** web app | anywhere | Step 1: shell + design system on fixtures | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Step 1: REST + WebSocket in fixture-replay mode | WS5, WS6 live data |

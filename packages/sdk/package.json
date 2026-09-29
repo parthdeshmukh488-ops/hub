@@ -5,11 +5,20 @@
   "type": "module",
   "description": "Typed TypeScript client for the Leash program: PDAs, reads, owner and agent operations, policy evaluator, event decoding.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
   },
   "scripts": {
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@leash/contracts": "workspace:*",
+    "@solana/kit": "8.4.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "5.0.2",
+    "fast-check": "4.10.2"
   }
 }
