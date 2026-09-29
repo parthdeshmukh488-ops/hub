@@ -182,7 +182,7 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 4. **Environment:** cloud Claude Code sessions reach npm and crates.io, but not Solana RPC, the Solana/Anchor installers or GitHub release downloads. → [ADR-0007](../adr/0007-environments-and-artifacts.md).
 5. **Current package versions (npm, 2026-09-29):** `@solana/kit` 8.4, `@anchor-lang/core` 1.2 (Anchor is on 1.x), `codama` 1.11, `litesvm` 1.5, `@x402/*` 2.27, `next` 16.3, `hono` 4.13, `zod` 4.6, `vitest` 5.0, `@biomejs/biome` 2.5, `turbo` 2.11, `drizzle-orm` 0.45, `@modelcontextprotocol/sdk` 1.31, `@anthropic-ai/sdk` 0.129.
 6. **Hourglass code:** not found in any GitHub repository this session can see. If Parth wants to reuse it, it needs to be added to the repo (for example under `reference/hourglass/`).
-7. **GitHub:** pushing from this session still fails with 403 until the Claude GitHub App is installed on the repo or GitHub is reconnected.
+7. **GitHub:** pushing from this session failed with 403 until Parth installed the Claude GitHub App on the repo (turn 9).
 
 ### What was produced
 
@@ -202,6 +202,32 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 > The key design decision: the Solana Foundation's official Allowances program limits how much a delegate can spend, not who it pays. So Leash is a firewall on top of it. The owner's money stays in the owner's wallet, and the allowance is the hard ceiling. The Leash program checks every payment against an allowlist, per-payment and per-payee limits, a rate limit and an approval threshold. Blocked attempts are recorded on-chain as strikes, and three strikes freeze the agent. The owner or a guardian can freeze any agent in one tap. Payments are standard x402, and the official facilitator accepts them with a small configuration change.
 >
 > The work is split into ten workstreams (WS0–WS9). Each brief ends with a starter prompt to paste into a new Claude Code session. The session reads CLAUDE.md and its brief, shows Parth a plan, and waits for approval before writing code. WS0 goes first. WS1 (the Solana program) needs a machine with the Solana toolchain.
+
+## Turn 7
+
+**Parth:**
+
+> https://github.com/parthdeshmukh488-ops/hub.git
+
+*The push still failed with 403. Claude also tried writing through the GitHub connector, which failed with "Resource not accessible by integration": the Claude GitHub App was not installed on the repository.*
+
+**Claude:** explained the fix (install the Claude GitHub App on `hub`) and how to push the zip manually.
+
+## Turn 8
+
+**Parth:**
+
+> take access from me from here
+
+**Claude:** explained that only Parth can approve GitHub access, and pointed to the Connect GitHub button (https://claude.ai/connect-github).
+
+## Turn 9
+
+**Parth:**
+
+> done
+
+*Claude pushed `claude/whu-hackathon-ideas-lz8trx` (commit `77cd5ac`) to GitHub. At that point it was the repository's only branch; `main` did not exist yet.*
 
 ---
 
