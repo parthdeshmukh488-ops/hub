@@ -1,0 +1,15 @@
+{
+  "name": "@leash/tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The four Leash agent tools (leash_fetch, leash_pay, leash_request_approval, leash_status).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  }
+}

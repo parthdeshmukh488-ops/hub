@@ -1,0 +1,25 @@
+{
+  "name": "@leash/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Single source of truth for every off-chain interface: config, units, enums, views, events, API, x402 profile, agent tools, Actions, alerts, presets, fixtures and policy test vectors.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixtures/*": "./fixtures/*",
+    "./test-vectors/*": "./test-vectors/*",
+    "./idl/*": "./idl/*"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "generate": "tsx scripts/generate-fixtures.ts && tsx scripts/generate-test-vectors.ts && biome format --write fixtures test-vectors"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "fast-check": "4.10.2"
+  }
+}

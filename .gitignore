@@ -1,0 +1,30 @@
+# dependencies and build output
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Rust / Anchor
+target/
+test-ledger/
+.anchor/
+
+# local chain state and data
+.localnet.json
+data/
+*.db
+*.db-journal
+
+# secrets: never commit keys or env files
+.keys/
+*.keypair.json
+.env
+.env.*
+!.env.example
+
+# editors and OS
+.DS_Store
+.idea/
+.vscode/

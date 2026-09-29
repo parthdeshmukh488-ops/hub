@@ -1,0 +1,12 @@
+{
+  "name": "@leash/facilitator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "x402 v2 facilitator built on the official @x402/svm scheme, with Leash on the smart-wallet allowlist.",
+  "scripts": {
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  }
+}

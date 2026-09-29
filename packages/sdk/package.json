@@ -1,0 +1,15 @@
+{
+  "name": "@leash/sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Typed TypeScript client for the Leash program: PDAs, reads, owner and agent operations, policy evaluator, event decoding.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  }
+}
