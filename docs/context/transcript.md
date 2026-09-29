@@ -269,6 +269,14 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *Claude built WS2 build step 2 in `packages/sdk`: `evaluatePayment` (a mirror of the program's evaluation that passes all 60 vectors), the Subscriptions allowance math and delegation decoding (checked line by line against upstream), and the shared test keys. 100 tests, 100% coverage. The spec leaves four arithmetic edge cases open; Claude chose a behaviour for each and messaged WS1 to match. Details: [docs/workstreams/status/WS2.md](../workstreams/status/WS2.md).*
 
+## Turn 15
+
+**Parth:**
+
+> for now keep it on the branch because my laptop session is out of limit so keep up with other work just complete next step it dont do anything big for my something that will take my 25percentage of toakens thats it or maybe 35 or 40 go
+
+*Everything stays on the branch (no `main` yet). Claude built WS6 build step 1 in `apps/web`: a Next.js app with a dark-first design system, the core components, a sample-data layer, and read-only overview and agent pages. Tests pass, the production build passes, and screenshots were checked on desktop (dark and light) and at phone width. Details: [docs/workstreams/status/WS6.md](../workstreams/status/WS6.md).*
+
 ---
 
 ## Attachments

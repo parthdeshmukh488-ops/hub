@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/*
+ * Leash design tokens. Dark-first "security console"; the light theme follows the system setting.
+ * Status colours (04-conventions §8): ok = executed, blocked = red, approval = amber, frozen = blue.
+ * All text colours meet WCAG AA on their surfaces.
+ */
+:root {
+  color-scheme: dark;
+  --canvas: #0b0d10;
+  --surface: #12151a;
+  --surface-2: #1a1e25;
+  --line: #262b34;
+  --fg: #e7eaf0;
+  --fg-muted: #9aa3b2;
+  --brand: #a78bfa;
+  --ok: #34d399;
+  --ok-soft: rgb(52 211 153 / 0.12);
+  --blocked: #f87171;
+  --blocked-soft: rgb(248 113 113 / 0.12);
+  --approval: #fbbf24;
+  --approval-soft: rgb(251 191 36 / 0.12);
+  --frozen: #60a5fa;
+  --frozen-soft: rgb(96 165 250 / 0.14);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --canvas: #f5f6f8;
+    --surface: #ffffff;
+    --surface-2: #eef0f4;
+    --line: #dfe3ea;
+    --fg: #0f1419;
+    --fg-muted: #535c6b;
+    --brand: #6d28d9;
+    --ok: #047857;
+    --ok-soft: rgb(4 120 87 / 0.1);
+    --blocked: #b91c1c;
+    --blocked-soft: rgb(185 28 28 / 0.08);
+    --approval: #b45309;
+    --approval-soft: rgb(180 83 9 / 0.1);
+    --frozen: #1d4ed8;
+    --frozen-soft: rgb(29 78 216 / 0.1);
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-brand: var(--brand);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-blocked: var(--blocked);
+  --color-blocked-soft: var(--blocked-soft);
+  --color-approval: var(--approval);
+  --color-approval-soft: var(--approval-soft);
+  --color-frozen: var(--frozen);
+  --color-frozen-soft: var(--frozen-soft);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
