@@ -3,6 +3,8 @@
 Superteam Germany bounty for WHU Hackathon 2026 participants.
 Listing: https://superteam.fun/earn/listing/build-at-whu (open to people in Germany only)
 
+**Decision (2026-09-29):** we are building **Leash**, budgets and an off switch for AI agents, enforced on Solana. See [architecture/00-overview.md](architecture/00-overview.md) and, for how we chose it, [context/transcript.md](context/transcript.md).
+
 ## Key dates
 
 | When | What |
@@ -54,9 +56,9 @@ digital ownership · consumer apps
 - How to find strong project ideas: YouTube video linked on the listing
 - Questions: Merdan (Superteam Germany), Telegram https://t.me/merdussss
 
-## How we pick the idea
+## How we picked the idea
 
-Each candidate is scored 1–5 on:
+Used on 2026-09-29 to compare the ideas in the idea book (see the transcript). Each candidate was scored 1–5 on:
 
 | Criterion | Question |
 | --- | --- |
@@ -67,4 +69,4 @@ Each candidate is scored 1–5 on:
 | First users | Is there a named, reachable first group (ideally at WHU or in Germany)? |
 | Legs | Would we keep building it for Colosseum? |
 
-**Why Solana** and **Buildable** are knockouts: a score of 2 or less drops the idea.
+**Why Solana** and **Buildable** were knockouts: a score of 2 or less dropped the idea.
