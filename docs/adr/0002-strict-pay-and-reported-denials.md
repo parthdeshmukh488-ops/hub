@@ -4,6 +4,7 @@
 - Date: 2026-09-29
 - Workstream: architecture
 - Contract change: n/a (founding decision)
+- Amended by: [20260929-ws0-denial-reporting-policy](20260929-ws0-denial-reporting-policy.md) (which denials are reported)
 
 ## Context
 

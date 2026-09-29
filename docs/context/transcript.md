@@ -229,6 +229,22 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *Claude pushed `claude/whu-hackathon-ideas-lz8trx` (commit `77cd5ac`) to GitHub. At that point it was the repository's only branch; `main` did not exist yet.*
 
+## Turn 10
+
+**Parth:**
+
+> ill add the main branch for the terminal claude
+
+**Claude:** gave the commands to create `main` from `claude/whu-hackathon-ideas-lz8trx` and to make it the default branch.
+
+## Turn 11
+
+**Parth:**
+
+> start with the project i got 50 percentage left for this session and go with the archeticture and also that write everything and do it slowly and after what you did tell me what you did and ill see if there is any other better way to do it
+
+*Claude built WS0 build steps 1, 2, 3 and 5: the monorepo skeleton, `@leash/contracts` (144 tests), deterministic fixtures and 60 policy test vectors, CI with a secret scan and an I6 check. It also found and fixed three spec issues, each with an ADR. Details: [docs/workstreams/status/WS0.md](../workstreams/status/WS0.md).*
+
 ---
 
 ## Attachments

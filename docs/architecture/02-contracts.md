@@ -17,8 +17,10 @@ packages/contracts/
 │   ├── tools.ts         agent tool inputs/outputs (SDK, MCP, demo agent)
 │   ├── actions.ts       Solana Actions (Blinks) request/response types
 │   ├── alerts.ts        Sentinel alert schema
-│   ├── presets.ts       policy presets used by pairing links and the web wizard
+│   ├── presets.ts       policy presets and pairing links
+│   ├── test-vectors.ts  schema of test-vectors/policy.json
 │   └── index.ts
+├── scripts/             deterministic generators for fixtures/ and test-vectors/
 ├── idl/leash.json       committed by WS1 after each program change
 ├── fixtures/            JSON examples, all validated by the schemas in CI
 └── test-vectors/
@@ -297,7 +299,7 @@ One contract: `@leash/tools` implements it on top of `@leash/sdk` and `@leash/x4
 
 | Tool | Input | Success output |
 | --- | --- | --- |
-| `leash_fetch` | `{ url: string (https), method?: "GET"\|"POST", headers?: Record<string,string>, body?: string, purpose: string }` | `{ ok: true, status, contentType, body (≤ 20 000 chars), payment: PaymentReceipt \| null }` |
+| `leash_fetch` | `{ url: string (http or https; http is for local development), method?: "GET"\|"POST", headers?: Record<string,string>, body?: string, purpose: string }` | `{ ok: true, status, contentType, body (≤ 20 000 chars), payment: PaymentReceipt \| null }` |
 | `leash_pay` | `{ to: string (wallet), amountUsdc: string, purpose: string }` | `{ ok: true, payment: PaymentReceipt }` |
 | `leash_request_approval` | `{ to: string, amountUsdc: string, purpose: string }` | `{ ok: true, request: { address, nonce, expiresAt, status: "pending" } }` |
 | `leash_status` | `{}` | `{ ok: true, agent: { label, status, freezeReason }, allowance: { remainingUsdc, perPeriodUsdc \| null, periodEndsAt \| null, expiresAt \| null }, limits: { maxPerPaymentUsdc, maxPerRequestUsdc }, payees: { label, wallet, maxPerPaymentUsdc \| null, remainingInPeriodUsdc \| null }[], strikes, tripwireMaxStrikes }` |
@@ -324,7 +326,9 @@ type ToolError = {
 
 **Tool message rules.** Messages steer the model to stop, not to route around the policy. A denial message states what was blocked and why, says the owner has been notified, and says not to retry through another route. Example for `PAYEE_NOT_ALLOWED`: *"Blocked by the owner's spending policy: this recipient is not on the allowlist. The attempt was recorded and the owner was notified. Do not retry or try another recipient; continue the task without paying, or ask the owner."* The exact strings live in `tools.ts`.
 
-**Automatic behaviour in `leash_fetch`:** on `APPROVAL_REQUIRED` it creates a payment request and returns `APPROVAL_REQUIRED` with the request address in `message`. Once the request is approved, a later call to the same URL pays with it. On any strike-type denial it calls `report_denied_attempt` before returning (`recorded: true`).
+**Automatic behaviour in `leash_fetch`:** on `APPROVAL_REQUIRED` it creates a payment request and returns `APPROVAL_REQUIRED` with the request address in `message`. Once the request is approved, a later call to the same URL pays with it.
+
+**Which denials are recorded on-chain** ([ADR](../adr/20260929-ws0-denial-reporting-policy.md)): the SDK sends `report_denied_attempt` before returning, and sets `recorded: true`, for every strike-type denial, and for every other denial except `approvalRequired` (which becomes a payment request instead). Non-strike denials are reported at most once per reason per agent every `NON_STRIKE_REPORT_COOLDOWN_SECS` (60 s), so a loop that hits the rate limit cannot flood the chain. The lists live in `tools.ts` (`REPORTED_DENIAL_CODES`).
 
 ## 9. x402 profile (how Leash payments travel over x402 v2)
 
@@ -453,4 +457,4 @@ type Alert = {
 }
 ```
 
-`expect` is one of `{ outcome: "allowed" }`, `{ outcome: "denied", reason: "<DenialReason JSON>" }` or `{ outcome: "error", error: "<LeashError variant>" }`. Symbolic names in `keys` map to deterministic test keypairs. WS0 writes the first cases from [01-onchain-program.md §7](01-onchain-program.md#7-evaluation) (at least one per check, plus boundary cases at exactly the limit). WS1 and WS2 add cases whenever they find an edge; a case is never deleted.
+The exact format is `PolicyTestVectorsSchema` in `src/test-vectors.ts`, which supersedes the example above. `expect` is one of `{ outcome: "allowed", effects? }`, `{ outcome: "denied", reason: "<DenialReason JSON>" }` or `{ outcome: "error", error: "<LeashError variant>" }`; `effects` lists post-payment counters to check. Symbolic names in `keys` map to deterministic test keypairs whose ed25519 seed is `sha256("leash:test-key:" + name)`. Time fields use on-chain semantics: 0 means "never started" or "no expiry". WS0 writes the first cases from [01-onchain-program.md §7](01-onchain-program.md#7-evaluation) (at least one per check, plus boundary cases at exactly the limit). WS1 and WS2 add cases whenever they find an edge; a case is never deleted.

@@ -11,6 +11,9 @@ One decision per file. ADRs are how parallel Claude sessions tell each other wha
 | [0005](0005-kit-and-codama-clients.md) | `@solana/kit` + Codama-generated clients; no web3.js v1 in our code | Accepted |
 | [0006](0006-monorepo-and-service-stack.md) | pnpm + Turborepo + Biome; Hono services; Drizzle + libSQL; Next.js web | Accepted |
 | [0007](0007-environments-and-artifacts.md) | localnet/devnet only; program binaries committed for LiteSVM; what cloud sessions can and cannot do | Accepted |
+| [20260929-ws0-allowance-expiry-is-inclusive](20260929-ws0-allowance-expiry-is-inclusive.md) | Allowance expiry is inclusive (`now > expiry`), exactly as upstream; clamp ported | Accepted |
+| [20260929-ws0-disabled-limits-are-not-tracked](20260929-ws0-disabled-limits-are-not-tracked.md) | Switched-off limits don't update counters; approved requests still count towards payee spend | Accepted |
+| [20260929-ws0-denial-reporting-policy](20260929-ws0-denial-reporting-policy.md) | Strikes always reported; approvalRequired never; other denials once per reason per minute | Accepted |
 
 ## Naming new ADRs
 

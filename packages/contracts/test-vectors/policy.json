@@ -1,0 +1,3390 @@
+{
+  "version": 1,
+  "description": "Payment evaluation cases for the Leash program (01-onchain-program §7). Keys map to keypairs whose ed25519 seed is sha256('leash:test-key:' + name).",
+  "keys": {
+    "merchant": "Allowlisted merchant wallet (owns the destination token account)",
+    "attacker": "Wallet that is not on the allowlist"
+  },
+  "cases": [
+    {
+      "name": "allowed: allowlisted payee within every limit",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 6,
+          "payeePeriodStart": 1790931600,
+          "payeeSpentInPeriod": "110000",
+          "delegationPeriodStart": 1790931600,
+          "delegationPulledInPeriod": "110000"
+        }
+      }
+    },
+    {
+      "name": "allowed: amount exactly maxPerPayment",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1000000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed"
+      }
+    },
+    {
+      "name": "error: zero amount",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "0",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "InvalidAmount"
+      }
+    },
+    {
+      "name": "error: zero amount is checked before anything else",
+      "now": 1790935200,
+      "principal": {
+        "frozen": true
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "0",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "InvalidAmount"
+      }
+    },
+    {
+      "name": "denied: principal frozen",
+      "now": 1790935200,
+      "principal": {
+        "frozen": true
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "principalFrozen"
+      }
+    },
+    {
+      "name": "denied: principal frozen wins over agent frozen",
+      "now": 1790935200,
+      "principal": {
+        "frozen": true
+      },
+      "agent": {
+        "status": "frozen",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "principalFrozen"
+      }
+    },
+    {
+      "name": "denied: agent frozen",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "frozen",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "agentFrozen"
+      }
+    },
+    {
+      "name": "denied: agent frozen wins over a non-allowlisted payee",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "frozen",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "attacker",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "agentFrozen"
+      }
+    },
+    {
+      "name": "denied: agent expired at exactly validUntil",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": 1790935200
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "agentExpired"
+      }
+    },
+    {
+      "name": "allowed: one second before validUntil",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": 1790935201
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed"
+      }
+    },
+    {
+      "name": "denied: no payee entry in allow-list mode",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": null,
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "payeeNotAllowed"
+      }
+    },
+    {
+      "name": "denied: entry for a different payee",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "attacker",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "payeeNotAllowed"
+      }
+    },
+    {
+      "name": "denied: entry belongs to another agent",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "other",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "payeeNotAllowed"
+      }
+    },
+    {
+      "name": "denied: the allowlist is checked before the amount",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "25000000",
+        "destinationOwner": "attacker",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "payeeNotAllowed"
+      }
+    },
+    {
+      "name": "allowed: any-payee mode without an entry",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "anyPayee",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": null,
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "attacker",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "velocityCount": 6,
+          "delegationPulledInPeriod": "110000"
+        }
+      }
+    },
+    {
+      "name": "denied: any-payee mode still enforces the instant and approval limits",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "anyPayee",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": null,
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "5000001",
+        "destinationOwner": "attacker",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "exceedsPaymentLimit"
+      }
+    },
+    {
+      "name": "denied: any-payee mode still applies a matching entry's limits",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "anyPayee",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "500000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "600000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "exceedsPayeePaymentLimit"
+      }
+    },
+    {
+      "name": "denied: one unit above the instant limit needs approval",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1000001",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "approvalRequired"
+      }
+    },
+    {
+      "name": "denied: exactly maxPerRequest needs approval",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "5000000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "approvalRequired"
+      }
+    },
+    {
+      "name": "denied: above maxPerRequest",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "5000001",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "exceedsPaymentLimit"
+      }
+    },
+    {
+      "name": "denied: above the instant limit with approvals off",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "0",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1000001",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "exceedsPaymentLimit"
+      }
+    },
+    {
+      "name": "denied: above the payee's per-payment cap",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "500000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "600000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "exceedsPayeePaymentLimit"
+      }
+    },
+    {
+      "name": "allowed: exactly the payee's per-payment cap",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "500000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "500000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed"
+      }
+    },
+    {
+      "name": "allowed: payee cap of 0 means no cap",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "0",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1000000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed"
+      }
+    },
+    {
+      "name": "denied: payee period budget exceeded",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "2995000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "exceedsPayeePeriodLimit"
+      }
+    },
+    {
+      "name": "allowed: payee period budget reached exactly",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "2990000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "payeeSpentInPeriod": "3000000"
+        }
+      }
+    },
+    {
+      "name": "allowed: payee period rolls over once elapsed",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790848800,
+        "spentInPeriod": "3000000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "payeePeriodStart": 1790935200,
+          "payeeSpentInPeriod": "10000"
+        }
+      }
+    },
+    {
+      "name": "denied: payee period one second before roll-over",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790848801,
+        "spentInPeriod": "3000000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "exceedsPayeePeriodLimit"
+      }
+    },
+    {
+      "name": "allowed: payee period never started",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 0,
+        "spentInPeriod": "0"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "payeePeriodStart": 1790935200,
+          "payeeSpentInPeriod": "10000"
+        }
+      }
+    },
+    {
+      "name": "allowed: payee period limit of 0 is off and its counters are not updated",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "0",
+        "periodSecs": 0,
+        "periodStart": 1790931600,
+        "spentInPeriod": "999999999"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "payeePeriodStart": 1790931600,
+          "payeeSpentInPeriod": "999999999"
+        }
+      }
+    },
+    {
+      "name": "denied: rate limit reached",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 30,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "velocityExceeded"
+      }
+    },
+    {
+      "name": "allowed: last payment within the rate limit",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 29,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 30
+        }
+      }
+    },
+    {
+      "name": "allowed: rate window rolls over once elapsed",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935140,
+          "velocityCount": 30,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "velocityWindowStart": 1790935200,
+          "velocityCount": 1
+        }
+      }
+    },
+    {
+      "name": "allowed: rate limit off and its counters are not updated",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 0,
+          "velocityWindowSecs": 0,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 1000,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 1000
+        }
+      }
+    },
+    {
+      "name": "denied: recurring allowance used up",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "4995000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExceeded"
+      }
+    },
+    {
+      "name": "allowed: recurring allowance reached exactly",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "4990000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "delegationPulledInPeriod": "5000000"
+        }
+      }
+    },
+    {
+      "name": "allowed: recurring period rolls forward by whole periods",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790762395,
+        "pulledInPeriod": "5000000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "delegationPeriodStart": 1790935195,
+          "delegationPulledInPeriod": "10000"
+        }
+      }
+    },
+    {
+      "name": "denied: recurring allowance not started yet",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790935210,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExceeded"
+      }
+    },
+    {
+      "name": "allowed: recurring allowance at exactly its expiry second",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 1790935200
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed"
+      }
+    },
+    {
+      "name": "denied: recurring allowance one second after expiry",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 1790935199
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExpired"
+      }
+    },
+    {
+      "name": "denied: no fresh period at the expiry boundary (expiry clamp)",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790848800,
+        "pulledInPeriod": "4995000",
+        "expiryTs": 1790935200
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExceeded"
+      }
+    },
+    {
+      "name": "allowed: the expiry clamp keeps the last period's usage",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790848800,
+        "pulledInPeriod": "100000",
+        "expiryTs": 1790935200
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "delegationPeriodStart": 1790848800,
+          "delegationPulledInPeriod": "110000"
+        }
+      }
+    },
+    {
+      "name": "allowed: fixed allowance with enough remaining",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "fixed",
+        "amountRemaining": "1000000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "delegationAmountRemaining": "990000"
+        }
+      }
+    },
+    {
+      "name": "denied: fixed allowance used up",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "fixed",
+        "amountRemaining": "5000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExceeded"
+      }
+    },
+    {
+      "name": "denied: fixed allowance expired",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "fixed",
+        "amountRemaining": "1000000",
+        "expiryTs": 1790935199
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExpired"
+      }
+    },
+    {
+      "name": "allowed: fixed allowance at exactly its expiry second",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "fixed",
+        "amountRemaining": "1000000",
+        "expiryTs": 1790935200
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "allowed"
+      }
+    },
+    {
+      "name": "denied: owner's balance too low",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "9999",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "insufficientFunds"
+      }
+    },
+    {
+      "name": "denied: the allowance is checked before the balance",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": null,
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "5000000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "0",
+      "payment": {
+        "amount": "10000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExceeded"
+      }
+    },
+    {
+      "name": "allowed: an approved request waives the instant limit",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "velocityCount": 6,
+          "payeeSpentInPeriod": "1600000",
+          "delegationPulledInPeriod": "1600000"
+        }
+      }
+    },
+    {
+      "name": "allowed: an approved request waives the payee caps",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "500000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "2900000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "allowed",
+        "effects": {
+          "payeeSpentInPeriod": "4400000"
+        }
+      }
+    },
+    {
+      "name": "denied: an approved request still respects the freeze",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "frozen",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "agentFrozen"
+      }
+    },
+    {
+      "name": "denied: an approved request still respects the allowlist",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "attacker",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "attacker",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "payeeNotAllowed"
+      }
+    },
+    {
+      "name": "denied: an approved request still respects the rate limit",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 30,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "velocityExceeded"
+      }
+    },
+    {
+      "name": "denied: an approved request still respects the allowance",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "4000000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "denied",
+        "reason": "allowanceExceeded"
+      }
+    },
+    {
+      "name": "error: the request is still pending",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "pending",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "RequestNotApproved"
+      }
+    },
+    {
+      "name": "error: the request expired",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935200
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "RequestExpired"
+      }
+    },
+    {
+      "name": "error: the payment amount differs from the request",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1400000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "RequestMismatch"
+      }
+    },
+    {
+      "name": "error: the payment reference differs from the request",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "9f4db6907b0797a953b5d70d7d44a00ea9107bf491c7d8ad2fc6b9ec02dd3eab"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "RequestMismatch"
+      }
+    },
+    {
+      "name": "error: the request belongs to another agent",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "allowListOnly",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": {
+        "agent": "self",
+        "payee": "merchant",
+        "maxPerPayment": "2000000",
+        "periodLimit": "3000000",
+        "periodSecs": 86400,
+        "periodStart": 1790931600,
+        "spentInPeriod": "100000"
+      },
+      "request": {
+        "agent": "other",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "merchant",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "RequestMismatch"
+      }
+    },
+    {
+      "name": "error: the request is for a different payee",
+      "now": 1790935200,
+      "principal": {
+        "frozen": false
+      },
+      "agent": {
+        "status": "active",
+        "policy": {
+          "maxPerPayment": "1000000",
+          "maxPerRequest": "5000000",
+          "payeeMode": "anyPayee",
+          "velocityMaxPayments": 30,
+          "velocityWindowSecs": 60,
+          "tripwireMaxStrikes": 3,
+          "tripwireWindowSecs": 600,
+          "requestTtlSecs": 3600,
+          "validUntil": null
+        },
+        "stats": {
+          "velocityWindowStart": 1790935170,
+          "velocityCount": 5,
+          "strikeWindowStart": 0,
+          "strikes": 0
+        }
+      },
+      "payee": null,
+      "request": {
+        "agent": "self",
+        "status": "approved",
+        "payee": "merchant",
+        "amount": "1500000",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b",
+        "expiresAt": 1790935300
+      },
+      "delegation": {
+        "kind": "recurring",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790931600,
+        "pulledInPeriod": "100000",
+        "expiryTs": 0
+      },
+      "sourceAmount": "100000000",
+      "payment": {
+        "amount": "1500000",
+        "destinationOwner": "attacker",
+        "reference": "6d297f5fc013a6f6ec16d97b714c4bfd8ffa1abb26f08b5cc74e14ab4115958b"
+      },
+      "expect": {
+        "outcome": "error",
+        "error": "RequestMismatch"
+      }
+    }
+  ]
+}

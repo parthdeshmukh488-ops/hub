@@ -1,0 +1,69 @@
+{
+  "agent": {
+    "address": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+    "principal": "BT4GtstJmMzGuw46RxTvy84h1bZoVzYx9ZbGktQQaKWv",
+    "owner": "H1Gk6MBearXpAg4aMH4oNJ3suHrseqYkgBu7iuxmJe3N",
+    "agentKey": "HuZLJGeJPZGUi4QwGyXAwY6i1d5ykvAL4AKAYFmLELNm",
+    "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+    "label": "Research Assistant",
+    "status": "frozen",
+    "freezeReason": "tripwire",
+    "frozenAt": 1790935520,
+    "payeeCount": 1,
+    "openRequests": 0,
+    "policy": {
+      "maxPerPayment": "1000000",
+      "maxPerRequest": "5000000",
+      "payeeMode": "allowListOnly",
+      "velocityMaxPayments": 30,
+      "velocityWindowSecs": 60,
+      "tripwireMaxStrikes": 3,
+      "tripwireWindowSecs": 600,
+      "requestTtlSecs": 3600,
+      "validUntil": null
+    },
+    "stats": {
+      "paymentsCount": 4,
+      "totalPaid": "1540000",
+      "deniedCount": 3,
+      "lastPaymentAt": 1790935445,
+      "velocityCount": 1,
+      "velocityWindowStart": 1790935445,
+      "strikes": 3,
+      "strikeWindowStart": 1790935500,
+      "requestNonce": "1"
+    },
+    "allowance": {
+      "delegation": "75W4PQphnLrLi986nhUWMrn8F3mgLV3FWAD7nGicbNM3",
+      "kind": "recurring",
+      "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+      "amountPerPeriod": "5000000",
+      "periodLengthSecs": 86400,
+      "currentPeriodStart": 1790935220,
+      "pulledInPeriod": "1540000",
+      "amountRemaining": null,
+      "remaining": "3460000",
+      "expiresAt": 1793527220,
+      "asOf": 1790935620
+    },
+    "createdAt": 1790935220,
+    "updatedAt": 1790935520
+  },
+  "payees": [
+    {
+      "maxPerPayment": "2000000",
+      "periodLimit": "3000000",
+      "periodSecs": 86400,
+      "address": "B6cF92ME4ubVS8oidbd3omJM5eaaEKsn9WA2U3qLFvdB",
+      "agent": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+      "payee": "4gMnh13Pfx3twF8FpVp7bbGiZD9J4wyXWuCdKZnDVUT9",
+      "label": "Research API",
+      "periodStart": 1790935320,
+      "spentInPeriod": "1540000",
+      "totalPaid": "1540000",
+      "paymentsCount": 4,
+      "createdAt": 1790935240
+    }
+  ],
+  "requests": []
+}

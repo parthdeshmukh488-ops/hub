@@ -12,13 +12,16 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "check": "turbo run lint typecheck test",
-    "format": "biome format --write .",
+    "check": "turbo run lint typecheck test && pnpm check:root",
+    "check:root": "biome check scripts biome.json package.json turbo.json && tsc -p scripts/tsconfig.json && pnpm check:secrets && pnpm check:env",
     "check:secrets": "tsx scripts/check-secrets.ts",
-    "check:env": "tsx scripts/check-env-example.ts"
+    "check:env": "tsx scripts/env-example.ts --check",
+    "env:example": "tsx scripts/env-example.ts --write",
+    "format": "biome format --write ."
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
+    "@leash/contracts": "workspace:*",
     "@types/node": "22.20.4",
     "tsx": "4.23.15",
     "turbo": "2.11.5",

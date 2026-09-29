@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typescript:
+    name: Lint, typecheck, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Secret scan and env check (I6)
+        run: pnpm check:secrets && pnpm check:env
+      - name: Root scripts
+        run: pnpm exec biome check scripts biome.json package.json turbo.json && pnpm exec tsc -p scripts/tsconfig.json
+      - name: Workspace
+        run: pnpm turbo run lint typecheck test
+
+  rust:
+    name: Program (Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect program workspace
+        id: detect
+        run: echo "present=$([ -f Cargo.toml ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - if: steps.detect.outputs.present == 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - if: steps.detect.outputs.present == 'true'
+        run: cargo fmt --all -- --check
+      - if: steps.detect.outputs.present == 'true'
+        run: cargo clippy --all-targets -- -D warnings
+      - if: steps.detect.outputs.present == 'true'
+        run: cargo test
