@@ -7,10 +7,11 @@ We are building it for the **Superteam Germany Solana Challenge at the WHU Promp
 ## Read before doing anything
 
 1. This file.
-2. [docs/architecture/00-overview.md](docs/architecture/00-overview.md): vocabulary, invariants, components, flows.
-3. Your workstream brief in [docs/workstreams/](docs/workstreams/README.md) and every document it lists under "Read first".
-4. Your status file `docs/workstreams/status/WS<N>.md`, and any ADR in [docs/adr/](docs/adr/README.md) newer than it.
-5. For history and reasoning: [docs/context/transcript.md](docs/context/transcript.md).
+2. [docs/workstreams/BOARD.md](docs/workstreams/BOARD.md): where the project stands, who starts what, handoffs.
+3. [docs/architecture/00-overview.md](docs/architecture/00-overview.md): vocabulary, invariants, components, flows.
+4. Your workstream brief in [docs/workstreams/](docs/workstreams/README.md) and every document it lists under "Read first".
+5. Your status file `docs/workstreams/status/WS<N>.md`, any ADR in [docs/adr/](docs/adr/README.md) newer than it, and every message in [docs/workstreams/messages/](docs/workstreams/messages/README.md) addressed to you or to `all` that you have not handled yet.
+6. For history and reasoning: [docs/context/transcript.md](docs/context/transcript.md).
 
 If nobody told you which workstream you are, ask Parth before touching code.
 
@@ -33,6 +34,7 @@ If nobody told you which workstream you are, ask Parth before touching code.
 - **Quality over speed.** Tests alongside code, failure cases first for security-relevant code, READMEs kept current. Definition of done: [04-conventions.md §4](docs/architecture/04-conventions.md#4-tests-and-definition-of-done).
 - **Close every work block:** update your status file (done, next, open items, questions), commit with a Conventional Commit message (`feat(sdk): …`), push.
 - **Sync at the start:** merge the latest `main` into your branch before working.
+- **Talk through messages.** Sessions can't talk directly. Write a file in [docs/workstreams/messages/](docs/workstreams/messages/README.md) to ask another workstream something or to announce a handoff; never edit someone else's message.
 
 ## Engineering rules (details in [04-conventions.md](docs/architecture/04-conventions.md))
 
@@ -59,6 +61,8 @@ Claude Code on the web can reach npm and crates.io, but **not** Solana RPC, the 
 | --- | --- |
 | `docs/architecture/` | Overview, program spec, off-chain contracts, security model, conventions |
 | `docs/adr/` | Decisions and contract changes |
+| `docs/workstreams/BOARD.md` | Current state, start order, handoffs |
+| `docs/workstreams/messages/` | Messages between sessions (one file each) |
 | `docs/workstreams/` | One brief per session (with a starter prompt) + status files |
 | `docs/context/transcript.md` | How we got here: the full founding conversation |
 | `docs/hackathon-brief.md` | Challenge rules, judging, submission checklist |

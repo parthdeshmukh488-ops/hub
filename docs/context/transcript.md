@@ -245,6 +245,14 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *Claude built WS0 build steps 1, 2, 3 and 5: the monorepo skeleton, `@leash/contracts` (144 tests), deterministic fixtures and 60 policy test vectors, CI with a secret scan and an I6 check. It also found and fixed three spec issues, each with an ADR. Details: [docs/workstreams/status/WS0.md](../workstreams/status/WS0.md).*
 
+## Turn 12
+
+**Parth:**
+
+> and try to talk with the other claudes ok by writing what the terminal cludes should do like that
+
+*No other Claude session was reachable from the cloud session, because the terminal sessions run on Parth's laptop. Claude set up a repo-based channel instead: [BOARD.md](../workstreams/BOARD.md) (state, start order, handoffs), [messages/](../workstreams/messages/README.md) (one file per message, conflict-free), kickoff messages to every workstream, and references to both in `CLAUDE.md` and every starter prompt.*
+
 ---
 
 ## Attachments

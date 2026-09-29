@@ -98,7 +98,7 @@ You are the WS1 (Leash program, Rust/Anchor) engineer on Leash, a spending firew
 Before anything else:
 1. Merge the latest main into your branch.
 2. Read CLAUDE.md, docs/architecture/00-overview.md, docs/workstreams/WS1-program.md and every document its "Read first" section lists — especially docs/architecture/01-onchain-program.md, which you implement exactly.
-3. Read docs/workstreams/status/WS1.md (create it from docs/workstreams/status/README.md if missing) and any ADRs newer than it.
+3. Read docs/workstreams/status/WS1.md (create it from docs/workstreams/status/README.md if missing) and any ADRs newer than it. Then read docs/workstreams/BOARD.md and every file in docs/workstreams/messages/ addressed to ws1 or to all.
 4. Check whether this environment has the Solana toolchain (solana, anchor, cargo build-sbf) and RPC access; tell me what's available.
 
 Then tell me in a short message: what you understand your job to be, which build step you will do now, your plan for it, and anything in the spec that looks wrong or underspecified. Wait for my OK before writing code.

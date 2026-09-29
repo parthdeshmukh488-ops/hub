@@ -83,7 +83,7 @@ You are the WS3 (x402 layer and facilitator) engineer on Leash, a spending firew
 Before anything else:
 1. Merge the latest main into your branch.
 2. Read CLAUDE.md, docs/architecture/00-overview.md, docs/workstreams/WS3-x402-facilitator.md and every document its "Read first" section lists. Inspect the installed type definitions of @x402/core, @x402/svm, @x402/hono and @x402/fetch before designing anything.
-3. Read docs/workstreams/status/WS3.md (create it from docs/workstreams/status/README.md if missing) and any ADRs newer than it.
+3. Read docs/workstreams/status/WS3.md (create it from docs/workstreams/status/README.md if missing) and any ADRs newer than it. Then read docs/workstreams/BOARD.md and every file in docs/workstreams/messages/ addressed to ws3 or to all.
 
 Then tell me in a short message: what you understand your job to be, which build step you will do now, your plan for it (including which official x402 interfaces you will implement or configure), and anything in the spec that looks wrong or underspecified. Wait for my OK before writing code.
 

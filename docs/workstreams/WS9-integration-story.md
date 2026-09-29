@@ -53,7 +53,7 @@ You are the WS9 (Integration, end-to-end tests and story) engineer on Leash, a s
 Before anything else:
 1. Merge the latest main into your branch.
 2. Read CLAUDE.md, every document in docs/architecture/, docs/workstreams/WS9-integration-story.md, docs/hackathon-brief.md and docs/context/transcript.md.
-3. Read docs/workstreams/status/WS9.md (create it from docs/workstreams/status/README.md if missing), every other workstream's status file, and any ADRs newer than yours.
+3. Read docs/workstreams/status/WS9.md (create it from docs/workstreams/status/README.md if missing), every other workstream's status file, and any ADRs newer than yours. Then read docs/workstreams/BOARD.md and every file in docs/workstreams/messages/ addressed to ws9 or to all.
 
 Then tell me in a short message: what you understand your job to be, the current integration state across workstreams, which build step you will do now, and your plan for it. Wait for my OK before writing code.
 

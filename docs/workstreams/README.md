@@ -79,10 +79,10 @@ WS1 and anything that deploys to a chain needs a machine with the Solana toolcha
 Every session, every time:
 
 1. **Sync:** merge the latest `main` into your branch.
-2. **Read:** `CLAUDE.md` → your brief → the documents under "Read first" in your brief → your status file → any ADR newer than your status file.
+2. **Read:** `CLAUDE.md` → [BOARD.md](BOARD.md) → your brief → the documents under "Read first" in your brief → your status file → any ADR newer than your status file → your unhandled [messages](messages/README.md).
 3. **Plan:** write the plan for the next build step into your status file and show it to Parth. Wait for approval before large changes.
 4. **Build:** stay in your lane, tests alongside code, follow [04-conventions.md](../architecture/04-conventions.md).
-5. **Close:** update your status file (done, next, open items, questions for other workstreams), commit, push.
+5. **Close:** update your status file (done, next, open items, questions for other workstreams, messages handled), write messages for any handoff you completed, commit, push.
 
 ## Starting a session
 
