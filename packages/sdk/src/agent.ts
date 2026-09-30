@@ -37,6 +37,7 @@ import {
   NotPairedError,
   PaymentDeniedError,
   TransactionFailedError,
+  UnsupportedPaymentError,
 } from "./errors.ts";
 import { evaluatePayment } from "./evaluate/evaluate.ts";
 import type { EvaluationError, EvaluationInput, EvaluationResult } from "./evaluate/types.ts";
@@ -148,6 +149,32 @@ type AgentAccounts = {
 
 type OpenRequest = { address: Address; account: leash.PaymentRequest };
 
+/** What `#prepare` hands to `pay` (or, through `preparePayment`, to x402). */
+type PreparedPayment = {
+  state: PaymentState;
+  /** `[create payee token account?, pay, ...append]`, as simulated. */
+  instructions: Instruction[];
+  payInstruction: Instruction;
+  unitsConsumed: bigint;
+  memo: Uint8Array;
+  reference: Uint8Array;
+  request: OpenRequest | null;
+};
+
+/** A payment that passed the policy and the simulation, ready for someone else's transaction. */
+export type PreparedPaymentResult = {
+  /** The `pay` instruction; the agent key is its only signer. */
+  instruction: Instruction;
+  /** Compute units of the simulated `[limit, price, pay, ...append]`. */
+  unitsConsumed: bigint;
+  /** The reference the payment carries (an approved request's, or the one passed in). */
+  reference: Uint8Array;
+  /** The approved request this payment consumes, if any. */
+  requestNonce: bigint | null;
+  payeeLabel: string | null;
+  purpose: string;
+};
+
 /** A payment as `report_denied_attempt` takes it. */
 type ReportedPayment = { to: string; amount: bigint; memo: Uint8Array; reference: Uint8Array };
 
@@ -240,6 +267,11 @@ export class LeashAgent {
     return findAgentPda(await findPrincipalPda(this.#owner), this.#signer.address);
   }
 
+  /** The mint this agent pays with (read once from its Agent account). */
+  async mint(): Promise<Address> {
+    return (await this.#agentAccounts()).mint;
+  }
+
   /** Principal, agent (with the allowance at the cluster's time) and allowlist. */
   async status(): Promise<AgentStatusSnapshot> {
     const status = await readAgentStatus(this.#chain, await this.agentAddress(), {
@@ -302,6 +334,37 @@ export class LeashAgent {
   }
 
   /**
+   * The x402 path (02 §9): does everything `pay` does except sending, and returns the `pay`
+   * instruction for a transaction someone else pays for. A denial is reported per the reporting
+   * policy and thrown as `PaymentDeniedError`, exactly as in `pay`. An approved request for the
+   * same payee and amount is used, with its reference; otherwise `reference` (x402:
+   * `sha256(memo)`). `append` (the x402 Memo) joins the simulation, so `unitsConsumed` counts it.
+   * The payee must already have a token account for the mint.
+   */
+  preparePayment(
+    args: Required<PaymentArgs>,
+    options: { append?: readonly Instruction[] } = {},
+  ): Promise<PreparedPaymentResult> {
+    return this.#serialize(async () => {
+      const prepared = await this.#prepare(args, {
+        createDestination: false,
+        idempotent: false,
+        ...options,
+      });
+      if ("earlier" in prepared) throw new Error("unreachable: preparation is not idempotent");
+      const { request, state } = prepared;
+      return {
+        instruction: prepared.payInstruction,
+        unitsConsumed: prepared.unitsConsumed,
+        reference: prepared.reference,
+        requestNonce: request ? request.account.nonce : null,
+        payeeLabel: state.payee ? decodeLabel(bytes(state.payee.label)) : null,
+        purpose: args.purpose,
+      };
+    });
+  }
+
+  /**
    * Records a denied payment on-chain (`report_denied_attempt`). The program re-evaluates it and
    * refuses with `AttemptWouldSucceed` when the payment would go through.
    */
@@ -326,18 +389,51 @@ export class LeashAgent {
   }
 
   async #pay(args: PaymentArgs): Promise<PaymentResult> {
+    const prepared = await this.#prepare(args, {
+      createDestination: true,
+      idempotent: args.reference !== undefined,
+    });
+    if ("earlier" in prepared) return prepared.earlier;
+    const { state, instructions, memo, reference } = prepared;
+    const to = args.to as Address;
+    let record: TransactionRecord;
+    try {
+      record = await this.#send(instructions, prepared.unitsConsumed);
+    } catch (error) {
+      const failure = findLeashFailure(error, { instructions: this.#withBudget(instructions, 0) });
+      // The state moved between simulation and send (e.g. a concurrent payment of the owner).
+      if (failure?.denial) {
+        return this.#denied(state, failure.denial, { to, amount: args.amount, memo, reference });
+      }
+      throw this.#classify(error, failure, { to: args.to, amount: args.amount });
+    }
+    const executed = eventOf(decodeLeashEvents(record), "PaymentExecuted");
+    if (!executed) throw new Error(`payment ${record.signature} confirmed without PaymentExecuted`);
+    return this.#result(record.signature, executed, state);
+  }
+
+  /**
+   * Everything `pay` does before sending: read, pick an approved request, evaluate, simulate, and
+   * report a denial per the reporting policy (then throw). `append` joins the simulation (x402's
+   * Memo), so its compute units are counted.
+   */
+  async #prepare(
+    args: PaymentArgs,
+    options: { createDestination: boolean; idempotent: boolean; append?: readonly Instruction[] },
+  ): Promise<PreparedPayment | { earlier: PaymentResult }> {
     const memo = encodeMemo(args.purpose);
     const to = args.to as Address;
     const attempted = { to: args.to, amount: args.amount };
     const state = await this.#readState(to);
     const request = await this.#findApprovedRequest(state, to, args.amount);
+    // 02 §3: paying an approved request uses its reference; otherwise the caller's, or random.
     const reference = request
       ? bytes(request.account.reference)
       : (args.reference ?? randomReference());
 
-    if (args.reference !== undefined) {
+    if (options.idempotent) {
       const earlier = await this.#findExecutedPayment(state, reference);
-      if (earlier) return earlier;
+      if (earlier) return { earlier };
     }
 
     // A revoked allowance leaves no delegation to pay from: the owner ended it.
@@ -350,14 +446,15 @@ export class LeashAgent {
 
     const instructions: Instruction[] = [];
     if (!state.destinationExists) {
+      if (!options.createDestination) {
+        throw new UnsupportedPaymentError("the payee has no token account for the agent's mint");
+      }
       // `pay` and `report_denied_attempt` both need the payee's token account. The agent creates
       // it only for a payment the policy allows; a denied one cannot be recorded (no account).
       if (local.outcome !== "allowed") {
         this.#logger.warn(
           "leash: denied payment to a wallet without a token account; not recorded",
-          {
-            outcome: local.outcome,
-          },
+          { outcome: local.outcome },
         );
         if (local.outcome === "denied") {
           throw new PaymentDeniedError({ reason: local.reason, recorded: false, attempted });
@@ -374,9 +471,13 @@ export class LeashAgent {
         }),
       );
     }
-    instructions.push(
-      await this.#payInstruction(state, { amount: args.amount, memo, reference, request }),
-    );
+    const payInstruction = await this.#payInstruction(state, {
+      amount: args.amount,
+      memo,
+      reference,
+      request,
+    });
+    instructions.push(payInstruction, ...(options.append ?? []));
 
     const simulation = await this.#simulate(instructions);
     if (simulation.failure !== null) {
@@ -390,21 +491,15 @@ export class LeashAgent {
       throw toSdkError(failure, attempted);
     }
     if (local.outcome !== "allowed") this.#parityMismatch(local, "allowed");
-
-    let record: TransactionRecord;
-    try {
-      record = await this.#send(instructions, simulation.unitsConsumed);
-    } catch (error) {
-      const failure = findLeashFailure(error, { instructions: this.#withBudget(instructions, 0) });
-      // The state moved between simulation and send (e.g. a concurrent payment of the owner).
-      if (failure?.denial) {
-        return this.#denied(state, failure.denial, { to, amount: args.amount, memo, reference });
-      }
-      throw this.#classify(error, failure, attempted);
-    }
-    const executed = eventOf(decodeLeashEvents(record), "PaymentExecuted");
-    if (!executed) throw new Error(`payment ${record.signature} confirmed without PaymentExecuted`);
-    return this.#result(record.signature, executed, state);
+    return {
+      state,
+      instructions,
+      payInstruction,
+      unitsConsumed: simulation.unitsConsumed,
+      memo,
+      reference,
+      request,
+    };
   }
 
   async #requestApproval(args: PaymentArgs): Promise<PendingRequest> {

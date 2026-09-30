@@ -12,6 +12,7 @@ export {
   type PaymentArgs,
   type PaymentResult,
   type PendingRequest,
+  type PreparedPaymentResult,
   type ReportResult,
 } from "./agent.ts";
 export {

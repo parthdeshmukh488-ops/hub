@@ -18,11 +18,13 @@ import {
   decodeLeashEvents,
   evaluationFailure,
   fetchOpenRequests,
+  LEASH_PROGRAM_ADDRESS,
   LeashAgent,
   LeashNetworkError,
   LeashProgramError,
   NotPairedError,
   TransactionFailedError,
+  UnsupportedPaymentError,
 } from "../src/index.ts";
 import { createTestbed, DEMO_POLICY, type Testbed, USDC } from "../src/testing/index.ts";
 import { agentOf, expectDenied, freezePrincipal, send, wrapChain } from "./helpers.ts";
@@ -777,5 +779,62 @@ describe("edge cases", () => {
     ] as const;
     for (const error of errors) expect(evaluationFailure(error).name).toBe(error);
     expect(() => evaluationFailure("Nope" as never)).toThrow("unknown evaluation error Nope");
+  });
+});
+
+describe("preparePayment (the x402 path)", () => {
+  it("returns a checked pay instruction without sending anything", async () => {
+    const bed = await createTestbed();
+    const { agent } = agentOf(bed);
+    expect(await agent.mint()).toBe(bed.mint);
+    const reference = new Uint8Array(32).fill(3);
+    const prepared = await agent.preparePayment({
+      to: bed.keys.merchant.address,
+      amount: 5n,
+      purpose: "x402",
+      reference,
+    });
+    expect(prepared).toMatchObject({
+      requestNonce: null,
+      payeeLabel: "Research API",
+      purpose: "x402",
+      reference,
+    });
+    expect(prepared.instruction.programAddress).toBe(LEASH_PROGRAM_ADDRESS);
+    expect(prepared.unitsConsumed).toBeGreaterThan(0n);
+    expect(bed.chain.history).toHaveLength(1); // onboarding only: nothing was sent
+    // The instruction pays when someone else sends it.
+    await bed.send(bed.keys.agentKey, [prepared.instruction]);
+    expect(await bed.balanceOf(bed.keys.merchant.address)).toBe(5n);
+  });
+
+  it("uses an approved request and its reference, reports denials, and needs a token account", async () => {
+    const bed = await createTestbed();
+    const { agent } = agentOf(bed);
+    const payment = { to: bed.keys.merchant.address, amount: 2n * USDC, purpose: "x" };
+    const pending = await agent.requestApproval(payment);
+    await approve(bed, pending.address);
+    const [open] = await fetchOpenRequests(bed.chain, bed.accounts.agent);
+    const prepared = await agent.preparePayment({ ...payment, reference: new Uint8Array(32) });
+    expect(prepared.requestNonce).toBe(0n);
+    expect(referenceToHex(prepared.reference)).toBe(open?.reference);
+
+    await expectDenied(
+      agent.preparePayment({
+        to: bed.keys.attacker.address,
+        amount: 1n,
+        purpose: "x",
+        reference: new Uint8Array(32),
+      }),
+      { reason: "payeeNotAllowed", recorded: true, strikes: 1 },
+    );
+    await expect(
+      agent.preparePayment({
+        to: bed.keys.stranger.address,
+        amount: 1n,
+        purpose: "x",
+        reference: new Uint8Array(32),
+      }),
+    ).rejects.toBeInstanceOf(UnsupportedPaymentError);
   });
 });
