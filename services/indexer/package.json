@@ -5,8 +5,28 @@
   "type": "module",
   "description": "Indexer and read API: on-chain events to REST and WebSocket.",
   "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "db:generate": "drizzle-kit generate",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.3",
+    "@leash/contracts": "workspace:*",
+    "@leash/sdk": "workspace:*",
+    "@libsql/client": "0.18.0",
+    "@solana/kit": "8.4.0",
+    "drizzle-orm": "0.45.3",
+    "hono": "4.13.11",
+    "pino": "10.3.1",
+    "ws": "8.22.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/ws": "8.18.2",
+    "drizzle-kit": "0.31.11",
+    "tsx": "4.23.15"
   }
 }

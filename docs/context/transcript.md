@@ -277,6 +277,23 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *Everything stays on the branch (no `main` yet). Claude built WS6 build step 1 in `apps/web`: a Next.js app with a dark-first design system, the core components, a sample-data layer, and read-only overview and agent pages. Tests pass, the production build passes, and screenshots were checked on desktop (dark and light) and at phone width. Details: [docs/workstreams/status/WS6.md](../workstreams/status/WS6.md).*
 
+## Turn 16
+
+**Parth:**
+
+> go with the next step dont see if its small this time ill tell you if i am close to hitting the session limit
+
+*And, while Claude was working:*
+
+> and do one thing if i can recreate main branch from my terminal too then add the main brach here too and merge everything first ill come up with something that will make you a seperte branch next time
+
+*Claude created `main` on GitHub from the session branch (commit `0b4b019`, everything so far). It then built WS4 build step 1 in `services/indexer`:*
+- *a Hono read API with every REST route and the `/v1/stream` WebSocket*
+- *Drizzle + libSQL storage with event-sourced projections*
+- *a paced, loopable replay of the demo storyline*
+
+*Replaying the storyline reproduces the four view fixtures exactly, which the tests check. The storyline lacked two account facts (allowance terms and allowlist entry addresses), so Claude made an additive contract change with an ADR (contracts 1.1.0). Details: [docs/workstreams/status/WS4.md](../workstreams/status/WS4.md).*
+
 ---
 
 ## Attachments
