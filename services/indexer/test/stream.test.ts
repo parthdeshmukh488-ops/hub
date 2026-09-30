@@ -133,7 +133,9 @@ describe("/v1/stream (02-contracts §7.2)", () => {
     // The heartbeat is driven by hand: with a real short interval, a busy machine could delay
     // the polite client's pong past the next beat and drop it too.
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
-    cleanups.push(() => vi.useRealTimers());
+    cleanups.push(() => {
+      vi.useRealTimers();
+    });
     const interval = 20_000;
     const { url } = await start({ pingIntervalMs: interval });
     const silent = await connect(url);
