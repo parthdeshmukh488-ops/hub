@@ -11,9 +11,11 @@ target/
 test-ledger/
 .anchor/
 
-# local chain state and data
+# local chain state and runtime databases (never source: src/**/data stays tracked)
 .localnet.json
-data/
+/data/
+apps/*/data/
+services/*/data/
 *.db
 *.db-journal
 

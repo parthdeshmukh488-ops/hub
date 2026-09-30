@@ -13,11 +13,12 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "check": "turbo run lint typecheck test && pnpm check:root",
-    "check:root": "biome check scripts biome.json package.json turbo.json && tsc -p scripts/tsconfig.json && pnpm check:secrets && pnpm check:env",
+    "check:root": "biome check scripts biome.json package.json turbo.json && tsc -p scripts/tsconfig.json && pnpm check:secrets && pnpm check:env && pnpm check:ignored",
     "check:secrets": "tsx scripts/check-secrets.ts",
     "check:env": "tsx scripts/env-example.ts --check",
     "env:example": "tsx scripts/env-example.ts --write",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "check:ignored": "tsx scripts/check-ignored.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",

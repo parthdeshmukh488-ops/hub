@@ -341,6 +341,14 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *Details: [docs/workstreams/status/WS7.md](../workstreams/status/WS7.md).*
 
+## Turn 21
+
+**Parth:**
+
+> i keep getting mails of run  fail from repo
+
+*CI had failed on every push since WS6 step 1. The root `.gitignore` rule `data/` also matched `apps/web/src/data/`, so six web source files were never committed. Local checks passed and CI could not find the modules. Claude reproduced the failure from a clean clone, narrowed the rule, committed the missing files, and added `pnpm check:ignored` to `pnpm check` so an ignore rule can never hide source files again.*
+
 ---
 
 ## Attachments
