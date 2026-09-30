@@ -40,6 +40,31 @@ describe("fixtures", () => {
     expect(frozen?.type === "AgentFrozen" && frozen.reason).toBe("tripwire");
   });
 
+  it("storyline accounts cover every agent and allowlist entry the events mention", () => {
+    const accounts = storyline.accounts;
+    expect(accounts).toBeDefined();
+    const created = storyline.events.flatMap((e) =>
+      e.type === "AgentCreated" && e.agent ? [e.agent] : [],
+    );
+    expect(accounts?.delegations.map((d) => d.agent).sort()).toEqual([...created].sort());
+    const added = storyline.events.flatMap((e) =>
+      e.type === "PayeeAdded" && e.agent ? [`${e.agent}/${e.payee}`] : [],
+    );
+    expect(accounts?.payeeEntries.map((p) => `${p.agent}/${p.payee}`).sort()).toEqual(added.sort());
+    for (const agent of overview.agents) {
+      const delegation = accounts?.delegations.find((d) => d.agent === agent.address);
+      expect(delegation?.address).toBe(agent.allowance?.delegation);
+      expect(delegation?.kind === "recurring" && delegation.expiresAt).toBe(
+        agent.allowance?.expiresAt,
+      );
+    }
+    expect(accounts?.payeeEntries).toContainEqual({
+      address: detail.payees[0]?.address,
+      agent: detail.agent.address,
+      payee: detail.payees[0]?.payee,
+    });
+  });
+
   it("final state agrees with the storyline", () => {
     const executed = storyline.events.filter((e) => e.type === "PaymentExecuted");
     const total = executed.reduce(

@@ -408,6 +408,8 @@ type Alert = {
 | `INDEXER_BACKFILL_LIMIT` | indexer | `1000` | Signatures fetched at startup |
 | `INDEXER_SOURCE` | indexer | `chain` | `chain`, or `fixtures` to replay `fixtures/demo-storyline.json` without a chain |
 | `INDEXER_POLL_INTERVAL_MS` | indexer | `15000` | Backfill polling interval (covers WebSocket gaps) |
+| `INDEXER_REPLAY_SPEED` | indexer | `1` | Fixture mode: `1` real time, `10` ten times faster, `0` everything at once |
+| `INDEXER_REPLAY_LOOP` | indexer | `true` | Fixture mode: replay the storyline again after it ends |
 | `WEB_ORIGIN` | indexer, facilitator | `http://localhost:3000` | CORS |
 | `FACILITATOR_PORT` | facilitator | `4200` | |
 | `FACILITATOR_FEE_PAYER_KEYPAIR` | facilitator | – | Path to the fee-payer keypair JSON |
@@ -434,6 +436,7 @@ type Alert = {
 ## 14. Fixtures and test vectors
 
 - `fixtures/owner-overview.json` (a `GET /v1/owners/:owner` response), `fixtures/agent-detail.json`, `fixtures/requests.json`, `fixtures/stats-24h.json`, and `fixtures/demo-storyline.json`: the full event sequence of the pitch demo (normal payments, approval, injection, three strikes, tripwire). The UI, indexer and Sentinel are all built against these before the chain is live.
+- Since contracts 1.1.0 the storyline also carries `accounts`: each agent's Subscriptions delegation as created, and the address of each allowlist entry. No event says either, and the indexer needs both to rebuild the views ([ADR](../adr/20260930-ws4-fixture-replay.md)). Replaying the storyline must reproduce the four view fixtures exactly; the indexer's tests check this.
 - `test-vectors/policy.json`:
 
 ```json

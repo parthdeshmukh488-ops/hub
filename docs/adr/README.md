@@ -14,6 +14,7 @@ One decision per file. ADRs are how parallel Claude sessions tell each other wha
 | [20260929-ws0-allowance-expiry-is-inclusive](20260929-ws0-allowance-expiry-is-inclusive.md) | Allowance expiry is inclusive (`now > expiry`), exactly as upstream; clamp ported | Accepted |
 | [20260929-ws0-disabled-limits-are-not-tracked](20260929-ws0-disabled-limits-are-not-tracked.md) | Switched-off limits don't update counters; approved requests still count towards payee spend | Accepted |
 | [20260929-ws0-denial-reporting-policy](20260929-ws0-denial-reporting-policy.md) | Strikes always reported; approvalRequired never; other denials once per reason per minute | Accepted |
+| [20260930-ws4-fixture-replay](20260930-ws4-fixture-replay.md) | The storyline carries the account facts events lack; fixture replay gets speed and loop settings; replayed times follow the replay clock | Proposed (additive) |
 
 ## Naming new ADRs
 

@@ -175,6 +175,48 @@ export const LEASH_EVENT_TYPES = LeashEventSchema.options.map(
 export type LeashEventOf<T extends LeashEventType> = Extract<LeashEvent, { type: T }>;
 
 /**
+ * A Subscriptions delegation as it was created for an agent (the account the events never
+ * describe). Nothing has been pulled yet; the replay applies each `PaymentExecuted` to it.
+ */
+export const StorylineDelegationSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("recurring"),
+    address: AddressSchema,
+    /** The delegatee: the Agent PDA. */
+    agent: AddressSchema,
+    /** The delegator: the owner. */
+    owner: AddressSchema,
+    mint: AddressSchema,
+    amountPerPeriod: AmountStringSchema,
+    periodLengthSecs: z.number().int().positive(),
+    currentPeriodStart: UnixSecondsSchema,
+    expiresAt: UnixSecondsSchema.nullable(),
+  }),
+  z.object({
+    kind: z.literal("fixed"),
+    address: AddressSchema,
+    agent: AddressSchema,
+    owner: AddressSchema,
+    mint: AddressSchema,
+    amount: AmountStringSchema,
+    expiresAt: UnixSecondsSchema.nullable(),
+  }),
+]);
+export type StorylineDelegation = z.infer<typeof StorylineDelegationSchema>;
+
+/**
+ * Account facts a replay needs that no event carries: each agent's delegation, and the address
+ * of each allowlist entry (a PDA the chain source derives, ADR 20260930-ws4-fixture-replay).
+ */
+export const StorylineAccountsSchema = z.object({
+  delegations: z.array(StorylineDelegationSchema),
+  payeeEntries: z.array(
+    z.object({ address: AddressSchema, agent: AddressSchema, payee: AddressSchema }),
+  ),
+});
+export type StorylineAccounts = z.infer<typeof StorylineAccountsSchema>;
+
+/**
  * `fixtures/demo-storyline.json`: the pitch demo as an ordered event stream.
  * The indexer's fixture mode replays it (WS4); Sentinel and the web app are tested with it.
  */
@@ -184,6 +226,8 @@ export const DemoStorylineSchema = z.object({
   cluster: ClusterSchema,
   /** Named addresses used in the storyline (owner, agents, merchant, attacker, …). */
   keys: z.record(z.string(), AddressSchema),
+  /** Since contracts 1.1.0. */
+  accounts: StorylineAccountsSchema.optional(),
   events: z.array(LeashEventSchema).min(1),
 });
 export type DemoStoryline = z.infer<typeof DemoStorylineSchema>;

@@ -22,6 +22,44 @@
     "marketPayeeEntry": "FAY4YS2VnLDYzue4cqt4kaWKisKyZvgdJ3rSC6BAPwcC",
     "marketRequest0": "HEkRQMJUtJ79eLD2wQmgyxYpNCXn2jUsLZi3wZXvEHcP"
   },
+  "accounts": {
+    "delegations": [
+      {
+        "kind": "recurring",
+        "address": "75W4PQphnLrLi986nhUWMrn8F3mgLV3FWAD7nGicbNM3",
+        "agent": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+        "owner": "H1Gk6MBearXpAg4aMH4oNJ3suHrseqYkgBu7iuxmJe3N",
+        "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790935220,
+        "expiresAt": 1793527220
+      },
+      {
+        "kind": "recurring",
+        "address": "9SqnZ18YnzGL9GhkNiQZijTkwFiuSvQV7PfQQDAesjuJ",
+        "agent": "FpGkpKHmiLHhgSnSbd9AmZwoK1GvnXWyx2WWcVctuGYo",
+        "owner": "H1Gk6MBearXpAg4aMH4oNJ3suHrseqYkgBu7iuxmJe3N",
+        "mint": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+        "amountPerPeriod": "5000000",
+        "periodLengthSecs": 86400,
+        "currentPeriodStart": 1790935260,
+        "expiresAt": 1793527260
+      }
+    ],
+    "payeeEntries": [
+      {
+        "address": "B6cF92ME4ubVS8oidbd3omJM5eaaEKsn9WA2U3qLFvdB",
+        "agent": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+        "payee": "4gMnh13Pfx3twF8FpVp7bbGiZD9J4wyXWuCdKZnDVUT9"
+      },
+      {
+        "address": "FAY4YS2VnLDYzue4cqt4kaWKisKyZvgdJ3rSC6BAPwcC",
+        "agent": "FpGkpKHmiLHhgSnSbd9AmZwoK1GvnXWyx2WWcVctuGYo",
+        "payee": "4gMnh13Pfx3twF8FpVp7bbGiZD9J4wyXWuCdKZnDVUT9"
+      }
+    ]
+  },
   "events": [
     {
       "id": "279KF7V3TcxejSQhDPfWykudiR8dbb4WTemFeNfZHjkSoxnTUZghoGBviAPzjzVukGyuFDo7SrA8NcKLCsCF8urf:0",

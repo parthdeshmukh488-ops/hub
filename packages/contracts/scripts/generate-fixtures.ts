@@ -332,6 +332,36 @@ write("demo-storyline.json", DemoStorylineSchema, {
     "The pitch demo: a research agent pays per call, gets one payment approved, is manipulated by a poisoned buying guide into three blocked payments to an unknown wallet, and freezes itself. A second agent waits for approval.",
   cluster: "devnet",
   keys,
+  accounts: {
+    delegations: [
+      {
+        kind: "recurring",
+        address: keys.researchDelegation,
+        agent: A,
+        owner: keys.owner,
+        mint: keys.mint,
+        amountPerPeriod: "5000000",
+        periodLengthSecs: DAY,
+        currentPeriodStart: T0 + 20,
+        expiresAt: T0 + 20 + 30 * DAY,
+      },
+      {
+        kind: "recurring",
+        address: keys.marketDelegation,
+        agent: B,
+        owner: keys.owner,
+        mint: keys.mint,
+        amountPerPeriod: "5000000",
+        periodLengthSecs: DAY,
+        currentPeriodStart: T0 + 60,
+        expiresAt: T0 + 60 + 30 * DAY,
+      },
+    ],
+    payeeEntries: [
+      { address: keys.researchPayeeEntry, agent: A, payee: keys.merchant },
+      { address: keys.marketPayeeEntry, agent: B, payee: keys.merchant },
+    ],
+  },
   events,
 });
 write("owner-overview.json", OwnerOverviewResponseSchema, {

@@ -246,6 +246,19 @@ export const ENV_VARS: readonly EnvVarSpec[] = [
     description: "Backfill polling interval (covers WebSocket gaps)",
   },
   {
+    name: "INDEXER_REPLAY_SPEED",
+    usedBy: ["indexer"],
+    example: "1",
+    description:
+      "Fixture replay speed: 1 = real time, 10 = ten times faster, 0 = everything at once",
+  },
+  {
+    name: "INDEXER_REPLAY_LOOP",
+    usedBy: ["indexer"],
+    example: "true",
+    description: "Replay the fixture storyline again after it ends",
+  },
+  {
     name: "WEB_ORIGIN",
     usedBy: ["indexer", "facilitator"],
     example: "http://localhost:3000",
