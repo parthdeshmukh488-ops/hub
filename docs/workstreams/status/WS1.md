@@ -66,7 +66,7 @@ Each item is proven by the named LiteSVM tests:
 ## Open items
 
 - `pay` runs in LiteSVM (Agave 4.3) without stack errors, and `cargo build-sbf` reports no stack-offset warnings.
-- Devnet (RPC check, 2026-09-30): the canonical Subscriptions program is deployed, and the USDC mint `4zMMC9…DncDU` exists. Devnet runs a newer Subscriptions build than the tag, but the differences only touch mints with a transfer hook (see WS0's status).
+- Devnet runs a newer Subscriptions build than the tag (133,280 bytes, sha256 `39a71fa3…`). On 2026-09-30 the whole suite (128 tests, including all 60 vectors) also passed with that exact binary, dumped from devnet and loaded in LiteSVM in place of the tag build. Leash is proven against both the audited tag and the program the demo runs on. Re-run after upstream upgrades: `solana program dump De1eg…avR44 subscriptions.so --url devnet`, swap it into the WSL mirror only, then `cargo test`.
 
 ## Questions for other workstreams
 
