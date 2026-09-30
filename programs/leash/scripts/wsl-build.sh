@@ -24,7 +24,9 @@ export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-4}"
 
 sync_sources() {
   mkdir -p "$BUILD_DIR"
-  rsync -a --delete \
+  # Compare by content, and give changed files a fresh mtime (no -t): cargo rebuilds from mtimes,
+  # and a Windows drive seen from WSL can report stale contents right after a write.
+  rsync -rlpD --checksum --delete \
     --exclude target --exclude node_modules --exclude .git --exclude .next --exclude .turbo \
     --exclude coverage --exclude .anchor --exclude test-ledger --exclude /data \
     "$REPO/" "$BUILD_DIR/"

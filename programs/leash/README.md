@@ -10,9 +10,11 @@ Owned by **WS1**. Specification: [01-onchain-program.md](../../docs/architecture
 | --- | --- |
 | Interface: 4 accounts, 5 enums, 18 instructions, 18 events, 32 errors | Done. IDL committed at [`packages/contracts/idl/leash.json`](../../packages/contracts/idl/leash.json), checked in CI |
 | Policy evaluation (01 §7) | Done: pure Rust, 60/60 shared vectors |
-| Instruction handlers | Written and compiling. The pure parts (evaluation, windows, strikes, counters, policy rules, delegation layout, CPI bytes) are unit-tested on the host. |
+| Instruction handlers | Done. The pure parts are unit-tested on the host, and every instruction runs in the LiteSVM suites below. |
 | Program ID and `leash.so` | Done on the laptop: `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu` ([ADR](../../docs/adr/20260930-ws1-program-id.md)); binary at [`artifacts/programs/leash.so`](../../artifacts/programs/CHECKSUMS) |
-| LiteSVM suites (01 §11), `CU.md`, devnet | Need a machine with the Solana toolchain ([ADR-0007](../../docs/adr/0007-environments-and-artifacts.md)) |
+| LiteSVM suites (01 §11) | Done: `leash.so` and the audited `subscriptions.so` in-process, 66 tests (admin, pay, report, requests, invariants I1–I5, account substitution, the x402 shape, compute units) |
+| Compute units | [`CU.md`](CU.md): `pay` stays far under the 100k budget |
+| Devnet deployment | Next; Parth approves it |
 
 The program ID is `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu`. Its keypair lives in `.keys/leash-program.json`, which is never committed; Parth keeps a backup.
 
@@ -21,12 +23,15 @@ The program ID is `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu`. Its keypair li
 Any machine with Rust (the toolchain comes from `rust-toolchain.toml`), from the repo root:
 
 ```bash
-cargo test                                       # 61 tests: unit, the 60 policy vectors, evaluator invariants
+cargo test                                       # host tests, the 60 policy vectors and the LiteSVM suites
+cargo test -p leash --test compute_units -- --nocapture   # print the CU.md table again
 cargo clippy --all-targets -- -D warnings
 cargo fmt --all -- --check
 cargo run -p leash --example idl -- --write      # regenerate packages/contracts/idl/leash.json
 cargo run -p leash --example idl -- --check      # CI: fails if the committed IDL is stale
 ```
+
+The LiteSVM suites load the committed `artifacts/programs/leash.so` and `subscriptions.so`, so they run anywhere Rust runs, cloud sessions included; rebuild `leash.so` after a program change or they test the old binary. LiteSVM 0.17 is why the host toolchain is Rust 1.98.1 ([ADR-0004](../../docs/adr/0004-anchor-and-litesvm.md)).
 
 The `idl` example calls Anchor's IDL builder (`anchor-lang-idl` 0.1.4) with the same options as `anchor idl build`, so its output is byte for byte what `anchor build` writes to `target/idl/leash.json`. It needs neither the Anchor CLI nor the Solana toolchain.
 
@@ -53,13 +58,22 @@ After a program change, commit `artifacts/programs/leash.so`, its provenance and
 | `src/events.rs`, `src/errors.rs`, `src/constants.rs` | Events (§9), `LeashError` (§10, codes 6000–6031), constants and seeds (§3) |
 | `tests/vectors.rs` | Every case of `packages/contracts/test-vectors/policy.json` against `evaluate`, outcome and effects |
 | `tests/evaluate.rs` | The branches the vectors don't reach, and invariants I1–I3 over random states (the same cases as the SDK's tests) |
+| `tests/common/mod.rs` | The LiteSVM harness: both binaries, a USDC-like mint, an owner with a real Subscription Authority and delegation to the Agent PDA, deterministic keys, event and error helpers |
+| `tests/pay.rs` | `pay`: the happy path, every denial reachable from a live state (each one moves nothing), windows, counters, both allowance kinds |
+| `tests/admin.rs` | The authorization matrix, idempotent switches, every validation rule of the owner instructions |
+| `tests/report.rs` | Strikes and non-strikes, the tripwire freeze, window roll-over, `AttemptWouldSucceed` |
+| `tests/requests.rs` | Create, approve, reject, expire, pay with an approved request; every check and mismatch |
+| `tests/invariants.rs` | I1 (random payment sequences), I2, I3, I4, I5 on the real program |
+| `tests/substitution.rs` | Every account slot of `pay` fed a wrong-but-plausible account (T6) |
+| `tests/x402_shape.rs` | `[CU limit, CU price, pay, Memo]` with a third-party fee payer: one `TransferChecked` |
+| `tests/compute_units.rs` | Compute units of every instruction ([`CU.md`](CU.md)) |
 | `examples/idl.rs` | IDL generation and the CI drift check |
 | `scripts/wsl-build.sh` | `anchor build` with the Solana toolchain, copying `leash.so`, the IDL and `Cargo.lock` back into the repository |
 
 ## How `pay` decides
 
 1. **Account checks** (errors, never denials):
-   - Anchor constraints: signer, seeds with the stored bumps, `has_one`, token program and mint.
+   - Anchor constraints: signer, seeds with the stored bumps, `has_one`, token program and mint. Anchor 1.2 also rejects a writable account passed twice (`ConstraintDuplicateMutableAccount`, 2040), so a destination equal to the source fails there first.
    - Then `check_payment_accounts`:
      - the delegation is a version-1 Subscriptions account from this owner to this Agent PDA for this mint;
      - both token accounts hold the mint;

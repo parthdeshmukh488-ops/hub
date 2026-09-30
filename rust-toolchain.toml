@@ -1,6 +1,7 @@
-# Host toolchain for tests, clippy and IDL generation. SBF builds (`anchor build`,
+# Host toolchain for tests, clippy and IDL generation. At least 1.97.1: LiteSVM 0.17 (the Agave
+# 4.3 runtime that runs the SBPF v3 binaries Anchor 1.2 builds) needs it. SBF builds (`anchor build`,
 # `cargo build-sbf`) use the Solana platform tools' own compiler instead.
 [toolchain]
-channel = "1.94.1"
+channel = "1.98.1"
 components = ["rustfmt", "clippy"]
 profile = "minimal"

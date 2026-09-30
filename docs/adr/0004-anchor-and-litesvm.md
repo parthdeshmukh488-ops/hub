@@ -25,8 +25,8 @@ Pinned versions (WS1, [ADR 20260930-ws1-program-interface](20260930-ws1-program-
 | --- | --- |
 | Anchor (Rust crates `anchor-lang`, `anchor-spl`; CLI) | 1.2.0 (`anchor-lang-idl` 0.1.4 builds the IDL) |
 | Solana / Agave CLI | 4.1.2 (`cargo-build-sbf` 4.1.0, platform-tools v1.54); first SBF build 2026-09-30 |
-| Rust toolchain (host: tests, clippy, IDL) | 1.94.1 (`rust-toolchain.toml`, CI) |
-| litesvm | _set with the first LiteSVM suite_ |
+| Rust toolchain (host: tests, clippy, IDL) | 1.98.1 (`rust-toolchain.toml`, CI), since the LiteSVM suites (2026-09-30); it was 1.94.1 before |
+| litesvm | 0.17.0 (the Agave 4.3 runtime, which loads the SBPF v3 binaries Anchor 1.2 builds; needs rustc ≥ 1.97.1) |
 
 ## Consequences
 

@@ -2,76 +2,65 @@
 
 - Session branches: `claude/whu-hackathon-ideas-lz8trx` (cloud session: no Solana toolchain) and `main` (laptop session, with the Solana toolchain)
 - Last updated: 2026-09-30
-- Current build step: steps 1 and 3 done; program ID and `leash.so` done on the laptop; handlers for steps 2 and 4–6 written, their LiteSVM suites are next
+- Current build step: steps 1–6 done; step 7 done except the devnet deployment
 
 ## Done
 
-- **Step 1, interface.**
-  - Anchor 1.2.0 workspace: `Cargo.toml`, `Anchor.toml`, `rust-toolchain.toml` (Rust 1.94.1), `programs/leash`.
-  - Contents: 4 accounts, 5 enums, 18 instructions with their `Accounts` structs, 18 events (`emit_cpi!`), 32 errors (6000–6031).
-  - IDL committed at `packages/contracts/idl/leash.json`.
-    - `cargo run -p leash --example idl -- --check` proves it matches the source; CI runs it.
-    - `packages/contracts/test/idl.test.ts` (31 tests) checks it against the contracts: errors equal `LEASH_ERRORS`, program ID, constants and seeds, `pay`'s account order and flags, enum variant order, account and event fields against the views and JSON events.
-  - Program ID is still the placeholder.
-- **Step 3, pure evaluator.**
-  - `policy/evaluate.rs` implements 01 §7.1 on plain data.
-  - `policy/allowance.rs` is a line-for-line port of upstream `validate_recurring_transfer` (tag `program-v0.5.0`, commit `364a4197`), including the expiry clamp, with upstream's own unit tests.
-  - `tests/vectors.rs`: 60/60 shared vectors, outcomes and effects. A deliberately broken evaluator fails 6 of them.
-  - `tests/evaluate.rs`: the SDK's branch tests (the overflows, invalid periods at step 10, an over-pulled period) and the invariants I1–I3 over 20,000 random states each. A planted balance bug fails I1.
-  - Coverage (`cargo llvm-cov`) of the policy engine, the state transitions and the delegation layout: every line, except mapping upstream's arithmetic errors, which provably can't happen.
-- **Handlers for steps 2 and 4–6**, all written and compiling:
-  - admin: principal, agents, payees, freeze and unfreeze, approve and reject;
-  - `pay` with the Subscriptions CPI;
-  - `report_denied_attempt` with the tripwire;
-  - `request_payment` and `expire_request`.
-  - Their state transitions are unit-tested on the host: strikes and tripwire, windows, counters, policy rules, request checks, the delegation layout, and the CPI bytes and account order.
-- **Laptop, 2026-09-30: program ID and `leash.so`.**
-  - Agave 4.1.2 and Anchor CLI 1.2.0 installed; versions recorded in ADR-0004.
-  - Program ID `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu` ([ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md), contracts 1.4.0) in `declare_id!`, `Anchor.toml`, the IDL's `address` and `PROGRAM_IDS.leash`. `anchor keys sync` confirms them against `.keys/leash-program.json` (never committed; Parth has a backup).
-  - `anchor build` produced `artifacts/programs/leash.so` (442,776 bytes), with its provenance and sha256 in `artifacts/programs/CHECKSUMS`. Its `target/idl/leash.json` is byte for byte the committed IDL.
-  - `programs/leash/scripts/wsl-build.sh build|check` runs both on WSL, Linux or macOS.
-- Check: `cargo test` passes (61 tests: 45 unit, 14 evaluator, 2 vector suites), as do `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check`. CI runs them all, plus the IDL check.
-- Decisions: [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md), contracts 1.3.0.
-  - Enum encoding: `DenialReason` code n is stored as n − 1.
-  - Extra account checks: owner's ATA as source, the Subscription Authority named by the delegation, `InvalidDestination`.
-  - Invalid recurring periods are rejected at step 10, as in the SDK.
-  - Idempotent switches emit only on change.
-  - `PaymentDenied.strikes` semantics.
-  - Answers to 01 §13.
-- Messages handled: through `20260929-1815-from-ws2-to-ws1-parity-edge-cases.md` (answered in `20260930-1000-from-ws1-to-ws2-idl-ready.md`).
+- **Step 1, interface** (cloud).
+  - Anchor 1.2.0 workspace and `programs/leash`: 4 accounts, 5 enums, 18 instructions, 18 events (`emit_cpi!`), 32 errors (6000–6031).
+  - IDL committed at `packages/contracts/idl/leash.json`. `cargo run -p leash --example idl -- --check` proves it matches the source (CI runs it), and `packages/contracts/test/idl.test.ts` checks it against the contracts.
+  - Program ID `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu` (laptop; [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md), contracts 1.4.0). The keypair is `.keys/leash-program.json`: never committed, and Parth has a backup.
+- **Step 3, pure evaluator** (cloud).
+  - `policy/evaluate.rs` implements 01 §7.1; `policy/allowance.rs` ports upstream `validate_recurring_transfer` (tag `program-v0.5.0`) line for line.
+  - `tests/vectors.rs` passes all 60 shared vectors. `tests/evaluate.rs` covers the SDK's branch tests and I1–I3 over random states.
+- **Steps 2 and 4–6, handlers** (cloud), **proven on the real binaries by the LiteSVM suites** (laptop, 2026-09-30). The suites load `artifacts/programs/leash.so` and the audited `subscriptions.so` in LiteSVM 0.17:
 
-## Next (needs a machine with the Solana toolchain)
+  | Suite | Tests | What it proves |
+  | --- | ---: | --- |
+  | `pay` | 16 | The happy path through the real Subscriptions CPI; every denial reachable from a live state fails with its `Denied*` error and moves nothing; windows, counters, fixed and recurring allowances |
+  | `admin` | 13 | The authorization matrix (owner ✓, guardian only freezes and rejects, anyone else ✗), idempotent switches that emit only on change, every validation rule |
+  | `report` | 10 | Strike and non-strike reasons, the tripwire freeze (`by` = agent key), window roll-over, `AttemptWouldSucceed`, reports never move money |
+  | `requests` | 8 | Create, approve, reject, expire, pay once with an approved request; every check in order, every mismatch, the 8-request cap |
+  | `invariants` | 7 | I1 over random payment sequences (recurring and fixed allowances), I2 with every optional-account combination, I3, I4, I5 |
+  | `substitution` | 9 | Every account slot of `pay` fed a wrong-but-plausible account fails and moves nothing (T6) |
+  | `x402_shape` | 2 | `[CU limit, CU price, pay, Memo]` with a third-party fee payer that appears in no instruction: exactly one `TransferChecked` |
+  | `vectors_onchain` | 1 (60 cases) | All 60 shared policy vectors on the real program: outcome, error code and every listed effect |
+  | `compute_units` | 1 | [`CU.md`](../../../programs/leash/CU.md): `pay` uses 31.6k–33.2k of its 100k budget |
 
-1. `subscriptions.so` from WS0 step 4 (tag `program-v0.5.0`). Then the LiteSVM suites of the brief, failure cases first:
-   - `admin`, `pay`, `report`, `requests`, `invariants` (I1 property test), `substitution`, `x402-shape`;
-   - plus a subset of the vectors on the real program;
-   - measure compute units into `CU.md` (`pay` without a request must stay under 100k).
-   - LiteSVM 0.17 (the Agave 4.x runtime that loads Anchor 1.2's SBPF v3 binaries) needs rustc ≥ 1.97.1, so the suites bring a host toolchain bump from 1.94.1 (`rust-toolchain.toml`, CI, ADR-0004).
-2. Hardening: tick the checklist below with tests; deploy to devnet (Parth approves the deployment).
+- **Build and artifacts** (laptop).
+  - `anchor build` with Anchor CLI 1.2.0 and Agave 4.1.2 produces `artifacts/programs/leash.so`. `artifacts/programs/CHECKSUMS` records its sha256 and exact source (`sha256sum -c CHECKSUMS` verifies).
+  - `anchor build`'s IDL is byte for byte the committed one.
+  - `programs/leash/scripts/wsl-build.sh build|check` runs everything on WSL, Linux or macOS.
+- **Toolchain:** host Rust 1.98.1, because LiteSVM 0.17 (Agave 4.3) needs ≥ 1.97.1 ([ADR-0004](../../adr/0004-anchor-and-litesvm.md)); CI pins the same.
+- **Check:** `cargo test` passes 128 tests (45 unit, 14 evaluator, 2 host vector suites, 66 LiteSVM, and the on-chain vector run), as do `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check` and the IDL drift check.
+- **Decisions:** [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md) (contracts 1.3.0) and [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md) (contracts 1.4.0).
+- **Found while testing:** Anchor 1.2 rejects a writable account passed twice with `ConstraintDuplicateMutableAccount` (2040) before any handler runs. So `pay` with destination = source fails with 2040, not `InvalidDestination`; `report_denied_attempt` (read-only token accounts) still returns `InvalidDestination`. No contract change: it is an extra rejection, and the SDK should treat 2040 as a client bug like the other account errors.
+- Messages handled: through `20260929-1815-from-ws2-to-ws1-parity-edge-cases.md`.
+
+## Next
+
+1. Devnet deployment of `leash.so` at the program ID; Parth approves it. It needs a funded deployer key (the upgrade authority, kept outside the repo) with a few devnet SOL.
+2. Keep `leash.so`, `CHECKSUMS` and the IDL in step with every program change (rebuild on the laptop).
 
 ## Security checklist (03-security §4)
 
-Written in code, **not yet proven by LiteSVM tests**:
+Each item is proven by the named LiteSVM tests:
 
-- [ ] Every signer is checked. Agent key: `has_one` and seeds. Owner: `has_one` and seeds. Guardian: `is_owner_or_guardian`.
-- [ ] Every PDA is verified with its stored canonical bump. Payee entries and requests passed to `pay` are Leash-owned accounts with a discriminator; `evaluate` checks their `agent` and `payee` fields, and only `init` at the canonical seeds creates them.
-- [ ] Foreign account owners:
-  - token accounts and mint: `InterfaceAccount`;
-  - delegation: Subscriptions;
-  - Subscription Authority: Subscriptions, and named by the delegation.
-- [ ] CPI target is the Subscriptions constant; its event authority is a derived constant.
-- [ ] All arithmetic is `checked_*`, and `saturating_*` only where the spec says (strikes, upstream's elapsed time).
-- [ ] Closed accounts: Anchor `close` for agents, payees and rejected or expired requests; `AccountsClose::close` for requests consumed by `pay`.
-- [ ] Every `UncheckedAccount` has a `CHECK:` comment naming its checks.
-- [ ] Optional accounts: a `payee_entry` that doesn't match is "not allowlisted" (a denial, as the vectors require); `request` and `request_rent_receiver` come together or not at all.
-- [ ] `pay` has no path that returns `Ok` without the CPI.
-- [ ] `pay`'s compute budget measured (`CU.md`).
+- [x] Every signer is checked: agent key (`has_one` + seeds), owner (`has_one` + seeds), guardian (`is_owner_or_guardian`). Tests: `admin` authorization matrix, `substitution::signer_principal_and_agent_cannot_be_swapped`, `report::only_the_agent_key_can_report`.
+- [x] Every PDA is verified with its stored canonical bump; only `init` at the canonical seeds creates entries and requests. Tests: `substitution` (principal and agent swaps fail the seeds), `admin` (a payee can't be added twice).
+- [x] Foreign account owners: token accounts and mint through `InterfaceAccount`; delegation and Subscription Authority owned by Subscriptions and named by each other. Tests: `substitution::the_delegation_must_be_this_owners_to_this_agent`, `::the_subscription_authority_must_be_the_one_the_delegation_names`, `::mint_token_program_and_program_addresses_are_fixed`.
+- [x] The CPI target is the Subscriptions constant, and its event authority a derived constant. Test: `substitution::mint_token_program_and_program_addresses_are_fixed`.
+- [x] All arithmetic is `checked_*`; `saturating_*` only where the spec says. Tests: the host overflow tests in `tests/evaluate.rs` and the state unit tests.
+- [x] Closed accounts: lamports go back and the account is gone; there is no re-initialization path. Tests: `admin::removing_the_last_payee_refunds_the_rent_and_then_the_agent_can_close`, `requests` (rejected, expired and consumed requests close, and a consumed request can't pay twice).
+- [x] Every `UncheckedAccount` has a `CHECK:` comment naming its checks (Anchor's build safety check enforces it).
+- [x] Optional accounts: an entry that doesn't match is "not allowlisted", and `request` and `request_rent_receiver` come together. Tests: `invariants::i2_…whatever_accounts_are_passed`, `requests::a_request_pays_only_the_exact_approved_payment`, `vectors_onchain`.
+- [x] `pay` never returns `Ok` without the transfer. Tests: every `pay` denial asserts nothing moved; `invariants::i5` asserts one `TransferChecked` per successful payment.
+- [x] `pay`'s compute budget is measured ([`CU.md`](../../../programs/leash/CU.md)).
 
 ## Open items
 
-- Stack usage of `pay` on SBF has not been measured. If LiteSVM reports a stack frame violation, box `EvalInput` or split the handler.
-- `artifacts/programs/subscriptions.so` comes with WS0 step 4.
-- Devnet, checked by RPC on 2026-09-30: the canonical Subscriptions program is deployed and executable, and the USDC mint `4zMMC9…DncDU` exists (6 decimals, SPL Token). WS0's `devnet-check` script will repeat the check.
+- `pay` runs in LiteSVM (Agave 4.3) without stack errors, and `cargo build-sbf` reports no stack-offset warnings.
+- Devnet (RPC check, 2026-09-30): the canonical Subscriptions program is deployed, and the USDC mint `4zMMC9…DncDU` exists. Devnet runs a newer Subscriptions build than the tag, but the differences only touch mints with a transfer hook (see WS0's status).
 
 ## Questions for other workstreams
 
