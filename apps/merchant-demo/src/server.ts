@@ -1,5 +1,7 @@
+import { formatUsdc } from "@leash/contracts";
+import { type LeashMerchantOptions, leashMerchant, type PaidRoute } from "@leash/x402/merchant";
 import { type Context, Hono, type MiddlewareHandler } from "hono";
-import { catalogEntries, type PayTo, ROUTES, type RouteId } from "./catalog.ts";
+import { catalogEntries, type PayTo, ROUTES, type RouteSpec } from "./catalog.ts";
 import { type Content, searchResearch } from "./content.ts";
 import {
   DEFAULT_VARIANT,
@@ -12,29 +14,60 @@ import { labEntries, labIndexHtml } from "./lab/lab-index.ts";
 export type AppConfig = {
   wallets: Record<PayTo, string>;
   payments: "on" | "off";
+  /** Where payments go through when `payments` is "on" (02-contracts §9). */
+  x402?: {
+    /** The facilitator's URL, or a client object (tests use an in-process one). */
+    facilitator: LeashMerchantOptions["facilitator"];
+    /** CAIP-2 network of the cluster. */
+    network: LeashMerchantOptions["network"];
+    /** The cluster's USDC mint. */
+    asset: string;
+  };
 };
 
 type ErrorCode = "NOT_FOUND" | "BAD_REQUEST" | "INTERNAL";
 const error = (c: Context, status: 400 | 404 | 500, code: ErrorCode, message: string) =>
   c.json({ error: { code, message } }, status);
 
+/** The paid routes as x402 routes: `"GET /path"` → price and payee, straight from the catalog. */
+export function paidRoutes(wallets: Record<PayTo, string>): Record<string, PaidRoute> {
+  return Object.fromEntries(
+    Object.values(ROUTES as Record<string, RouteSpec>)
+      .filter((route) => route.price !== null && route.payTo !== null)
+      .map((route) => [
+        `GET ${route.path.split("?")[0]}`,
+        {
+          price: formatUsdc(route.price as bigint),
+          payTo: wallets[route.payTo as PayTo],
+          description: route.description,
+        },
+      ]),
+  );
+}
+
 /**
- * The paywall hook of a paid route. Build step 2 puts the x402 challenge here (WS3's merchant
- * helper); with payments off every route is served for free.
+ * The paywall of the paid routes: the official x402 middleware through WS3's merchant helper. A
+ * payment settles before the handler's response goes out. With payments off, every route is free.
  */
-function paywall(route: RouteId, config: AppConfig): MiddlewareHandler {
-  if (config.payments === "on") {
-    throw new Error(
-      `Paywalls arrive in WS8 build step 2 (route ${ROUTES[route].path}). Set MERCHANT_PAYMENTS=off.`,
-    );
+function paywall(config: AppConfig): MiddlewareHandler {
+  if (config.payments === "off") {
+    return async (_c, next) => {
+      await next();
+    };
   }
-  return async (_c, next) => {
-    await next();
-  };
+  if (!config.x402) throw new Error("MERCHANT_PAYMENTS=on needs a facilitator, network and mint");
+  return leashMerchant({
+    payTo: config.wallets.merchant,
+    facilitator: config.x402.facilitator,
+    network: config.x402.network,
+    asset: config.x402.asset,
+    routes: paidRoutes(config.wallets),
+  });
 }
 
 export function createApp(config: AppConfig, content: Content): Hono {
   const app = new Hono();
+  app.use(paywall(config));
   const research = (query: string) => ({
     topic: content.research.topic,
     query,
@@ -52,11 +85,9 @@ export function createApp(config: AppConfig, content: Content): Hono {
     }),
   );
 
-  app.get("/api/research", paywall("research", config), (c) =>
-    c.json(research(c.req.query("q") ?? "")),
-  );
+  app.get("/api/research", (c) => c.json(research(c.req.query("q") ?? "")));
 
-  app.get("/api/market/:symbol", paywall("market", config), (c) => {
+  app.get("/api/market/:symbol", (c) => {
     const symbol = c.req.param("symbol").toUpperCase();
     const entry = content.market.symbols.find((s) => s.symbol === symbol);
     if (!entry) {
@@ -66,7 +97,7 @@ export function createApp(config: AppConfig, content: Content): Hono {
     return c.json({ ...entry, currency: content.market.currency, asOf: content.market.asOf });
   });
 
-  app.get("/api/reports/premium", paywall("premium", config), (c) =>
+  app.get("/api/reports/premium", (c) =>
     c.body(content.premiumReport, 200, { "Content-Type": "text/markdown; charset=utf-8" }),
   );
 
@@ -95,15 +126,13 @@ export function createApp(config: AppConfig, content: Content): Hono {
     return c.body(guide.body, 200, { "Content-Type": guide.contentType });
   });
 
-  app.get("/lab/unlock", paywall("unlock", config), (c) =>
+  app.get("/lab/unlock", (c) =>
     c.json({ status: "unlocked", message: "Thank you for supporting the author." }),
   );
 
-  app.get("/lab/research-premium", paywall("researchPremium", config), (c) =>
-    c.json(research(c.req.query("q") ?? "")),
-  );
+  app.get("/lab/research-premium", (c) => c.json(research(c.req.query("q") ?? "")));
 
-  app.get("/lab/loop", paywall("loop", config), (c) => {
+  app.get("/lab/loop", (c) => {
     const page = Number(c.req.query("page") ?? "1");
     if (!Number.isInteger(page) || page < 1 || page > 1_000_000) {
       return error(c, 400, "BAD_REQUEST", "page must be a whole number from 1");

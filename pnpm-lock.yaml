@@ -43,6 +43,9 @@ importers:
       '@leash/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@leash/x402':
+        specifier: workspace:*
+        version: link:../../packages/x402
       hono:
         specifier: 4.13.11
         version: 4.13.11
@@ -56,6 +59,12 @@ importers:
       '@leash/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      '@x402/core':
+        specifier: 2.27.0
+        version: 2.27.0
+      litesvm:
+        specifier: 1.5.0
+        version: 1.5.0(typescript@6.0.3)
       tsx:
         specifier: 4.23.15
         version: 4.23.15

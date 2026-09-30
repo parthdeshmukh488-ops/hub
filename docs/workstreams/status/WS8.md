@@ -2,7 +2,7 @@
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-09-30
-- Current build step: 1 (content and catalog) done
+- Current build step: 1 (content and catalog) and 2 (paywalls) done
 - Messages handled: through `20260929-1600-from-architect-to-ws8-start-here.md`
 
 ## Plan for build step 1 (as executed)
@@ -19,9 +19,23 @@ Hono service with payments off; every route of the brief with its final content;
 - **18 tests.** They include an outcome check: every paid route run through the SDK's evaluator under the research-assistant preset gives exactly the storyline's result (allowed, approval, payee not allowed, exceeds limit, rate limit).
 - **Content choices:** fictional brands and retailers, so no false claims about real products; accurate general advice (EU pedelec rules, batteries, brakes, costs).
 
+- **Build step 2, paywalls (2026-09-30).**
+  - `MERCHANT_PAYMENTS=on` puts one `leashMerchant` middleware (WS3, the official `@x402/hono` middleware) in front of every paid route.
+  - Prices and payees come from `src/catalog.ts` (`paidRoutes`). `/lab/unlock` pays the attacker; `@leash/x402/merchant` gained a per-route `payTo` for that.
+  - `main.ts` takes the facilitator URL, the cluster's network and the USDC mint (`LEASH_USDC_MINT` on localnet).
+  - 4 new tests on the real program in LiteSVM, through the official facilitator and a real Leash agent (`createLeashFetch`):
+    - the 402 challenge;
+    - paid research and market data;
+    - free routes stay free;
+    - a failed handler (unknown symbol) is never charged;
+    - the lab's unlock blocked as `payeeNotAllowed` (strike 1);
+    - the overpriced route blocked as `exceedsPaymentLimit` (strike 2);
+    - the premium report needs approval (not a strike).
+  - 22 tests.
+
 ## Next
 
-- Step 2, paywalls: x402 on the paid routes through WS3's merchant helper (the `paywall()` hook in `src/server.ts` is where it goes).
+- Laptop: run it with payments on against the facilitator on localnet, then devnet (queue item 4).
 - Step 4: tune content with WS7 and WS9 once the agent runs against it.
 
 ## Open items

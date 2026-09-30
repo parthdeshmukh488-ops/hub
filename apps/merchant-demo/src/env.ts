@@ -9,8 +9,10 @@ const EnvSchema = z.object({
   /** Receives the merchant routes' payments. Unset: the demo storyline's merchant. */
   MERCHANT_PAY_TO: AddressSchema.optional(),
   MERCHANT_FACILITATOR_URL: z.url().default("http://localhost:4200"),
-  // Paywalls arrive in build step 2 with WS3's merchant helper; until then routes are free.
+  /** "on": paid routes answer 402 and are paid over x402 through the facilitator. */
   MERCHANT_PAYMENTS: z.enum(["on", "off"]).default("off"),
+  /** The USDC mint prices are paid in. Required on localnet (`.localnet.json`'s `usdcMint`). */
+  LEASH_USDC_MINT: AddressSchema.optional(),
   /** Where the lab's attacks try to send money. Unset: the demo storyline's attacker. */
   LAB_ATTACKER_WALLET: AddressSchema.optional(),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),

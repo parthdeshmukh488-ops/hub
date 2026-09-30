@@ -165,10 +165,12 @@ describe("markdown rendering", () => {
 });
 
 describe("configuration", () => {
-  it("defaults to port 4300 with payments off, and refuses payments until step 2", () => {
+  it("defaults to port 4300 with payments off, and needs the x402 setup to turn them on", () => {
     expect(parseEnv({})).toMatchObject({ MERCHANT_PORT: 4300, MERCHANT_PAYMENTS: "off" });
     expect(() => parseEnv({ MERCHANT_PAY_TO: "not-a-wallet" })).toThrow(/MERCHANT_PAY_TO/);
-    expect(() => createApp({ wallets, payments: "on" }, content)).toThrow(/step 2/);
+    expect(() => createApp({ wallets, payments: "on" }, content)).toThrow(
+      /needs a facilitator, network and mint/,
+    );
     expect(app).toBeDefined();
   });
 });

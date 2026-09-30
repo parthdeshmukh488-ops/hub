@@ -12,6 +12,8 @@ import type { MiddlewareHandler } from "hono";
 export type PaidRoute = {
   /** In token units, e.g. "0.01" for one cent of USDC. Converted exactly, never through floats. */
   price: string;
+  /** This route's payee, when it is not the merchant's `payTo` (e.g. a lab route). */
+  payTo?: string;
   description?: string;
   mimeType?: string;
 };
@@ -52,7 +54,7 @@ export function leashMerchant(options: LeashMerchantOptions): MiddlewareHandler 
       {
         accepts: {
           scheme: "exact",
-          payTo: options.payTo,
+          payTo: config.payTo ?? options.payTo,
           network: options.network,
           price: { asset: options.asset, amount: parseUsdc(config.price, decimals).toString() },
           maxTimeoutSeconds: options.maxTimeoutSeconds ?? 60,

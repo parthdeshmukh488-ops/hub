@@ -2,11 +2,11 @@ import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { createRequire } from "node:module";
 import { getRequestListener } from "@hono/node-server";
-import { DemoStorylineSchema } from "@leash/contracts";
+import { DemoStorylineSchema, resolveClusterConfig } from "@leash/contracts";
 import { pino } from "pino";
 import { loadContent } from "./content.ts";
 import { loadEnv } from "./env.ts";
-import { createApp } from "./server.ts";
+import { type AppConfig, createApp } from "./server.ts";
 
 /** The storyline's merchant and attacker, so an unconfigured merchant matches the fixtures. */
 function demoWallets(): { merchant: string; attacker: string } {
@@ -37,7 +37,25 @@ function main(): void {
       "MERCHANT_PAY_TO or LAB_ATTACKER_WALLET unset: using the demo storyline's addresses",
     );
   }
-  const app = createApp({ wallets, payments: env.MERCHANT_PAYMENTS }, loadContent());
+  const cluster = resolveClusterConfig(env.LEASH_CLUSTER, { usdcMint: env.LEASH_USDC_MINT });
+  let x402: AppConfig["x402"];
+  if (env.MERCHANT_PAYMENTS === "on") {
+    if (!cluster.usdcMint) {
+      throw new Error(
+        "MERCHANT_PAYMENTS=on on localnet needs LEASH_USDC_MINT (the usdcMint of .localnet.json)",
+      );
+    }
+    x402 = {
+      facilitator: env.MERCHANT_FACILITATOR_URL,
+      network: cluster.x402Network as NonNullable<AppConfig["x402"]>["network"],
+      asset: cluster.usdcMint,
+    };
+    log.info({ facilitator: env.MERCHANT_FACILITATOR_URL, asset: cluster.usdcMint }, "payments on");
+  }
+  const app = createApp(
+    { wallets, payments: env.MERCHANT_PAYMENTS, ...(x402 ? { x402 } : {}) },
+    loadContent(),
+  );
   const server = createServer(getRequestListener(app.fetch));
   server.listen(env.MERCHANT_PORT, () => {
     log.info({ port: env.MERCHANT_PORT, payments: env.MERCHANT_PAYMENTS }, "merchant listening");

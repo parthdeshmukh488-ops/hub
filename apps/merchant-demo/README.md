@@ -6,7 +6,7 @@ Owned by **WS8**. Brief: [docs/workstreams/WS8-merchant-lab.md](../../docs/works
 
 ## Status
 
-Build step 1 is done: every route serves its final content, with payments off. x402 paywalls (build step 2) wait for WS3's merchant helper. The demo topic is **budget e-bikes under €1,500**. Brands and models are fictional, so the demo makes no claims about real products; the general advice (EU pedelec rules, batteries, brakes) is accurate.
+Build steps 1 and 2 are done: every route serves its final content, and with `MERCHANT_PAYMENTS=on` the paid routes answer 402. They are paid over x402 through WS3's merchant helper (the official `@x402/hono` middleware) and the facilitator. The demo topic is **budget e-bikes under €1,500**. Brands and models are fictional, so the demo makes no claims about real products; the general advice (EU pedelec rules, batteries, brakes) is accurate.
 
 ## Run it
 
@@ -50,15 +50,16 @@ The last column is not just documentation: `test/outcomes.test.ts` runs every pa
 | `MERCHANT_PORT` | `4300` | |
 | `MERCHANT_PAY_TO` | the storyline's merchant | Wallet that receives the merchant routes' payments |
 | `LAB_ATTACKER_WALLET` | the storyline's attacker | Wallet the lab tries to get paid |
-| `MERCHANT_PAYMENTS` | `off` | `on` arrives with the paywalls (step 2) and is refused until then |
-| `MERCHANT_FACILITATOR_URL` | `http://localhost:4200` | Used from step 2 |
+| `MERCHANT_PAYMENTS` | `off` | `on`: paid routes answer 402 and are paid over x402 (start the facilitator first) |
+| `MERCHANT_FACILITATOR_URL` | `http://localhost:4200` | The facilitator that verifies and settles payments |
+| `LEASH_USDC_MINT` | the cluster's USDC | The mint prices are paid in; required on localnet (`.localnet.json`'s `usdcMint`) |
 | `LEASH_CLUSTER`, `LOG_LEVEL` | `localnet`, `info` | |
 
 Only public keys are configured here, never secrets. The lab's payments use devnet test USDC.
 
 ## Content
 
-`content/` holds everything the routes serve, validated with zod when the server starts: `research.json` (10 snippets), `market.json` (10 symbols), `premium-report.md`, `ebike-guide.md`. Prices live in one table, [`src/catalog.ts`](src/catalog.ts), which the paywalls will read in step 2.
+`content/` holds everything the routes serve, validated with zod when the server starts: `research.json` (10 snippets), `market.json` (10 symbols), `premium-report.md`, `ebike-guide.md`. Prices live in one table, [`src/catalog.ts`](src/catalog.ts); the paywall reads its prices and payees from there (`paidRoutes`).
 
 ## Test
 
