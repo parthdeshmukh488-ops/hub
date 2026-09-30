@@ -5,8 +5,26 @@
   "type": "module",
   "description": "x402 v2 facilitator built on the official @x402/svm scheme, with Leash on the smart-wallet allowlist.",
   "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.1.3",
+    "@leash/contracts": "workspace:*",
+    "@leash/x402": "workspace:*",
+    "@solana/kit": "8.4.0",
+    "@x402/core": "2.27.0",
+    "@x402/svm": "2.27.0",
+    "hono": "4.13.11",
+    "pino": "10.3.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@leash/sdk": "workspace:*",
+    "litesvm": "1.5.0",
+    "tsx": "4.23.15"
   }
 }
