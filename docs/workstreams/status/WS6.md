@@ -7,7 +7,7 @@
 
 ## Plan for build step 1 (as executed)
 
-1. Next.js 16.3 App Router + Tailwind 4.3 in `apps/web`, design tokens in `globals.css` (dark first, light via the system setting, AA contrast).
+1. Next.js 16.3 App Router + Tailwind 4.3 in `apps/web`, design tokens in `globals.css` (AA contrast; light by default since 2026-09-30).
 2. Core components from the brief: AgentCard, StatusBadge, AmountText, AllowanceGauge, EventRow, FreezeSwitch, plus Address, RelativeTime, StrikeMeter, PayeeList, Card.
 3. A `LeashDataSource` interface with a fixture implementation (zod-validated fixtures, fixed clock at the fixtures' snapshot time).
 4. `/app` and `/app/agents/[agent]`, read-only.
@@ -20,6 +20,8 @@
 - Allowlist rows for agents without a detail fixture are rebuilt from events, using the program's payee-window rule. A test proves the rebuild equals `agent-detail.json` for the research agent.
 
 ## Decisions to review (Parth)
+
+- **Light is the default theme** (Parth, 2026-09-30: "i like the white plain interface design"). It is light whatever the device setting; dark is a header toggle, stored in the browser, applied before the first paint so it never flashes.
 
 - **shadcn/ui:** components are hand-written in shadcn style on Radix (only `@radix-ui/react-switch` so far) instead of using the shadcn CLI, whose registry may not be reachable from the cloud. Same result, fewer files.
 - **TanStack Query** is used since step 3. Screens are client components; pages are thin server components.

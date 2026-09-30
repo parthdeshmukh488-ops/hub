@@ -308,6 +308,14 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *In an end-to-end run against the indexer's replay, the overview counted each blocked attempt live and showed the agent freezing itself. Details: [docs/workstreams/status/WS6.md](../workstreams/status/WS6.md).*
 
+## Turn 18
+
+**Parth:**
+
+> i like the white plan interface design
+
+*Claude made the light, plain theme the default everywhere, whatever the device's setting. The dark theme became a toggle in the header, remembered per browser and applied before the first paint. Checked in a browser with the device in dark mode.*
+
 ---
 
 ## Attachments

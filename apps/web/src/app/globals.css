@@ -1,11 +1,31 @@
 @import "tailwindcss";
 
 /*
- * Leash design tokens. Dark-first "security console"; the light theme follows the system setting.
+ * Leash design tokens. Light and plain by default (Parth's choice, 2026-09-30); the dark
+ * "security console" theme is one click away in the header and is remembered per browser.
  * Status colours (04-conventions §8): ok = executed, blocked = red, approval = amber, frozen = blue.
  * All text colours meet WCAG AA on their surfaces.
  */
 :root {
+  color-scheme: light;
+  --canvas: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --line: #dfe3ea;
+  --fg: #0f1419;
+  --fg-muted: #535c6b;
+  --brand: #6d28d9;
+  --ok: #047857;
+  --ok-soft: rgb(4 120 87 / 0.1);
+  --blocked: #b91c1c;
+  --blocked-soft: rgb(185 28 28 / 0.08);
+  --approval: #b45309;
+  --approval-soft: rgb(180 83 9 / 0.1);
+  --frozen: #1d4ed8;
+  --frozen-soft: rgb(29 78 216 / 0.1);
+}
+
+:root[data-theme="dark"] {
   color-scheme: dark;
   --canvas: #0b0d10;
   --surface: #12151a;
@@ -22,27 +42,6 @@
   --approval-soft: rgb(251 191 36 / 0.12);
   --frozen: #60a5fa;
   --frozen-soft: rgb(96 165 250 / 0.14);
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-    --canvas: #f5f6f8;
-    --surface: #ffffff;
-    --surface-2: #eef0f4;
-    --line: #dfe3ea;
-    --fg: #0f1419;
-    --fg-muted: #535c6b;
-    --brand: #6d28d9;
-    --ok: #047857;
-    --ok-soft: rgb(4 120 87 / 0.1);
-    --blocked: #b91c1c;
-    --blocked-soft: rgb(185 28 28 / 0.08);
-    --approval: #b45309;
-    --approval-soft: rgb(180 83 9 / 0.1);
-    --frozen: #1d4ed8;
-    --frozen-soft: rgb(29 78 216 / 0.1);
-  }
 }
 
 @theme inline {

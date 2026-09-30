@@ -51,7 +51,7 @@ Read only in [`src/env.ts`](src/env.ts), validated with zod.
 
 | Path | Contents |
 | --- | --- |
-| `src/app/` | Routes (thin server components) and `globals.css` (design tokens, dark first, light follows the system) |
+| `src/app/` | Routes (thin server components) and `globals.css` (design tokens: light by default, dark from the header toggle, remembered per browser) |
 | `src/screens/` | The client screens: overview, agent, activity, approvals |
 | `src/live/` | Live updates: `merge.ts` (pure rules), `apply.ts` (query cache), `stream.ts` (WebSocket client with reconnect and backfill), `live-provider.tsx` |
 | `src/components/` | `AgentCard`, `StatusBadge` + `ToneIcon`, `AmountText`, `AllowanceGauge`, `EventRow`, `FreezeSwitch` (Radix), `StrikeMeter`, `PayeeList`, `Address` (short, full on hover, copy), `RelativeTime`, `Card` |

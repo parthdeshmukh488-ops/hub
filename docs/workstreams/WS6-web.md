@@ -39,7 +39,7 @@ Give the owner calm, total control. In ten seconds they must see which agents ar
 - **Previews:** in the policy editor, `evaluatePayment` from the SDK powers a "what would happen if…" tester ("the agent tries to pay 3 USDC to Research API" → "Needs your approval").
 - **Solana Actions:** route handlers under `app/api/actions/…` per 02 §10, plus `actions.json`. They build transactions with the SDK and never sign anything.
 - **Mobile and PWA:** installable, and the freeze switch is two taps from the home screen. Test at 375 px width.
-- **Visual language:** a calm, dark-first "security console" with a light theme too. Status colours follow 04-conventions §8, always paired with an icon and a label.
+- **Visual language:** light and plain by default (Parth's choice, 2026-09-30), with a dark "security console" theme one click away in the header. Status colours follow 04-conventions §8, always paired with an icon and a label.
 - **Safety:** labels and memos render as text only (T18). Addresses are shortened with copy buttons and a full value on hover.
 
 ## Build order (quality gates)

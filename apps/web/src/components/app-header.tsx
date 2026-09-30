@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useRequests } from "../data/hooks.ts";
 import { useLive } from "../live/live-provider.tsx";
 import { cn } from "./cn.ts";
+import { ThemeToggle } from "./theme-toggle.tsx";
 
 const LINKS = [
   { href: "/app", label: "Overview" },
@@ -66,13 +67,16 @@ export function AppHeader() {
             );
           })}
         </nav>
-        <p className="ml-auto flex items-center gap-2 rounded-full border border-line px-2.5 py-1 text-xs text-fg-muted">
-          <span
-            aria-hidden="true"
-            className={cn("size-2 rounded-full", state.dot, status === "live" && "animate-pulse")}
-          />
-          {state.label}
-        </p>
+        <div className="ml-auto flex items-center gap-2">
+          <p className="flex items-center gap-2 rounded-full border border-line px-2.5 py-1 text-xs text-fg-muted">
+            <span
+              aria-hidden="true"
+              className={cn("size-2 rounded-full", state.dot, status === "live" && "animate-pulse")}
+            />
+            {state.label}
+          </p>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
