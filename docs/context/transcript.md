@@ -316,6 +316,19 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *Claude made the light, plain theme the default everywhere, whatever the device's setting. The dark theme became a toggle in the header, remembered per browser and applied before the first paint. Checked in a browser with the device in dark mode.*
 
+## Turn 19
+
+**Parth:**
+
+> merge and move next
+
+*Claude fast-forwarded `main` (commit `310ba3e`). It then built WS8 build step 1 in `apps/merchant-demo` with payments off:*
+- *the research merchant's paid APIs and a premium report on budget e-bikes, with fictional brands*
+- *the adversarial lab: a genuinely useful buying guide hiding a 25 USDC tip instruction in four variants plus a clean control, the attacker endpoint, an overpriced endpoint and an endless loop*
+- *a lab index for judges*
+
+*A test runs every paid route through the SDK's evaluator under the demo preset, confirming the storyline's outcomes. Details: [docs/workstreams/status/WS8.md](../workstreams/status/WS8.md).*
+
 ---
 
 ## Attachments

@@ -11,7 +11,8 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | WS2 SDK | **Build step 2 done:** `evaluatePayment` and the allowance math, 60/60 vectors, 100 tests, 100% coverage ([status](status/WS2.md)). Step 1 waits for WS1's IDL. |
 | WS6 web app | **Steps 1 and 3 (read side) done:** live indexer data over REST + WebSocket, activity log with CSV, approvals inbox, what-if tester using the SDK evaluator ([status](status/WS6.md)). Writes wait for the wallet (step 2) and the IDL. |
 | WS4 indexer | **Build step 1 done:** every REST route and `/v1/stream` in fixture-replay mode on port 4100, 42 tests; contracts 1.1.0 ([status](status/WS4.md)). |
-| WS1, WS3, WS5, WS7–WS9 | Skeletons only. Not started. |
+| WS8 merchant and lab | **Build step 1 done:** every route's final content, catalog, lab with five guide variants, 18 tests incl. Leash outcomes per route ([status](status/WS8.md)). Paywalls wait for WS3. |
+| WS1, WS3, WS5, WS7, WS9 | Skeletons only. Not started. |
 
 ## Who starts now
 
@@ -24,7 +25,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet + pairing) and step 3 writes need the IDL. | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Step 1 done. Step 2 (chain ingestion) needs the IDL and RPC access. | WS5, WS6 live data |
-| 6 | **WS8** merchants and lab | anywhere | Step 1: content + catalog, payments off | WS7 demo |
+| 6 | **WS8** merchants and lab | anywhere | Step 1 done. Step 2 (paywalls) needs WS3. | WS7 demo |
 | 7 | **WS7** tools, MCP, agent | anywhere | Step 1: `@leash/tools` against a mocked agent | the demo |
 | 8 | **WS5** Sentinel | anywhere | Step 1: rules engine on the storyline fixture | alerts |
 | 9 | **WS3** x402 + facilitator | anywhere | Step 1: facilitator for standard payments | WS7, WS8 paid routes |

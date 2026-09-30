@@ -1,0 +1,96 @@
+{
+  "topic": "Budget e-bikes under €1,500 (2026)",
+  "snippets": [
+    {
+      "id": "rules-eu",
+      "title": "What counts as an e-bike in the EU",
+      "tags": ["rules", "legal", "pedelec", "speed", "law", "germany", "eu"],
+      "summary": "A pedelec may assist only while you pedal, up to 25 km/h, with a motor rated at most 250 W continuous. Within those limits it is treated like a bicycle: no licence, insurance plate or helmet duty in Germany. Faster S-pedelecs (up to 45 km/h) need an insurance plate and a moped licence, and are banned from most cycle paths.",
+      "source": "Leash demo research desk",
+      "published": "2026-08-14"
+    },
+    {
+      "id": "motor-hub-vs-mid",
+      "title": "Hub motor or mid-drive under €1,500?",
+      "tags": ["motor", "hub", "mid-drive", "torque", "hills"],
+      "summary": "Rear hub motors (typically 40–50 Nm) dominate this price band: quiet, cheap and low-maintenance, fine for flat city commutes. Mid-drives (50–85 Nm) climb far better because they use the bike's gears, but they wear chains faster and rarely appear below €1,400. If your route has sustained climbs above 6%, a mid-drive is worth stretching the budget for.",
+      "source": "Leash demo research desk",
+      "published": "2026-08-20"
+    },
+    {
+      "id": "battery-range",
+      "title": "Battery size and real-world range",
+      "tags": ["battery", "range", "wh", "winter", "cold", "charging"],
+      "summary": "Most models in this band carry 400–540 Wh. Expect roughly 40–70 km in mixed use on the middle assist level; the brochure figure usually assumes the lowest level, a light rider and flat roads. Cold weather cuts range by 20–30%. A removable battery lets you charge indoors, which also protects it in winter.",
+      "source": "Leash demo research desk",
+      "published": "2026-08-22"
+    },
+    {
+      "id": "battery-cost",
+      "title": "The hidden cost: replacing the battery",
+      "tags": ["battery", "cost", "replacement", "ownership", "warranty"],
+      "summary": "Lithium-ion packs typically keep about 80% of their capacity after 500–1,000 full cycles. A replacement costs €350–650 in this segment, so check that the maker sells spare packs and that the warranty covers the battery for at least two years.",
+      "source": "Leash demo research desk",
+      "published": "2026-08-25"
+    },
+    {
+      "id": "brakes",
+      "title": "Brakes: why hydraulic discs matter",
+      "tags": ["brakes", "safety", "hydraulic", "disc"],
+      "summary": "An e-bike with rider weighs 100 kg or more and cruises at 25 km/h. Hydraulic disc brakes stop it predictably in the wet and need little adjustment; mechanical discs are acceptable on flat routes but fade on long descents. Avoid rim brakes on anything you will ride daily.",
+      "source": "Leash demo research desk",
+      "published": "2026-08-27"
+    },
+    {
+      "id": "weight-fit",
+      "title": "Weight and frame fit",
+      "tags": ["weight", "frame", "fit", "stairs", "size", "step-through"],
+      "summary": "Budget e-bikes weigh 22–28 kg. If you carry the bike up stairs or onto trains, every kilogram counts; a folding model around 20 kg is the realistic option. Step-through frames are easier to mount with shopping on the rack. Always test-ride your size: a wrong frame costs more comfort than any spec difference.",
+      "source": "Leash demo research desk",
+      "published": "2026-08-29"
+    },
+    {
+      "id": "models-shortlist",
+      "title": "Shortlist: six models under €1,500",
+      "tags": [
+        "models",
+        "shortlist",
+        "price",
+        "compare",
+        "voltra",
+        "kestrel",
+        "nordwind",
+        "ampere",
+        "fjord",
+        "riverline"
+      ],
+      "summary": "Voltra City 3 (€1,299, hub, 504 Wh), Kestrel Trail 500 (€1,449, mid-drive, 500 Wh), Nordwind Pendler (€1,199, hub, 417 Wh), Ampere Urban S (€1,379, hub, 540 Wh), Fjord Fold 20 (€1,099, folding, 360 Wh) and Riverline Step-Thru (€1,249, hub, 468 Wh). Market data for each is available at /api/market/:symbol.",
+      "source": "Leash demo research desk",
+      "published": "2026-09-02"
+    },
+    {
+      "id": "service-warranty",
+      "title": "Service network and warranty",
+      "tags": ["service", "warranty", "repair", "dealer", "online"],
+      "summary": "Online-only brands save €150–300 but can leave you without a local workshop for motor or display faults. Before buying, check that a shop within reach services the motor system, and that spare parts (display, controller, battery) are listed for at least five years.",
+      "source": "Leash demo research desk",
+      "published": "2026-09-04"
+    },
+    {
+      "id": "theft",
+      "title": "Theft protection",
+      "tags": ["theft", "lock", "insurance", "security"],
+      "summary": "E-bikes are a favourite target for thieves. Budget for a solid lock (€60–120) and consider theft insurance; some insurers require a frame registration number and a lock of a certified security level. A removable battery also makes the bike less attractive to steal.",
+      "source": "Leash demo research desk",
+      "published": "2026-09-06"
+    },
+    {
+      "id": "total-cost",
+      "title": "Five-year cost of ownership",
+      "tags": ["cost", "ownership", "maintenance", "electricity", "budget"],
+      "summary": "Over five years, plan for one battery (€350–650), two chains and cassettes (€120), brake pads and a yearly service (€300–400 in total) and a few euros of electricity per year. A €1,299 e-bike therefore costs roughly €2,100–2,500 to own, still far below a car or a monthly transit pass in most German cities.",
+      "source": "Leash demo research desk",
+      "published": "2026-09-08"
+    }
+  ]
+}

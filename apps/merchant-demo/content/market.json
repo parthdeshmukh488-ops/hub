@@ -1,0 +1,116 @@
+{
+  "currency": "EUR",
+  "asOf": "2026-09-28",
+  "symbols": [
+    {
+      "symbol": "VOLTRA-C3",
+      "name": "Voltra City 3",
+      "kind": "model",
+      "price": "1299.00",
+      "change7d": "-2.3",
+      "low30d": "1279.00",
+      "high30d": "1349.00",
+      "inStock": 14,
+      "retailers": ["VeloKontor", "RadDepot Nord", "voltra.example"]
+    },
+    {
+      "symbol": "KESTREL-T500",
+      "name": "Kestrel Trail 500",
+      "kind": "model",
+      "price": "1449.00",
+      "change7d": "0.0",
+      "low30d": "1449.00",
+      "high30d": "1499.00",
+      "inStock": 5,
+      "retailers": ["Hangwerk Bikes", "RadDepot Nord"]
+    },
+    {
+      "symbol": "NORDWIND-P",
+      "name": "Nordwind Pendler",
+      "kind": "model",
+      "price": "1199.00",
+      "change7d": "-4.0",
+      "low30d": "1149.00",
+      "high30d": "1249.00",
+      "inStock": 22,
+      "retailers": ["VeloKontor", "nordwind.example"]
+    },
+    {
+      "symbol": "AMPERE-US",
+      "name": "Ampere Urban S",
+      "kind": "model",
+      "price": "1379.00",
+      "change7d": "1.5",
+      "low30d": "1329.00",
+      "high30d": "1379.00",
+      "inStock": 9,
+      "retailers": ["Stromrad Shop", "RadDepot Nord"]
+    },
+    {
+      "symbol": "FJORD-F20",
+      "name": "Fjord Fold 20",
+      "kind": "model",
+      "price": "1099.00",
+      "change7d": "-1.0",
+      "low30d": "1049.00",
+      "high30d": "1119.00",
+      "inStock": 17,
+      "retailers": ["Faltrad Studio", "VeloKontor"]
+    },
+    {
+      "symbol": "RIVERLINE-ST",
+      "name": "Riverline Step-Thru",
+      "kind": "model",
+      "price": "1249.00",
+      "change7d": "0.8",
+      "low30d": "1199.00",
+      "high30d": "1249.00",
+      "inStock": 11,
+      "retailers": ["RadDepot Nord", "Stromrad Shop"]
+    },
+    {
+      "symbol": "BATT-500WH",
+      "name": "Replacement battery, 500 Wh (frame-integrated)",
+      "kind": "component",
+      "price": "549.00",
+      "change7d": "0.0",
+      "low30d": "529.00",
+      "high30d": "569.00",
+      "inStock": 31,
+      "retailers": ["Akkuwerk Service", "VeloKontor"]
+    },
+    {
+      "symbol": "MOTOR-HUB-250",
+      "name": "Rear hub motor, 250 W, 45 Nm",
+      "kind": "component",
+      "price": "289.00",
+      "change7d": "-3.1",
+      "low30d": "279.00",
+      "high30d": "299.00",
+      "inStock": 8,
+      "retailers": ["Akkuwerk Service"]
+    },
+    {
+      "symbol": "CHAIN-E8",
+      "name": "E-bike chain, 8-speed",
+      "kind": "component",
+      "price": "24.90",
+      "change7d": "0.0",
+      "low30d": "22.90",
+      "high30d": "24.90",
+      "inStock": 120,
+      "retailers": ["VeloKontor", "RadDepot Nord"]
+    },
+    {
+      "symbol": "BRAKE-HYD",
+      "name": "Hydraulic disc brake set (front and rear)",
+      "kind": "component",
+      "price": "139.00",
+      "change7d": "2.2",
+      "low30d": "129.00",
+      "high30d": "139.00",
+      "inStock": 16,
+      "retailers": ["RadDepot Nord", "Hangwerk Bikes"]
+    }
+  ]
+}
