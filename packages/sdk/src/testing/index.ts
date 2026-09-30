@@ -1,5 +1,9 @@
 import { TEST_KEY_SEED_PREFIX } from "@leash/contracts";
-import { createKeyPairFromPrivateKeyBytes, getAddressFromPublicKey } from "@solana/kit";
+import {
+  type Address,
+  createKeyPairFromPrivateKeyBytes,
+  getAddressFromPublicKey,
+} from "@solana/kit";
 
 // Test utilities for every workstream (`@leash/sdk/testing`). Build step 5 adds the LiteSVM
 // testbed here.
@@ -19,7 +23,7 @@ export async function testKeySeed(name: string): Promise<Uint8Array> {
 }
 
 /** The address of a symbolic test key (see `testKeySeed`). */
-export async function testKeyAddress(name: string): Promise<string> {
+export async function testKeyAddress(name: string): Promise<Address> {
   const keyPair = await createKeyPairFromPrivateKeyBytes(await testKeySeed(name));
   return getAddressFromPublicKey(keyPair.publicKey);
 }

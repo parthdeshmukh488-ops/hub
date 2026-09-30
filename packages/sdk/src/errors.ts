@@ -9,7 +9,8 @@ export type LeashSdkErrorCode =
   | "NOT_PAIRED"
   | "UNSUPPORTED_PAYMENT"
   | "MERCHANT_REJECTED"
-  | "NETWORK_ERROR";
+  | "NETWORK_ERROR"
+  | "PROGRAM_ERROR";
 
 /**
  * Base class of every error the SDK throws. `code` is stable; `message` is for humans and logs.
