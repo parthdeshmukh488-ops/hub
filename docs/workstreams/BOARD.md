@@ -13,7 +13,7 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | WS4 indexer | **Build step 1 done:** every REST route and `/v1/stream` in fixture-replay mode on port 4100, 42 tests; contracts 1.1.0 ([status](status/WS4.md)). |
 | WS8 merchant and lab | **Build step 1 done:** every route's final content, catalog, lab with five guide variants, 18 tests incl. Leash outcomes per route ([status](status/WS8.md)). Paywalls wait for WS3. |
 | WS7 tools | **Build step 1 done:** `@leash/tools` (four tools, every error path, 19 tests); SDK typed errors; contracts 1.2.0 ([status](status/WS7.md)). Ports sent to WS2 and WS3. |
-| WS1 program | **Steps 1–6 done, step 7 all but devnet:** Anchor 1.2 program, IDL, real program ID `HyL9S5mA…HJncu`, `leash.so`. The LiteSVM suites run on the real binaries (66 tests, plus all 60 policy vectors on-chain); security checklist ticked; `pay` ≈ 32k CU ([status](status/WS1.md), [CU.md](../../programs/leash/CU.md)). Next: devnet deployment. |
+| WS1 program | **All seven steps done, live on devnet** (slot 505952773, byte for byte the committed `leash.so`): Anchor 1.2 program, IDL, program ID `HyL9S5mA…HJncu`. The LiteSVM suites run on the real binaries (66 tests, plus all 60 policy vectors on-chain); security checklist ticked; `pay` ≈ 32k CU ([status](status/WS1.md), [CU.md](../../programs/leash/CU.md)). |
 | WS3, WS5, WS9 | Skeletons only. Not started. |
 
 ## Who starts now
@@ -22,7 +22,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 
 | # | Session | Must run on | First build step | Unblocks |
 | --- | --- | --- | --- | --- |
-| 1 | **WS1** Leash program | your laptop (Solana toolchain) | Done except the devnet deployment (Parth approves it) | the devnet demo |
+| 1 | **WS1** Leash program | your laptop (Solana toolchain) | Done, live on devnet. Rebuild and upgrade on the laptop after any program change. | the devnet demo |
 | 2 | **WS2** SDK | anywhere | Step 2 done. **Step 1 can start: the IDL is committed**, then step 3. | almost everyone |
 | 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet + pairing) and step 3 writes need the IDL. | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Done: keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |

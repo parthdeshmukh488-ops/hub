@@ -14,7 +14,7 @@ Owned by **WS1**. Specification: [01-onchain-program.md](../../docs/architecture
 | Program ID and `leash.so` | Done on the laptop: `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu` ([ADR](../../docs/adr/20260930-ws1-program-id.md)); binary at [`artifacts/programs/leash.so`](../../artifacts/programs/CHECKSUMS) |
 | LiteSVM suites (01 §11) | Done: `leash.so` and the audited `subscriptions.so` in-process, 66 tests (admin, pay, report, requests, invariants I1–I5, account substitution, the x402 shape, compute units) |
 | Compute units | [`CU.md`](CU.md): `pay` stays far under the 100k budget |
-| Devnet deployment | Next; Parth approves it |
+| Devnet deployment | Live since 2026-09-30 (slot 505952773), byte for byte the committed `leash.so`: [explorer](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) |
 
 The program ID is `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu`. Its keypair lives in `.keys/leash-program.json`, which is never committed; Parth keeps a backup.
 

@@ -2,7 +2,7 @@
 
 - Session branches: `claude/whu-hackathon-ideas-lz8trx` (cloud session: no Solana toolchain) and `main` (laptop session, with the Solana toolchain)
 - Last updated: 2026-09-30
-- Current build step: steps 1–6 done; step 7 done except the devnet deployment
+- Current build step: all seven steps done; the program is live on devnet
 
 ## Done
 
@@ -31,6 +31,12 @@
   - `anchor build` with Anchor CLI 1.2.0 and Agave 4.1.2 produces `artifacts/programs/leash.so`. `artifacts/programs/CHECKSUMS` records its sha256 and exact source (`sha256sum -c CHECKSUMS` verifies).
   - `anchor build`'s IDL is byte for byte the committed one.
   - `programs/leash/scripts/wsl-build.sh build|check` runs everything on WSL, Linux or macOS.
+- **Devnet deployment** (laptop, 2026-09-30, approved by Parth).
+  - Program `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu`, deployed in slot 505952773 (signature `4546rzqb5AvBAM6eXb8H52iraUTBjtLsbBgfToke251pLfcnggxhLZ8KAi15qetbvasXRB1VJ7VR8Jb6HuqdAYv1`), [explorer](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet).
+  - ProgramData `5TRkV4E26jVpv6qm1REjJ3gzt8EBSkA8ynr2EceZWXoF` holds 2.25 SOL of rent.
+  - `solana program dump` of the deployed program is byte for byte `artifacts/programs/leash.so` (sha256 `b10a7009…c0d13`).
+  - The upgrade authority is the deployer key `99ngrThAhTqUPshHsXifwRXi2wgwjemZG8ehDtW1CKkS` (the laptop's Solana CLI default key, kept out of the repo; Parth has a backup), as 01 §12 prescribes for devnet.
+  - `pnpm devnet:check` reports both Leash and Subscriptions executable.
 - **Toolchain:** host Rust 1.98.1, because LiteSVM 0.17 (Agave 4.3) needs ≥ 1.97.1 ([ADR-0004](../../adr/0004-anchor-and-litesvm.md)); CI pins the same.
 - **Check:** `cargo test` passes 128 tests (45 unit, 14 evaluator, 2 host vector suites, 66 LiteSVM, and the on-chain vector run), as do `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check` and the IDL drift check.
 - **Decisions:** [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md) (contracts 1.3.0) and [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md) (contracts 1.4.0).
@@ -39,8 +45,8 @@
 
 ## Next
 
-1. Devnet deployment of `leash.so` at the program ID; Parth approves it. It needs a funded deployer key (the upgrade authority, kept outside the repo) with a few devnet SOL.
-2. Keep `leash.so`, `CHECKSUMS` and the IDL in step with every program change (rebuild on the laptop).
+1. Keep `leash.so`, `CHECKSUMS`, the IDL and the devnet deployment in step with every program change. Rebuild on the laptop, then upgrade devnet with `solana program deploy artifacts/programs/leash.so --program-id .keys/leash-program.json --url devnet`; the deployer key signs as upgrade authority.
+2. The live demo needs funded demo keys on devnet (SOL, plus devnet USDC for owner-demo); `pnpm devnet:check` prints what each one needs.
 
 ## Security checklist (03-security §4)
 
