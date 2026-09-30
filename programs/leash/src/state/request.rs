@@ -40,3 +40,30 @@ impl PaymentRequest {
         now >= self.expires_at
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_request_is_expired_from_its_expiry_second_on() {
+        let request = PaymentRequest {
+            version: 1,
+            bump: 252,
+            agent: Pubkey::new_from_array([1; 32]),
+            nonce: 0,
+            payee: Pubkey::new_from_array([2; 32]),
+            amount: 1,
+            reference: [0; REFERENCE_LEN],
+            memo: [0; MEMO_LEN],
+            status: RequestStatus::Pending,
+            created_at: 100,
+            expires_at: 200,
+            approved_at: 0,
+            rent_payer: Pubkey::new_from_array([3; 32]),
+            reserved: [0; 32],
+        };
+        assert!(!request.is_expired(199));
+        assert!(request.is_expired(200));
+    }
+}

@@ -17,13 +17,15 @@
   - `policy/evaluate.rs` implements 01 §7.1 on plain data.
   - `policy/allowance.rs` is a line-for-line port of upstream `validate_recurring_transfer` (tag `program-v0.5.0`, commit `364a4197`), including the expiry clamp, with upstream's own unit tests.
   - `tests/vectors.rs`: 60/60 shared vectors, outcomes and effects. A deliberately broken evaluator fails 6 of them.
+  - `tests/evaluate.rs`: the SDK's branch tests (the overflows, invalid periods at step 10, an over-pulled period) and the invariants I1–I3 over 20,000 random states each. A planted balance bug fails I1.
+  - Coverage (`cargo llvm-cov`) of the policy engine, the state transitions and the delegation layout: every line, except mapping upstream's arithmetic errors, which provably can't happen.
 - **Handlers for steps 2 and 4–6**, all written and compiling:
   - admin: principal, agents, payees, freeze and unfreeze, approve and reject;
   - `pay` with the Subscriptions CPI;
   - `report_denied_attempt` with the tripwire;
   - `request_payment` and `expire_request`.
   - Their state transitions are unit-tested on the host: strikes and tripwire, windows, counters, policy rules, request checks, the delegation layout, and the CPI bytes and account order.
-- Check: `cargo test` passes (42 unit + 2 vector tests), as do `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check`.
+- Check: `cargo test` passes (61 tests: 45 unit, 14 evaluator, 2 vector suites), as do `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check`. CI runs them all, plus the IDL check.
 - Decisions: [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md), contracts 1.3.0.
   - Enum encoding: `DenialReason` code n is stored as n − 1.
   - Extra account checks: owner's ATA as source, the Subscription Authority named by the delegation, `InvalidDestination`.

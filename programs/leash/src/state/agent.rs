@@ -387,6 +387,32 @@ mod tests {
     }
 
     #[test]
+    fn a_payment_without_a_request_keeps_the_open_requests() {
+        let mut a = agent();
+        let effects = AgentPaymentEffects {
+            velocity: Window {
+                start: NOW,
+                counter: 1,
+            },
+            amount: 5,
+            consumes_request: false,
+        };
+        a.record_payment(&effects, NOW).unwrap();
+        assert_eq!((a.open_requests, a.stats.payments_count), (1, 1));
+    }
+
+    #[test]
+    fn a_strike_window_end_beyond_i64_is_an_error_and_writes_nothing() {
+        let mut a = agent();
+        a.stats.strike_window_start = i64::MAX - 10;
+        assert_eq!(
+            a.record_denial(DenialReason::PayeeNotAllowed, NOW),
+            Err(LeashError::MathOverflow.into())
+        );
+        assert_eq!((a.stats.denied_count, a.updated_at), (0, NOW - 1_000));
+    }
+
+    #[test]
     fn totals_never_wrap() {
         let mut a = agent();
         a.stats.total_paid = u64::MAX;

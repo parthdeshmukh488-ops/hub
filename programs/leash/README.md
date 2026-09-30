@@ -20,7 +20,7 @@ The program ID is still `LEASH_PROGRAM_ID_PLACEHOLDER` (`5ZDkdhcR…vXzC5kvtQpM5
 Any machine with Rust (the toolchain comes from `rust-toolchain.toml`), from the repo root:
 
 ```bash
-cargo test                                       # unit tests + the 60 policy vectors (tests/vectors.rs)
+cargo test                                       # 61 tests: unit, the 60 policy vectors, evaluator invariants
 cargo clippy --all-targets -- -D warnings
 cargo fmt --all -- --check
 cargo run -p leash --example idl -- --write      # regenerate packages/contracts/idl/leash.json
@@ -51,6 +51,7 @@ After a program change, commit `artifacts/programs/leash.so` with its `CHECKSUMS
 | `src/subscriptions/` | Read-only parsing of v1 delegation accounts, and the `TransferFixed` / `TransferRecurring` CPI |
 | `src/events.rs`, `src/errors.rs`, `src/constants.rs` | Events (§9), `LeashError` (§10, codes 6000–6031), constants and seeds (§3) |
 | `tests/vectors.rs` | Every case of `packages/contracts/test-vectors/policy.json` against `evaluate`, outcome and effects |
+| `tests/evaluate.rs` | The branches the vectors don't reach, and invariants I1–I3 over random states (the same cases as the SDK's tests) |
 | `examples/idl.rs` | IDL generation and the CI drift check |
 
 ## How `pay` decides
