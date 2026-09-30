@@ -25,7 +25,10 @@ export class IndexerError extends Error {
  * Reads the indexer's REST API (02-contracts §7.1). Every response is validated: the indexer is
  * not a security boundary, but the UI still refuses data that does not match the contract.
  */
-export function createIndexerSource(baseUrl: string, fetchImpl: typeof fetch = fetch): LeashDataSource {
+export function createIndexerSource(
+  baseUrl: string,
+  fetchImpl: typeof fetch = fetch,
+): LeashDataSource {
   const root = baseUrl.replace(/\/+$/, "");
 
   async function get<T>(path: string, schema: z.ZodType<T>): Promise<T | null> {
@@ -39,10 +42,14 @@ export function createIndexerSource(baseUrl: string, fetchImpl: typeof fetch = f
     if (response.status === 404) return null;
     if (!response.ok) {
       const error = ApiErrorResponseSchema.safeParse(body);
-      throw new IndexerError(response.status, error.success ? error.data.error.message : `HTTP ${response.status}`);
+      throw new IndexerError(
+        response.status,
+        error.success ? error.data.error.message : `HTTP ${response.status}`,
+      );
     }
     const parsed = schema.safeParse(body);
-    if (!parsed.success) throw new IndexerError(response.status, `Unexpected response from ${path}`);
+    if (!parsed.success)
+      throw new IndexerError(response.status, `Unexpected response from ${path}`);
     return parsed.data;
   }
 
@@ -66,13 +73,14 @@ export function createIndexerSource(baseUrl: string, fetchImpl: typeof fetch = f
     need(`/v1/owners/${owner}/events?${query(filter)}`, EventsPageResponseSchema);
 
   /** Agent and payee labels, for event descriptions. */
-  async function names(owner: string, agents: Overview["agents"]): Promise<Map<string, string>> {
+  async function names(agents: Overview["agents"]): Promise<Map<string, string>> {
     const book = new Map<string, string>();
     const details = await Promise.all(
       agents.map((agent) => get(`/v1/agents/${agent.address}`, AgentDetailResponseSchema)),
     );
     for (const agent of agents) book.set(agent.address, agent.label);
-    for (const detail of details) for (const payee of detail?.payees ?? []) book.set(payee.payee, payee.label);
+    for (const detail of details)
+      for (const payee of detail?.payees ?? []) book.set(payee.payee, payee.label);
     return book;
   }
 
@@ -88,7 +96,7 @@ export function createIndexerSource(baseUrl: string, fetchImpl: typeof fetch = f
         principal: overview.principal,
         agents: overview.agents,
         recentBlocked: blocked.items.filter((e) => e.type === "PaymentDenied"),
-        names: await names(owner, overview.agents),
+        names: await names(overview.agents),
       };
     },
     async agent(owner, address): Promise<AgentDetail | null> {
@@ -115,7 +123,10 @@ export function createIndexerSource(baseUrl: string, fetchImpl: typeof fetch = f
       let cursor = afterId;
       // Page forward until the gap is closed.
       for (;;) {
-        const page = await get(`/v1/owners/${owner}/events?${query({ after: cursor, limit: 200 })}`, EventsPageResponseSchema);
+        const page = await get(
+          `/v1/owners/${owner}/events?${query({ after: cursor, limit: 200 })}`,
+          EventsPageResponseSchema,
+        );
         if (page === null) return null;
         collected.push(...page.items);
         const last = page.items.at(-1);

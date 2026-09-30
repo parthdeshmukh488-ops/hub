@@ -32,7 +32,8 @@ export function useRequests() {
 export function useActivity(filter: ActivityFilter) {
   return useInfiniteQuery({
     queryKey: queryKeys.activityFor(DEMO_OWNER, filter),
-    queryFn: ({ pageParam }) => getDataSource().events(DEMO_OWNER, { ...filter, before: pageParam, limit: 50 }),
+    queryFn: ({ pageParam }) =>
+      getDataSource().events(DEMO_OWNER, { ...filter, before: pageParam, limit: 50 }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.nextBefore ?? undefined,
   });

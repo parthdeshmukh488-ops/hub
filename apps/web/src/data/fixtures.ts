@@ -11,7 +11,13 @@ import overviewJson from "@leash/contracts/fixtures/owner-overview.json";
 import requestsJson from "@leash/contracts/fixtures/requests.json";
 import { nameBookFrom } from "../lib/events.ts";
 import { payeeRowFromView, payeeRowsFromEvents } from "../lib/payees.ts";
-import type { AgentDetail, EventsPage, LeashDataSource, Overview, PaymentDeniedEvent } from "./source.ts";
+import type {
+  AgentDetail,
+  EventsPage,
+  LeashDataSource,
+  Overview,
+  PaymentDeniedEvent,
+} from "./source.ts";
 
 /**
  * The demo storyline from `@leash/contracts/fixtures`, validated with the same schemas the
@@ -33,7 +39,8 @@ export function createFixtureSource(): LeashDataSource {
   );
   const owner = overview.principal?.owner;
   const principalFrozen = overview.principal?.frozen ?? false;
-  const isDenied = (event: LeashEvent): event is PaymentDeniedEvent => event.type === "PaymentDenied";
+  const isDenied = (event: LeashEvent): event is PaymentDeniedEvent =>
+    event.type === "PaymentDenied";
   const empty: Overview = { principal: null, agents: [], recentBlocked: [], names };
 
   return {
@@ -42,7 +49,12 @@ export function createFixtureSource(): LeashDataSource {
     overview: async (who) =>
       who !== owner
         ? empty
-        : { principal: overview.principal, agents: overview.agents, recentBlocked: newestFirst.filter(isDenied), names },
+        : {
+            principal: overview.principal,
+            agents: overview.agents,
+            recentBlocked: newestFirst.filter(isDenied),
+            names,
+          },
     agent: async (who, address): Promise<AgentDetail | null> => {
       const agent = overview.agents.find((candidate) => candidate.address === address);
       if (who !== owner || !agent) return null;
@@ -61,10 +73,15 @@ export function createFixtureSource(): LeashDataSource {
     events: async (who, filter): Promise<EventsPage> => {
       if (who !== owner) return { items: [], nextBefore: null };
       const limit = filter.limit ?? 50;
-      const start = filter.before === undefined ? 0 : newestFirst.findIndex((e) => e.id === filter.before) + 1;
+      const start =
+        filter.before === undefined ? 0 : newestFirst.findIndex((e) => e.id === filter.before) + 1;
       const matching = newestFirst
         .slice(start)
-        .filter((e) => (filter.agent === undefined || e.agent === filter.agent) && (!filter.types || filter.types.includes(e.type)));
+        .filter(
+          (e) =>
+            (filter.agent === undefined || e.agent === filter.agent) &&
+            (!filter.types || filter.types.includes(e.type)),
+        );
       const items = matching.slice(0, limit);
       return { items, nextBefore: matching.length > limit ? (items.at(-1)?.id ?? null) : null };
     },
