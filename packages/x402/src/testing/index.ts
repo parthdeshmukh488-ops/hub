@@ -1,2 +1,3 @@
-// Test utilities for WS3, WS8 and WS9 (`@leash/x402/testing`). Node only: LiteSVM.
+// Test utilities for WS3, WS7, WS8 and WS9 (`@leash/x402/testing`). Node only: LiteSVM.
+export { litesvmFacilitatorClient } from "./litesvm-facilitator-client.ts";
 export { litesvmFacilitatorSigner } from "./litesvm-facilitator-signer.ts";

@@ -13,6 +13,7 @@ import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { createLeashFetch } from "../src/index.ts";
 import { type FacilitatorClient, leashMerchant } from "../src/merchant/index.ts";
+import { litesvmFacilitatorClient } from "../src/testing/index.ts";
 import { createX402Bed, facilitatorOf, NETWORK, type X402Bed } from "./helpers.ts";
 
 // End to end (WS3 test table, last row): agent → leashFetch → merchant (official @x402/hono
@@ -86,6 +87,24 @@ describe("leashFetch against a merchant using the official middleware", () => {
     });
     expect(result.payment?.signature).toMatch(/^[1-9A-HJ-NP-Za-km-z]{64,88}$/);
     expect(await bed.balanceOf(bed.keys.merchant.address)).toBe(10_000n);
+  });
+
+  it("pays through litesvmFacilitatorClient, the in-process path other tests use", async () => {
+    const bed = await createX402Bed();
+    const app = new Hono();
+    app.use(
+      leashMerchant({
+        payTo: bed.keys.merchant.address,
+        facilitator: litesvmFacilitatorClient(bed.svm, [bed.keys.stranger], NETWORK),
+        network: NETWORK,
+        asset: bed.mint,
+        routes: { "GET /api/research": { price: "0.02" } },
+      }),
+    );
+    app.get("/api/research", (c) => c.text("paid"));
+    const result = await fetchOf(bed, app).get("/api/research");
+    expect(result).toMatchObject({ status: 200, body: "paid", payment: { amount: 20_000n } });
+    expect(await bed.balanceOf(bed.keys.merchant.address)).toBe(20_000n);
   });
 
   it("returns free responses untouched", async () => {
