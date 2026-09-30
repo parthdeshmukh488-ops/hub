@@ -3,13 +3,27 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "MCP server exposing the Leash tools to any MCP client.",
+  "description": "The Leash tools over MCP (stdio): a spending wallet for any MCP client.",
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
+    "start": "tsx src/main.ts",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@leash/contracts": "workspace:*",
+    "@leash/sdk": "workspace:*",
+    "@leash/tools": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.31.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@leash/x402": "workspace:*",
+    "hono": "4.13.11",
+    "litesvm": "1.5.0",
+    "tsx": "4.23.15"
   }
 }
