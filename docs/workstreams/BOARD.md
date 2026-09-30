@@ -14,7 +14,8 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | WS8 merchant and lab | **Build step 1 done:** every route's final content, catalog, lab with five guide variants, 18 tests incl. Leash outcomes per route ([status](status/WS8.md)). Paywalls wait for WS3. |
 | WS7 tools | **Build step 1 done:** `@leash/tools` (four tools, every error path, 19 tests); SDK typed errors; contracts 1.2.0 ([status](status/WS7.md)). Ports sent to WS2 and WS3. |
 | WS1 program | **All seven steps done, live on devnet** (slot 505952773, byte for byte the committed `leash.so`): Anchor 1.2 program, IDL, program ID `HyL9S5mA…HJncu`. The LiteSVM suites run on the real binaries (66 tests, plus all 60 policy vectors on-chain); security checklist ticked; `pay` ≈ 32k CU ([status](status/WS1.md), [CU.md](../../programs/leash/CU.md)). |
-| WS3, WS5, WS9 | Skeletons only. Not started. |
+| WS3 x402 + facilitator | **Build steps 1–5 done:** `@leash/x402` (Leash client scheme, `createLeashFetch`, `leashMerchant`, `createLeashFacilitator`), `services/facilitator`. Every row of the test table passes on the real binaries through the unmodified official facilitator; 29 tests ([status](status/WS3.md)). |
+| WS5, WS9 | Skeletons only. Not started. |
 
 ## Who starts now
 
@@ -30,7 +31,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | 6 | **WS8** merchants and lab | anywhere | Step 1 done. Step 2 (paywalls) needs WS3. | WS7 demo |
 | 7 | **WS7** tools, MCP, agent | anywhere | Step 1 done. Step 4 (MCP) can start; step 2 needs a real `LeashAgent`. | the demo |
 | 8 | **WS5** Sentinel | anywhere | Step 1: rules engine on the storyline fixture | alerts |
-| 9 | **WS3** x402 + facilitator | anywhere | Step 1: facilitator for standard payments | WS7, WS8 paid routes |
+| 9 | **WS3** x402 + facilitator | anywhere | Steps 1–5 done. Next: a real run on localnet/devnet (laptop). | WS7, WS8 paid routes |
 | 10 | **WS9** integration and story | anywhere | Step 1: README v1 + deck narrative | the pitch |
 
 Fewer terminals? Combine sessions in this order:
@@ -48,7 +49,7 @@ Parth runs one Claude session on the laptop, which has the Solana toolchain and 
 | 1 | Fund the demo keys on devnet. SOL for `owner-demo`, `agent`, `guardian`, `facilitator`, `merchant`. About 20 devnet USDC for `owner-demo`. Check with `pnpm devnet:check`. | now | Parth in the browser (faucet.solana.com, faucet.circle.com); the laptop session verifies |
 | 2 | `pnpm devnet:setup` (the demo world: principal, allowance, agents, allowlist) and `pnpm devnet:smoke` (one real payment, one blocked attempt reported, freeze and unfreeze). Commit the printed addresses and signatures. | **Ready** (WS2 message 20260930-1655); needs funded keys (item 1) | laptop session |
 | 3 | Run the indexer in chain mode against devnet and check the smoke test's events come out as the contract JSON. | WS4 announces chain mode | laptop session |
-| 4 | x402 end to end: facilitator plus merchant paywall on `pnpm localnet`, then on devnet. | WS3 announces the facilitator | laptop session |
+| 4 | x402 end to end on a real chain: `LEASH_CLUSTER=localnet pnpm --filter @leash/facilitator start`, then `pnpm --filter @leash/x402 x402:smoke --cluster localnet` (paid request settles through Leash; attacker payee blocked and recorded). Then the same on devnet. WS8's merchant joins when its paid routes are on. | **Ready** (WS3 message 20260930-2015); devnet needs item 1 | laptop session |
 | 5 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |
 | – | After any program change: rebuild, update `CHECKSUMS`, upgrade on devnet with the deployer key, and check that the dump equals the committed `.so`. | only if WS1's source changes | laptop session |
 

@@ -13,7 +13,8 @@
   "scripts": {
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "x402:smoke": "tsx scripts/x402-smoke.ts"
   },
   "dependencies": {
     "@leash/contracts": "workspace:*",

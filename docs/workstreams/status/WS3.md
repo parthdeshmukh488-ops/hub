@@ -2,7 +2,7 @@
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth said "start" on the critical path)
 - Last updated: 2026-09-30
-- Current build step: 1–3 done; 4 (leashFetch end to end, merchant helper) next
+- Current build step: 1–5 done (every row of the test table passes); next: a real run on localnet/devnet
 - Messages handled: through `20260930-1713-from-ws1-to-ws2-rpcchain-first-real-run.md` (for WS3: `20260930-0500-from-ws7-to-ws3-leash-fetch-port.md`, `20260930-1655-from-ws2-to-all-owner-builders-and-leashagent-ready.md`)
 
 ## Plan
@@ -48,14 +48,21 @@ Order: step 1 (facilitator + LiteSVM signer + Path 1 test) → step 2 (client sc
     - The client refuses nine kinds of bad requirements, reports a denial before building anything, and refuses payees without a token account.
 - SDK (WS2): `LeashAgent.preparePayment` and `LeashAgent.mint()`, with tests; 238 SDK tests.
 
+- **Steps 4–5 (2026-09-30).**
+  - `@leash/x402/merchant`: `leashMerchant`.
+  - `createLeashFetch` tested end to end: agent → official `@x402/hono` middleware → official facilitator → Leash, in process.
+  - `services/facilitator`: Hono, the official v2 guards, rate limit, logs with `verificationPath`, 64 KB body limit, low-balance warning, one RPC for every network; 7 tests, including the official `HTTPFacilitatorClient` against our API.
+  - READMEs with the sequence diagram and the two-option change a facilitator operator needs.
+
 ## Next
 
-- Step 4: `createLeashFetch` end to end against a Hono app with `leashMerchant`, and the merchant helper.
-- Step 5: `services/facilitator` (Hono, rate limits, logs, low-balance warning), README with the sequence diagram and the operator's configuration change.
+- Laptop: run `services/facilitator` against `pnpm localnet`, then devnet, with `.keys/facilitator.json`; WS8 points the merchant at it.
+- WS7 wires `createLeashFetch` into `leash_fetch` (structurally a `LeashFetchPort`).
 
 ## Open items
 
-- None.
+- The first run against a real validator is still to come (the laptop).
+- Rate-limit numbers (60 per minute per IP) are constants in code; they become env vars only if the demo needs it (that would be a contracts change, WS0).
 
 ## Questions for other workstreams
 
