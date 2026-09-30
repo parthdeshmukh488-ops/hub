@@ -3,7 +3,7 @@
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-09-30
 - Current build step: 1–6 done; 7 (API feedback, 1.0) next
-- Messages handled: through `20260930-1650-from-ws1-to-ws2-sdk-checked-against-the-real-program.md`
+- Messages handled: through `20260930-1713-from-ws1-to-ws2-rpcchain-first-real-run.md`
 
 ## Plan for build step 2
 
@@ -64,7 +64,7 @@
 ## Open items
 
 - ~~The four arithmetic edge cases~~: closed. WS1 matched all four (message 20260930-1000), and the 60 vectors pass on the real `leash.so` (20260930-1523).
-- `rpcChain` is tested against a scripted RPC only; its first real run is `devnet:smoke` on the laptop.
+- ~~`rpcChain` untested on a real node~~: `devnet:setup` and `devnet:smoke --allow-freeze` passed on `pnpm localnet` (laptop, message 20260930-1713). The devnet run waits for funded demo keys.
 - `getRecentTransactions` (idempotency) reads the agent's last 25 transactions one by one: fine for the demo, slow for a busy agent.
 - `PaymentEffects` leaves out the payee and agent totals (`total_paid`, `payments_count`, `last_payment_at`): the vectors do not pin them and they are plain sums. Add them if a consumer needs them.
 
