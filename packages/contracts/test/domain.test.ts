@@ -19,6 +19,7 @@ import {
   REPORTED_DENIAL_CODES,
   TOOL_ERROR_CODES,
   TOOL_ERROR_MESSAGES,
+  TOOL_MESSAGE_RECORDED,
 } from "../src/index.ts";
 
 const NOW = 1_790_935_200;
@@ -191,6 +192,16 @@ describe("agent tools", () => {
       const message = TOOL_ERROR_MESSAGES[code].toLowerCase();
       expect(message).not.toMatch(/another recipient|split|smaller payments|different wallet/);
       if (code !== "APPROVAL_REQUIRED") expect(message).toContain("do not retry");
+    }
+  });
+
+  it("can drop the recorded sentence when an attempt was not recorded", () => {
+    for (const code of [
+      "PAYEE_NOT_ALLOWED",
+      "EXCEEDS_PAYMENT_LIMIT",
+      "EXCEEDS_PAYEE_PAYMENT_LIMIT",
+    ] as const) {
+      expect(TOOL_ERROR_MESSAGES[code]).toContain(`${TOOL_MESSAGE_RECORDED} `);
     }
   });
 

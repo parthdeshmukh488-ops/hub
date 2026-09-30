@@ -55,6 +55,9 @@ export const TOOL_ERROR_CODES = [
   "NETWORK_ERROR",
   "INVALID_INPUT",
   "NOT_PAIRED",
+  // Since contracts 1.2.0 (ADR 20260930-ws7-approval-request-errors).
+  "APPROVAL_NOT_NEEDED",
+  "TOO_MANY_OPEN_REQUESTS",
 ] as const;
 export const ToolErrorCodeSchema = z.enum(TOOL_ERROR_CODES);
 export type ToolErrorCode = z.infer<typeof ToolErrorCodeSchema>;
@@ -154,7 +157,12 @@ export type LeashStatusOutput = z.infer<typeof LeashStatusOutputSchema>;
 // It never suggests a way around the policy (another recipient, splitting a payment, …).
 
 const STOP = "Do not retry this payment or try another way to pay.";
-const RECORDED = "The attempt was recorded and the owner was notified.";
+/**
+ * The sentence that says a denial is on-chain. Tools drop it from the message when the attempt
+ * could not be recorded (`recorded: false`), so the model is never told something untrue.
+ */
+export const TOOL_MESSAGE_RECORDED = "The attempt was recorded and the owner was notified.";
+const RECORDED = TOOL_MESSAGE_RECORDED;
 
 /** The message returned to the model for each tool error code. */
 export const TOOL_ERROR_MESSAGES: Record<ToolErrorCode, string> = {
@@ -180,6 +188,10 @@ export const TOOL_ERROR_MESSAGES: Record<ToolErrorCode, string> = {
   INVALID_INPUT: "The tool input is invalid. Check the parameters and try again.",
   NOT_PAIRED:
     "This agent has no spending permission yet. Ask the owner to pair it before paying for anything.",
+  APPROVAL_NOT_NEEDED:
+    "This amount is within the agent's own per-payment limit, so it needs no approval. No request was sent.",
+  TOO_MANY_OPEN_REQUESTS:
+    "Too many payment requests are already waiting for the owner. No new request was sent. Do not send more requests; continue with other work.",
 };
 
 /** Tool error codes that the SDK reports on-chain when they occur (see ADR 20260929-ws0-denial-reporting-policy). */

@@ -2,7 +2,7 @@
  * @leash/contracts — the single off-chain source of truth (docs/architecture/02-contracts.md).
  * Bump CONTRACTS_VERSION with every contract change: minor = additive, major = breaking.
  */
-export const CONTRACTS_VERSION = "1.1.0";
+export const CONTRACTS_VERSION = "1.2.0";
 
 export * from "./actions.ts";
 export * from "./alerts.ts";

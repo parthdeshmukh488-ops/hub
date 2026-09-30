@@ -321,12 +321,15 @@ type ToolError = {
   retryable: boolean
 }
 // extra codes: UNSUPPORTED_PAYMENT (network/asset/scheme we can't pay), MERCHANT_REJECTED,
-//              NETWORK_ERROR, INVALID_INPUT, NOT_PAIRED
+//              NETWORK_ERROR, INVALID_INPUT, NOT_PAIRED,
+//              APPROVAL_NOT_NEEDED, TOO_MANY_OPEN_REQUESTS (leash_request_approval; since 1.2.0)
 ```
 
 **Tool message rules.** Messages steer the model to stop, not to route around the policy. A denial message states what was blocked and why, says the owner has been notified, and says not to retry through another route. Example for `PAYEE_NOT_ALLOWED`: *"Blocked by the owner's spending policy: this recipient is not on the allowlist. The attempt was recorded and the owner was notified. Do not retry or try another recipient; continue the task without paying, or ask the owner."* The exact strings live in `tools.ts`.
 
-**Automatic behaviour in `leash_fetch`:** on `APPROVAL_REQUIRED` it creates a payment request and returns `APPROVAL_REQUIRED` with the request address in `message`. Once the request is approved, a later call to the same URL pays with it.
+**Automatic behaviour in `leash_fetch` and `leash_pay`:** on `APPROVAL_REQUIRED` the tool creates a payment request and returns `APPROVAL_REQUIRED` with the request address in `message`, which makes the message's "a request was sent to the owner" true for both tools. Once the request is approved, a later call to the same URL (or the same payment) pays with it.
+
+**Honest messages:** a denial message says "The attempt was recorded and the owner was notified" only when `recorded` is true; the tools drop that sentence (`TOOL_MESSAGE_RECORDED`) otherwise ([ADR](../adr/20260930-ws7-approval-request-errors.md)).
 
 **Which denials are recorded on-chain** ([ADR](../adr/20260929-ws0-denial-reporting-policy.md)): the SDK sends `report_denied_attempt` before returning, and sets `recorded: true`, for every strike-type denial, and for every other denial except `approvalRequired` (which becomes a payment request instead). Non-strike denials are reported at most once per reason per agent every `NON_STRIKE_REPORT_COOLDOWN_SECS` (60 s), so a loop that hits the rate limit cannot flood the chain. The lists live in `tools.ts` (`REPORTED_DENIAL_CODES`).
 
