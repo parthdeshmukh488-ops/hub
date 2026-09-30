@@ -294,6 +294,20 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *Replaying the storyline reproduces the four view fixtures exactly, which the tests check. The storyline lacked two account facts (allowance terms and allowlist entry addresses), so Claude made an additive contract change with an ADR (contracts 1.1.0). Details: [docs/workstreams/status/WS4.md](../workstreams/status/WS4.md).*
 
+## Turn 17
+
+**Parth:**
+
+> merge and go with the next step
+
+*Claude fast-forwarded `main` to the session branch (commit `8666972`). It then built WS6 build step 3's read side:*
+- *the web app on live indexer data over REST and the WebSocket stream, with reconnect and backfill*
+- *an activity log with filters and CSV export*
+- *an approvals inbox*
+- *a "what would happen if…" tester running the SDK's evaluator*
+
+*In an end-to-end run against the indexer's replay, the overview counted each blocked attempt live and showed the agent freezing itself. Details: [docs/workstreams/status/WS6.md](../workstreams/status/WS6.md).*
+
 ---
 
 ## Attachments

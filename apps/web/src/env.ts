@@ -7,8 +7,8 @@ import { z } from "zod";
 const EnvSchema = z.object({
   NEXT_PUBLIC_DATA_SOURCE: z.enum(["fixtures", "indexer"]).default("fixtures"),
   NEXT_PUBLIC_LEASH_CLUSTER: ClusterSchema.default("localnet"),
-  NEXT_PUBLIC_INDEXER_URL: z.url().optional(),
-  NEXT_PUBLIC_INDEXER_WS_URL: z.url().optional(),
+  NEXT_PUBLIC_INDEXER_URL: z.url().default("http://localhost:4100"),
+  NEXT_PUBLIC_INDEXER_WS_URL: z.url().default("ws://localhost:4100/v1/stream"),
   NEXT_PUBLIC_RPC_URL: z.url().optional(),
   NEXT_PUBLIC_APP_URL: z.url().optional(),
 });

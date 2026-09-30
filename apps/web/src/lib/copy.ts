@@ -1,2 +1,6 @@
-/** Why controls are disabled while the app shows sample data. */
-export const READ_ONLY_REASON = "Sample data is read-only";
+/** Why switches and buttons are disabled for now. */
+export function readOnlyReason(source: "fixtures" | "indexer"): string {
+  return source === "fixtures"
+    ? "Sample data is read-only"
+    : "Changes need a connected wallet (coming soon)";
+}

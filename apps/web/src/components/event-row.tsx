@@ -10,10 +10,13 @@ export function EventRow({
   event,
   names,
   now,
+  explorerUrl,
 }: {
   event: LeashEvent;
   names: NameBook;
   now: number;
+  /** Link to the transaction, when the chain is real. */
+  explorerUrl?: string;
 }) {
   const d = describeEvent(event, names);
   return (
@@ -40,6 +43,19 @@ export function EventRow({
         )}
         <p className="text-xs text-fg-muted">
           <RelativeTime timestamp={event.timestamp} now={now} />
+          {explorerUrl !== undefined && (
+            <>
+              {" · "}
+              <a
+                href={explorerUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="underline hover:text-fg"
+              >
+                View transaction
+              </a>
+            </>
+          )}
         </p>
       </div>
     </li>

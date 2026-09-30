@@ -9,7 +9,7 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | Architecture, ADRs, briefs | Done ([architecture/](../architecture/00-overview.md), [adr/](../adr/README.md)) |
 | WS0 platform and contracts | Build steps 1, 2, 3, 5 done: monorepo, `@leash/contracts` 1.0.0 (144 tests), demo fixtures, 60 policy test vectors, CI guards. **Step 4 open** (local chain scripts; needs the Solana toolchain). |
 | WS2 SDK | **Build step 2 done:** `evaluatePayment` and the allowance math, 60/60 vectors, 100 tests, 100% coverage ([status](status/WS2.md)). Step 1 waits for WS1's IDL. |
-| WS6 web app | **Build step 1 done:** Next.js shell, design system, overview and agent pages on sample data ([status](status/WS6.md)). |
+| WS6 web app | **Steps 1 and 3 (read side) done:** live indexer data over REST + WebSocket, activity log with CSV, approvals inbox, what-if tester using the SDK evaluator ([status](status/WS6.md)). Writes wait for the wallet (step 2) and the IDL. |
 | WS4 indexer | **Build step 1 done:** every REST route and `/v1/stream` in fixture-replay mode on port 4100, 42 tests; contracts 1.1.0 ([status](status/WS4.md)). |
 | WS1, WS3, WS5, WS7–WS9 | Skeletons only. Not started. |
 
@@ -21,7 +21,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | --- | --- | --- | --- | --- |
 | 1 | **WS1** Leash program | your laptop (Solana toolchain) | Step 1: interface-complete IDL + real program ID | WS2 client generation, WS4 decoding |
 | 2 | **WS2** SDK | anywhere | Step 2 done. Step 1 once the IDL lands, then step 3. | almost everyone |
-| 3 | **WS6** web app | anywhere | Step 1 done. Step 2 (wallet + pairing wizard UI) next. | the demo UI |
+| 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet + pairing) and step 3 writes need the IDL. | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Step 1 done. Step 2 (chain ingestion) needs the IDL and RPC access. | WS5, WS6 live data |
 | 6 | **WS8** merchants and lab | anywhere | Step 1: content + catalog, payments off | WS7 demo |

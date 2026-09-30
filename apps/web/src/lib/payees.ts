@@ -7,6 +7,8 @@ export type PayeeRow = {
   maxPerPayment: bigint;
   periodLimit: bigint;
   periodSecs: number;
+  /** Start of the current payee period; null if it never started. */
+  periodStart: number | null;
   spentInPeriod: bigint;
   paymentsCount: number;
 };
@@ -18,6 +20,7 @@ export function payeeRowFromView(view: PayeeView): PayeeRow {
     maxPerPayment: BigInt(view.maxPerPayment),
     periodLimit: BigInt(view.periodLimit),
     periodSecs: view.periodSecs,
+    periodStart: view.periodStart,
     spentInPeriod: BigInt(view.spentInPeriod),
     paymentsCount: view.paymentsCount,
   };
@@ -34,7 +37,7 @@ export function payeeRowsFromEvents(
   events: readonly LeashEvent[],
   now: number,
 ): PayeeRow[] {
-  const rows = new Map<string, PayeeRow & { periodStart: number }>();
+  const rows = new Map<string, Omit<PayeeRow, "periodStart"> & { periodStart: number }>();
   for (const event of events) {
     if (event.agent !== agent) continue;
     if (event.type === "PayeeAdded" || event.type === "PayeeUpdated") {
@@ -65,6 +68,7 @@ export function payeeRowsFromEvents(
   }
   return [...rows.values()].map(({ periodStart, ...row }) => ({
     ...row,
+    periodStart: periodStart === 0 ? null : periodStart,
     // A window that has ended shows as empty: the next payment starts a new one.
     spentInPeriod:
       periodStart !== 0 && now >= periodStart + row.periodSecs ? 0n : row.spentInPeriod,
