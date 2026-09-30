@@ -5,7 +5,8 @@
   "type": "module",
   "description": "The four Leash agent tools (leash_fetch, leash_pay, leash_request_approval, leash_status).",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts"
   },
   "scripts": {
     "lint": "biome check .",
@@ -15,6 +16,12 @@
   "dependencies": {
     "@leash/contracts": "workspace:*",
     "@leash/sdk": "workspace:*",
+    "@leash/x402": "workspace:*",
+    "@solana/kit": "8.4.0",
     "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "hono": "4.13.11",
+    "litesvm": "1.5.0"
   }
 }

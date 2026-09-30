@@ -177,9 +177,22 @@ importers:
       '@leash/sdk':
         specifier: workspace:*
         version: link:../sdk
+      '@leash/x402':
+        specifier: workspace:*
+        version: link:../x402
+      '@solana/kit':
+        specifier: 8.4.0
+        version: 8.4.0(typescript@6.0.3)
       zod:
         specifier: 4.6.5
         version: 4.6.5
+    devDependencies:
+      hono:
+        specifier: 4.13.11
+        version: 4.13.11
+      litesvm:
+        specifier: 1.5.0
+        version: 1.5.0(typescript@6.0.3)
 
   packages/x402:
     dependencies:
