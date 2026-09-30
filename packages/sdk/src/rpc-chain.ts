@@ -54,6 +54,20 @@ export type RpcChainOptions = {
 
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/**
+ * A read that fails (transport, HTTP or JSON-RPC error) means the chain is out of reach, and
+ * nothing was charged: `LeashNetworkError`, the cause kept for logs. Sends are classified by
+ * `LeashAgent`, which needs the preflight error itself.
+ */
+async function reading<T>(what: string, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    if (error instanceof LeashNetworkError) throw error;
+    throw new LeashNetworkError(`${what} failed`, error);
+  }
+}
+
 /** A `LeashChain` backed by a Solana RPC endpoint. */
 export function rpcChain(options: RpcChainOptions): LeashChain {
   const { rpc } = options;
@@ -81,17 +95,21 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
 
   return {
     async getAccounts(addresses) {
-      return fetchEncodedAccounts(rpc, [...addresses], { commitment });
+      return reading("reading accounts", () =>
+        fetchEncodedAccounts(rpc, [...addresses], { commitment }),
+      );
     },
 
     async getProgramAccounts(program, filters) {
-      const accounts = await rpc
-        .getProgramAccounts(program, {
-          commitment,
-          encoding: "base64",
-          filters: filters.map(toRpcFilter),
-        })
-        .send();
+      const accounts = await reading("reading program accounts", () =>
+        rpc
+          .getProgramAccounts(program, {
+            commitment,
+            encoding: "base64",
+            filters: filters.map(toRpcFilter),
+          })
+          .send(),
+      );
       return accounts.map(
         ({ pubkey, account }): EncodedAccount => ({
           address: pubkey,
@@ -105,19 +123,23 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
     },
 
     async getLatestBlockhash() {
-      const { value } = await rpc.getLatestBlockhash({ commitment }).send();
+      const { value } = await reading("reading the latest blockhash", () =>
+        rpc.getLatestBlockhash({ commitment }).send(),
+      );
       return value;
     },
 
     async simulate(transaction): Promise<SimulationResult> {
-      const { value } = await rpc
-        .simulateTransaction(getBase64EncodedWireTransaction(transaction), {
-          commitment,
-          encoding: "base64",
-          replaceRecentBlockhash: false,
-          sigVerify: false,
-        })
-        .send();
+      const { value } = await reading("simulating", () =>
+        rpc
+          .simulateTransaction(getBase64EncodedWireTransaction(transaction), {
+            commitment,
+            encoding: "base64",
+            replaceRecentBlockhash: false,
+            sigVerify: false,
+          })
+          .send(),
+      );
       return { err: value.err, logs: value.logs ?? [], unitsConsumed: value.unitsConsumed ?? 0n };
     },
 
@@ -155,12 +177,14 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
     },
 
     async getRecentTransactions(address: Address, limit: number) {
-      const signatures = await rpc.getSignaturesForAddress(address, { commitment, limit }).send();
-      const records: TransactionRecord[] = [];
-      for (const entry of signatures) {
-        if (entry.err === null) records.push(await fetchRecord(entry.signature));
-      }
-      return records;
+      return reading("reading recent transactions", async () => {
+        const signatures = await rpc.getSignaturesForAddress(address, { commitment, limit }).send();
+        const records: TransactionRecord[] = [];
+        for (const entry of signatures) {
+          if (entry.err === null) records.push(await fetchRecord(entry.signature));
+        }
+        return records;
+      });
     },
   };
 

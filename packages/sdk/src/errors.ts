@@ -103,9 +103,10 @@ export class MerchantRejectedError extends LeashSdkError {
 
 /** RPC, facilitator or merchant unreachable before anything was charged. */
 export class LeashNetworkError extends LeashSdkError {
-  constructor(detail: string) {
+  constructor(detail: string, cause?: unknown) {
     super("NETWORK_ERROR", `Network error: ${detail}`);
     this.name = "LeashNetworkError";
+    if (cause !== undefined) this.cause = cause;
   }
 }
 

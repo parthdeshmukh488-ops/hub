@@ -239,4 +239,42 @@ describe("rpcChain", () => {
     expect(await chain.getRecentTransactions(LEASH, 5)).toHaveLength(1);
     expect(getTransaction).toHaveBeenCalledTimes(1);
   });
+
+  it("turns a failed read into LeashNetworkError, cause kept, so the tools say NETWORK_ERROR", async () => {
+    const down = new TypeError("fetch failed");
+    const failing = { send: vi.fn(async () => Promise.reject(down)) };
+    const chain = rpcChain({
+      rpc: {
+        getMultipleAccounts: () => failing,
+        getProgramAccounts: () => failing,
+        getLatestBlockhash: () => failing,
+        simulateTransaction: () => failing,
+        getSignaturesForAddress: () => failing,
+      } as never,
+    });
+    const transaction = await signedTransaction();
+    const reads: Array<() => Promise<unknown>> = [
+      () => chain.getAccounts([LEASH]),
+      () => chain.getProgramAccounts(LEASH, []),
+      () => chain.getLatestBlockhash(),
+      () => chain.simulate(transaction),
+      () => chain.getRecentTransactions(LEASH, 5),
+    ];
+    for (const read of reads) {
+      const error = await read().catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(LeashNetworkError);
+      expect((error as Error).cause).toBe(down);
+    }
+    // A network error from deeper down keeps its own message.
+    const unindexed = rpcChain({
+      rpc: {
+        getSignaturesForAddress: () => call([{ signature: "a", err: null }]),
+        getTransaction: () => call(null),
+      } as never,
+      sleep: async () => {},
+    });
+    await expect(unindexed.getRecentTransactions(LEASH, 1)).rejects.toThrow(
+      "Network error: transaction a is confirmed but not retrievable",
+    );
+  });
 });
