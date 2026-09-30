@@ -1,8 +1,8 @@
 # WS0 status: Platform and shared contracts
 
-- Session branch: `claude/whu-hackathon-ideas-lz8trx` (the architecture session)
-- Last updated: 2026-09-29
-- Current build step: steps 1, 2, 3 and 5 done; step 4 (environments) waits for a machine with the Solana toolchain
+- Session branches: `claude/whu-hackathon-ideas-lz8trx` (the architecture session) and `main` (laptop session, step 4)
+- Last updated: 2026-09-30
+- Current build step: all five steps done
 
 ## Done
 
@@ -20,23 +20,31 @@
 - 2026-09-30, CI fix: every CI run since WS6 step 1 failed because the root `.gitignore` rule `data/` also hid `apps/web/src/data/` (six source files never reached GitHub). The rule now ignores only runtime data folders (`/data/`, `apps/*/data/`, `services/*/data/`). A new guard, `pnpm check:ignored` (part of `pnpm check`), fails when `.gitignore` hides any source file. CI can't catch this itself, since ignored files never reach it.
 - 2026-09-30, with WS1: the Rust CI job now pins Rust 1.94.1 (as `rust-toolchain.toml` does), so new clippy lints can't break CI unannounced. It also runs `cargo run -p leash --example idl -- --check`, which fails when `packages/contracts/idl/leash.json` drifts from the program.
 
+- **Step 4: environments** (laptop session, 2026-09-30, Agave 4.1.2). How to run them: the root README's "Run a local chain" section. Every script prints usage with `--help`.
+  - `pnpm keys` (`scripts/keys.ts`): the six demo keypairs in `.keys/` (Solana CLI format; `solana-keygen pubkey` reads them). Never overwrites, and checks existing files are intact. Prints the addresses and the `.env` lines that take them.
+  - `pnpm artifact:subscriptions` (`scripts/subscriptions-artifact.sh`): `artifacts/programs/subscriptions.so` (119,600 bytes), built from tag `program-v0.5.0` (commit `364a4197`) with `cargo build-sbf`. The sha256 and provenance go into `artifacts/programs/CHECKSUMS`. `dump` mode downloads the devnet deployment instead.
+  - `pnpm localnet` (`scripts/localnet.sh`): `solana-test-validator` with both programs at their real IDs, checked against `CHECKSUMS` first. Also a mock USDC mint at a stable address (`.keys/localnet-usdc-mint.json`), SOL for every demo key, 1,000 USDC for owner-demo, USDC accounts for merchant and attacker, and `.localnet.json`. Checked from Windows through WSL: both programs executable, owner-demo holding 1,000 USDC.
+  - `pnpm devnet:check` (`scripts/devnet-check.ts`): read-only; exits 1 only if a dependency is missing.
+  - `.gitattributes` forces LF in every checkout. On Windows, `core.autocrlf=true` had turned the whole tree into CRLF, which failed Biome.
+- **Devnet findings, 2026-09-30:**
+  - The Subscriptions program is deployed and executable at the canonical ID (last deployed in slot 480013438), so no fallback deployment is needed.
+  - The devnet USDC mint `4zMMC9…DncDU` exists: SPL Token, 6 decimals.
+  - The Leash program is not deployed yet.
+  - The demo keys are unfunded; `pnpm devnet:check` prints the faucet steps.
+  - **The devnet Subscriptions binary is newer than the tag** (133,280 vs 119,600 bytes). Upstream's commits after `program-v0.5.0` add `ReclaimExcessRent` and a transfer context that is only used for mints with an active Token-2022 transfer hook, and remove dead code. Transfers of a mint without a hook (USDC) keep the same accounts, data and checks, so the tag build in LiteSVM matches devnet for Leash.
+
 ## Next
 
-- **Step 4: environments.** Needs a machine with the Solana toolchain and devnet access (not possible in this cloud session):
-  - `scripts/keys.ts`: generate the demo keypairs into `.keys/`.
-  - `scripts/subscriptions-artifact.sh`: build `artifacts/programs/subscriptions.so` from tag `program-v0.5.0`, or dump it from devnet, and write `CHECKSUMS`.
-  - `scripts/localnet.sh`: start Surfpool or `solana-test-validator` with both programs, create the mock USDC mint, fund the keys, and write `.localnet.json`.
-  - `scripts/devnet-check.ts`: verify that the Subscriptions program and the devnet USDC mint exist, and print balances and faucet steps.
+- Nothing open in the brief. On request: a zod schema for `.localnet.json` in `@leash/contracts`, if an app needs to read it.
 
 ## Open items
 
 - Done by WS1 on 2026-09-30: `PROGRAM_IDS.leash` is the real ID (`LEASH_PROGRAM_ID`, [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md), contracts 1.4.0). The placeholder stays exported.
-- The devnet USDC mint (`4zMMC9sr…DncDU`) and the canonical Subscriptions deployment exist on devnet (RPC check by the laptop session, 2026-09-30). `devnet-check` will make this repeatable.
+- Surfpool is not installed on the laptop; `localnet.sh` uses `solana-test-validator`, which the brief allows.
 - `AGENTS.md` at the root is written by the `turbo` CLI (a managed agent-guidance block). Kept on purpose.
 
 ## Questions for other workstreams
 
-- WS1: the IDL's error list must equal `LEASH_ERRORS` in `enums.ts` (the order matters: codes 6000–6031). Please add a test that compares them once the IDL exists.
 - WS2: please review `test-vectors/policy.json` and `test/reference-evaluator.ts`; parity with your evaluator is the goal.
 - WS6: `NEXT_PUBLIC_DATA_SOURCE=fixtures` should read `@leash/contracts/fixtures/*`; the package exports that path.
 

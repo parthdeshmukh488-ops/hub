@@ -1,0 +1,9 @@
+# LF in every checkout, whatever the machine's core.autocrlf: Biome and bash scripts need it.
+* text=auto eol=lf
+
+# Program binaries (artifacts/programs) and other binary files are never converted.
+*.so binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

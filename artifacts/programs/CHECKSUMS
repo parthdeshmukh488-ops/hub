@@ -9,3 +9,7 @@
 #   9fd46db9c44e468242b9219359d269c5421a364b277990e2da907f14ce086bd9, Cargo.lock sha256
 #   da989a221217b635205c7cefbe849a84f49c09eb011a48cc0fd81fcbc21d308f.
 96cf66b13ce329d6cd45b74a41f3eb1d7b497f62383a48cfd5416aeed31c693a  leash.so
+# subscriptions.so (WS0): the Solana Foundation Subscriptions program, loaded at De1egAFMkMWZSN5rYXRj9CAdheBamobVNubTsi9avR44.
+#   Source: https://github.com/solana-foundation/subscriptions.git tag program-v0.5.0 (commit 364a41976c33347d092902443bbec2def9227e75), `cargo build-sbf` in program/.
+#   Built 2026-09-30 with Agave 4.1.2 (cargo-build-sbf 4.1.0 platform-tools v1.54 rustc 1.89.0).
+22e837d48b1d8c81c71c2e3d4ca54047b06ab084195ce1ed00555927dab98821  subscriptions.so

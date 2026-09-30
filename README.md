@@ -54,3 +54,17 @@ Leash payments are standard x402 payments. Any facilitator running the official 
 | `apps/` | Web control panel, demo agent, demo merchants and attack lab |
 
 Start with the [architecture overview](docs/architecture/00-overview.md).
+
+## Run a local chain
+
+Needs Node 22+, pnpm and the Solana toolchain (Agave CLI 4.x with `spl-token`). On Windows, run the chain inside WSL.
+
+```bash
+pnpm install
+pnpm keys           # demo keypairs in .keys/ (never committed); prints their addresses
+pnpm localnet       # solana-test-validator with both programs, mock USDC, funded demo keys
+```
+
+`pnpm localnet` loads `artifacts/programs/leash.so` and `subscriptions.so` (both checked against `artifacts/programs/CHECKSUMS`) at their real program IDs. It creates a mock USDC mint (6 decimals) that keeps its address across restarts, and gives the demo owner 1,000 USDC. Every address goes into `.localnet.json`. The chain listens on `http://127.0.0.1:8899` and starts empty each time; Ctrl+C stops it. From Windows: `wsl.exe -e bash -lc 'cd "/mnt/<drive>/<path>/hub" && bash scripts/localnet.sh'`.
+
+For the devnet demo, `pnpm devnet:check` checks the Subscriptions program and the USDC mint, then prints each demo key's balances and what to fund from the faucets. It is read-only. `pnpm artifact:subscriptions` rebuilds `subscriptions.so` from the audited tag.

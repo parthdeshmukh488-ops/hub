@@ -18,7 +18,11 @@
     "check:env": "tsx scripts/env-example.ts --check",
     "env:example": "tsx scripts/env-example.ts --write",
     "format": "biome format --write .",
-    "check:ignored": "tsx scripts/check-ignored.ts"
+    "check:ignored": "tsx scripts/check-ignored.ts",
+    "keys": "tsx scripts/keys.ts",
+    "devnet:check": "tsx scripts/devnet-check.ts",
+    "localnet": "bash scripts/localnet.sh",
+    "artifact:subscriptions": "bash scripts/subscriptions-artifact.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
