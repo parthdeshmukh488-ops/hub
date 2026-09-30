@@ -2,8 +2,8 @@
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-09-30
-- Current build step: 1, 2 and 6 done; 3–5 in progress (plan below)
-- Messages handled: through `20260930-1554-from-architect-to-ws1-laptop-queue.md`
+- Current build step: 1–6 done; 7 (API feedback, 1.0) next
+- Messages handled: through `20260930-1650-from-ws1-to-ws2-sdk-checked-against-the-real-program.md`
 
 ## Plan for build step 2
 
@@ -36,20 +36,36 @@
   - 159 tests; 100% coverage now also enforced on events, convert, pda and program-errors. Label, memo and reference codecs stay in `@leash/contracts` (`encodeLabel`, `encodeMemo`, `referenceFromHex`).
 - Handled: WS1's 20260930-1111 (regenerated against the real program ID), 20260930-1523 (2040 `ConstraintDuplicateMutableAccount` stays an unknown error: `findLeashFailure` returns null, so the pay flow never reports it), WS7's 20260930-0500 (the `LeashAgent` shape for steps 5), WS0's 20260930-1138 (testbed loads both `.so` files).
 
+- **Build steps 3–5, complete (2026-09-30).** `packages/sdk`, commits `921930d` and `2d68638`:
+  - `src/chain.ts`: the `LeashChain` port (accounts, program accounts, blockhash, simulate, send and confirm, recent transactions). `src/rpc-chain.ts` implements it over a kit RPC, confirming by polling `getSignatureStatuses` (no websocket). `@leash/sdk/testing` implements it with LiteSVM, with errors shaped like an RPC's.
+  - Step 3, `src/read.ts`: `fetchPrincipalView`, `fetchAgentView`, `fetchAgentViews`, `fetchPayees`, `fetchOpenRequests`, `readAgentStatus`, and the pure mappers. Accounts are checked by owner program and discriminator.
+  - Step 4, `src/owner.ts`: `buildOnboarding` does everything in one transaction on the testbed:
+    - principal, agent, allowlist;
+    - the Subscription Authority and a recurring or fixed delegation, created with Subscriptions' same-slot sentinel `UNKNOWN_INIT_ID`, or with the real init id when the authority exists;
+    - resumable, and packed by size.
+    It also includes every admin builder, including revoke allowance and expire request.
+  - Step 5, `src/agent.ts`: `LeashAgent` implements WS7's port. It covers the ADR-0002 pay flow (reporting policy and 60 s cooldown), approved-request reuse, `requestApproval` per the approval ADR, the per-agent queue, idempotency by reference, `buildPayInstruction`, `reportDenied`, `simulatePay`, and compute units from simulation. On a parity mismatch it trusts the simulation and warns. It also warns when the agent key is low on SOL.
+  - `@leash/sdk/testing`: `createTestbed()` onboards through `buildOnboarding` itself.
+  - `pnpm devnet:setup` / `pnpm devnet:smoke` (laptop queue item 2): the research-assistant preset, USDC accounts for merchant and attacker, then an allowed, an approval-required and a recorded blocked payment.
+  - 236 tests, most on the real `leash.so` and `subscriptions.so`. Coverage: 100% on the evaluator, events, conversions, PDAs and program errors; 95% or more of branches elsewhere (04 §4: meaningful coverage, not chased).
+- **Decisions in steps 3–5** (Parth, please confirm or steer):
+  1. **A revoked allowance reads as `allowanceExpired`, unrecorded.** With no delegation left, the program returns `DelegationMismatch`, which is a client error. The SDK throws `PaymentDeniedError("allowanceExpired", recorded: false)` instead, so the tools tell the model to stop.
+  2. **A payee without a token account for the mint.** An allowed payment creates the account first; the agent key pays about 0.002 SOL rent. A denied payment to such a wallet cannot be recorded, because `report_denied_attempt` also needs the account, so it throws with `recorded: false` and warns. Setup creates the attacker's account so the demo's blocked attempts are recorded.
+  3. **New error `TransactionFailedError`** (code `TRANSACTION_FAILED`) for transactions that fail for a non-Leash, non-network reason, for example the agent key cannot pay the fee. The tools rethrow it as a bug, as they do `LeashProgramError`.
+  4. **`requestApproval` takes an optional `reference`**, so x402 can bind a request to its memo hash (02 §3); `buildPayInstruction` attaches an approved request only if the reference matches.
+  5. **Scripts read flags only** (`--cluster`, `--rpc`), never the environment. Root `package.json` has two new aliases, `devnet:setup` and `devnet:smoke`, a WS0 file: the laptop queue named these commands.
+- Found for WS3: `@solana-program/memo` 0.15 defaults to the new Memo program `Memo4c2p…`, not the SPL Memo `MemoSq4g…` of the x402 profile (02 §9). Pass `{ programAddress }` explicitly.
+
 ## Next
 
-Plan for build steps 3–5 (proposed; Parth can steer before the owner and agent APIs freeze in step 7):
-
-1. **`@leash/sdk/testing` `createTestbed()`** on the `litesvm` npm package (1.5, kit 8) with the committed `artifacts/programs/{leash,subscriptions}.so`: a mock USDC mint, funded owner, principal, an agent with a recurring allowance, an allowlisted merchant, and clock helpers. It builds its state with the SDK's own owner builders, so the builders are tested by every test that uses it.
-2. **A small chain port** inside the SDK (`LeashChain`: read accounts, list program accounts, latest blockhash, clock, simulate, send and confirm, recent signatures). Two adapters: `rpcChain({ rpc, rpcSubscriptions })` for devnet and localnet, and `litesvmChain(svm)` in the testbed. `LeashAgent` and the reads run unchanged on both, so LiteSVM tests exercise the real code path.
-3. **Step 3, reads (`src/read.ts`):** `fetchPrincipalView`, `fetchAgentView` (with `allowanceAt`), `fetchPayees`, `fetchOpenRequests` (program-account filters on the agent field).
-4. **Step 4, owner builders (`src/owner.ts`):** `buildOnboarding` (principal, subscription authority and recurring delegation through the generated Subscriptions client, agent, payees; split by transaction size, returned in order) and every admin builder. Each returns instructions; `toTransactionMessage` composes them for a wallet.
-5. **Step 5, `LeashAgent` (`src/agent.ts`):** implements WS7's `LeashAgentPort`; pay flow of ADR-0002 (local evaluation, simulate, report per the reporting policy, send and confirm, receipt from `PaymentExecuted`), approved-request reuse, the per-agent queue, idempotency by reference, `buildPayInstruction` for x402, compute budget from simulation.
-6. **Devnet scripts** for the laptop queue: `pnpm devnet:setup` (onboard the demo owner and agent) and `pnpm devnet:smoke` (one allowed payment, one blocked, events decoded). Then the "owner builders and `LeashAgent` ready" message.
+- Laptop: `pnpm devnet:setup`, then `pnpm devnet:smoke`, once the demo keys are funded (laptop queue item 2).
+- Build step 7: API feedback from WS3, WS6 and WS7, then freeze the API as 1.0.
 
 ## Open items
 
 - ~~The four arithmetic edge cases~~: closed. WS1 matched all four (message 20260930-1000), and the 60 vectors pass on the real `leash.so` (20260930-1523).
+- `rpcChain` is tested against a scripted RPC only; its first real run is `devnet:smoke` on the laptop.
+- `getRecentTransactions` (idempotency) reads the agent's last 25 transactions one by one: fine for the demo, slow for a busy agent.
 - `PaymentEffects` leaves out the payee and agent totals (`total_paid`, `payments_count`, `last_payment_at`): the vectors do not pin them and they are plain sums. Add them if a consumer needs them.
 
 ## Questions for other workstreams

@@ -8,7 +8,7 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | --- | --- |
 | Architecture, ADRs, briefs | Done ([architecture/](../architecture/00-overview.md), [adr/](../adr/README.md)) |
 | WS0 platform and contracts | **All five build steps done:** monorepo, `@leash/contracts`, demo fixtures, 60 policy test vectors, CI guards, and (laptop) `pnpm keys`, `subscriptions.so` from the audited tag, `pnpm localnet`, `pnpm devnet:check` ([status](status/WS0.md)). |
-| WS2 SDK | **Build step 2 done:** `evaluatePayment` and the allowance math, 60/60 vectors, 100 tests, 100% coverage ([status](status/WS2.md)). Step 1 waits for WS1's IDL. |
+| WS2 SDK | **Build steps 1–6 done:** generated clients, PDAs, errors, event decoding, reads, owner builders, `LeashAgent`, `rpcChain`, `@leash/sdk/testing` (LiteSVM testbed on the real binaries), `devnet:setup`/`devnet:smoke`; 236 tests ([status](status/WS2.md)). Step 7 (API feedback, 1.0) next. |
 | WS6 web app | **Steps 1 and 3 (read side) done:** live indexer data over REST + WebSocket, activity log with CSV, approvals inbox, what-if tester using the SDK evaluator ([status](status/WS6.md)). Writes wait for the wallet (step 2) and the IDL. |
 | WS4 indexer | **Build step 1 done:** every REST route and `/v1/stream` in fixture-replay mode on port 4100, 42 tests; contracts 1.1.0 ([status](status/WS4.md)). |
 | WS8 merchant and lab | **Build step 1 done:** every route's final content, catalog, lab with five guide variants, 18 tests incl. Leash outcomes per route ([status](status/WS8.md)). Paywalls wait for WS3. |
@@ -23,7 +23,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | # | Session | Must run on | First build step | Unblocks |
 | --- | --- | --- | --- | --- |
 | 1 | **WS1** Leash program | your laptop (Solana toolchain) | Done, live on devnet. Rebuild and upgrade on the laptop after any program change. | the devnet demo |
-| 2 | **WS2** SDK | anywhere | Step 2 done. **Steps 1 and 3–6 in progress in the cloud** (Codama client, reads, owner builders, `LeashAgent`, events). | almost everyone |
+| 2 | **WS2** SDK | anywhere | Steps 1–6 done. Step 7: API feedback from WS3, WS6, WS7, then 1.0. | almost everyone |
 | 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet + pairing) and step 3 writes need the IDL. | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Done: keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Step 1 done. Step 2 (chain ingestion) needs the IDL and RPC access. | WS5, WS6 live data |
@@ -46,7 +46,7 @@ Parth runs one Claude session on the laptop, which has the Solana toolchain and 
 | # | Task | Trigger | Who |
 | --- | --- | --- | --- |
 | 1 | Fund the demo keys on devnet. SOL for `owner-demo`, `agent`, `guardian`, `facilitator`, `merchant`. About 20 devnet USDC for `owner-demo`. Check with `pnpm devnet:check`. | now | Parth in the browser (faucet.solana.com, faucet.circle.com); the laptop session verifies |
-| 2 | `pnpm devnet:setup` (the demo world: principal, allowance, agents, allowlist) and `pnpm devnet:smoke` (one real payment, one blocked attempt reported, freeze and unfreeze). Commit the printed addresses and signatures. | WS2 announces "owner builders and `LeashAgent` ready" | laptop session |
+| 2 | `pnpm devnet:setup` (the demo world: principal, allowance, agents, allowlist) and `pnpm devnet:smoke` (one real payment, one blocked attempt reported, freeze and unfreeze). Commit the printed addresses and signatures. | **Ready** (WS2 message 20260930-1655); needs funded keys (item 1) | laptop session |
 | 3 | Run the indexer in chain mode against devnet and check the smoke test's events come out as the contract JSON. | WS4 announces chain mode | laptop session |
 | 4 | x402 end to end: facilitator plus merchant paywall on `pnpm localnet`, then on devnet. | WS3 announces the facilitator | laptop session |
 | 5 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |

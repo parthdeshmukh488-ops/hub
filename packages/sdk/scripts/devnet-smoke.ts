@@ -4,21 +4,30 @@
  * 1. an allowed payment to the merchant goes through, and its receipt comes from `PaymentExecuted`;
  * 2. a payment above the instant limit needs approval and is not recorded;
  * 3. a payment to the attacker is blocked and recorded on-chain as a strike (skipped when one more
- *    strike would freeze the agent, unless --allow-freeze).
+ *    strike would freeze the agent, unless --allow-freeze);
+ * 4. the owner freezes the agent, a payment is blocked, the owner unfreezes it, a payment goes through.
+ *    Unfreezing also resets the strikes.
  *
  *   pnpm devnet:smoke [--cluster devnet|localnet] [--rpc <url>] [--allow-freeze]
  *
  * Exits 1 if anything behaves differently.
  */
 import { formatUsdc } from "@leash/contracts";
-import { LeashAgent, PaymentDeniedError } from "../src/index.ts";
+import {
+  buildFreezeAgent,
+  buildUnfreezeAgent,
+  LeashAgent,
+  PaymentDeniedError,
+  sendInstructions,
+} from "../src/index.ts";
 import { fail, scriptContext } from "./lib.ts";
 
 const ctx =
   await scriptContext(`Usage: pnpm devnet:smoke [--cluster devnet|localnet] [--rpc <url>] [--allow-freeze]
 
 Runs LeashAgent against the program: one allowed payment (0.01 USDC to the merchant), one that
-needs approval (2 USDC), one blocked (0.01 USDC to the attacker, a strike). Signed by .keys/agent.json.`);
+needs approval (2 USDC), one blocked (0.01 USDC to the attacker, a strike), then a freeze and an
+unfreeze by the owner. Payments are signed by .keys/agent.json, the freeze by .keys/owner-demo.json.`);
 const { keys } = ctx;
 
 const agent = new LeashAgent({ chain: ctx.chain, signer: keys.agent, owner: keys.owner.address });
@@ -87,6 +96,43 @@ if (strikesLeft <= 1 && !ctx.flags.has("--allow-freeze")) {
     `0.01 USDC to the attacker blocked and recorded (strike ${blocked instanceof PaymentDeniedError ? blocked.strikes : "?"})`,
   );
 }
+
+// 4. The owner freezes the agent (I3): every payment is blocked; the owner unfreezes it.
+await sendInstructions(ctx.chain, {
+  feePayer: keys.owner,
+  instructions: [
+    await buildFreezeAgent({
+      authority: keys.owner,
+      owner: keys.owner.address,
+      agent: await agent.agentAddress(),
+    }),
+  ],
+});
+const frozen = await agent
+  .pay({ to: keys.merchant.address, amount: 10_000n, purpose: "Leash smoke test: frozen" })
+  .then(
+    () => null,
+    (error: unknown) => error,
+  );
+check(
+  frozen instanceof PaymentDeniedError && frozen.reason === "agentFrozen",
+  "frozen by the owner: payment to the merchant blocked",
+);
+await sendInstructions(ctx.chain, {
+  feePayer: keys.owner,
+  instructions: [
+    await buildUnfreezeAgent({ owner: keys.owner, agent: await agent.agentAddress() }),
+  ],
+});
+const resumed = await agent.pay({
+  to: keys.merchant.address,
+  amount: 10_000n,
+  purpose: "Leash smoke test: resumed",
+});
+check(
+  resumed.amount === 10_000n,
+  `unfrozen by the owner: paid again (${ctx.explorer(resumed.signature)})`,
+);
 
 const after = await agent.status();
 console.log(
