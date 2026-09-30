@@ -3,6 +3,18 @@
  * Consumers never import `src/generated/` directly: everything they need is exported here.
  */
 export {
+  DEFAULT_PRIORITY_FEE_MICROLAMPORTS,
+  evaluationFailure,
+  LeashAgent,
+  type LeashAgentOptions,
+  LOW_AGENT_BALANCE_LAMPORTS,
+  MAX_COMPUTE_UNITS,
+  type PaymentArgs,
+  type PaymentResult,
+  type PendingRequest,
+  type ReportResult,
+} from "./agent.ts";
+export {
   allowanceAt,
   allowanceRemaining,
   type DecodedDelegation,
@@ -13,6 +25,15 @@ export {
   SUBSCRIPTIONS_DELEGATION_LAYOUT,
 } from "./allowance.ts";
 export {
+  type AccountFilter,
+  type BlockhashLifetime,
+  clockUnixTimestamp,
+  type LeashChain,
+  readChainTime,
+  type SimulationResult,
+  SYSVAR_CLOCK_ADDRESS,
+} from "./chain.ts";
+export {
   AGENT_STATUS_FROM_CHAIN,
   DENIAL_REASON_FROM_CHAIN,
   FREEZE_REASON_FROM_CHAIN,
@@ -20,6 +41,9 @@ export {
   PAYEE_MODE_TO_CHAIN,
   payeeLimitsFromView,
   policyFromView,
+  policyStateFromView,
+  policyToChain,
+  policyToState,
   policyToView,
   REQUEST_STATUS_FROM_CHAIN,
   timeOrNull,
@@ -33,6 +57,7 @@ export {
   MerchantRejectedError,
   NotPairedError,
   PaymentDeniedError,
+  TransactionFailedError,
   UnsupportedPaymentError,
 } from "./errors.ts";
 export { evaluatePayment, rollWindow } from "./evaluate/evaluate.ts";
@@ -60,6 +85,30 @@ export {
   transactionRecordFromRpc,
 } from "./events.ts";
 export {
+  type AllowanceInput,
+  buildAddPayee,
+  buildAllowance,
+  buildApproveRequest,
+  buildCloseAgent,
+  buildExpireRequest,
+  buildFreezeAgent,
+  buildFreezePrincipal,
+  buildOnboarding,
+  buildRejectRequest,
+  buildRemovePayee,
+  buildRevokeAllowance,
+  buildSetGuardian,
+  buildUnfreezeAgent,
+  buildUnfreezePrincipal,
+  buildUpdatePayee,
+  buildUpdatePolicy,
+  type OnboardingInput,
+  type OnboardingPlan,
+  type PayeeInput,
+  type PayeeLimitsInput,
+  UNKNOWN_SUBSCRIPTION_AUTHORITY_INIT_ID,
+} from "./owner.ts";
+export {
   type DelegationSeeds,
   findAgentPda,
   findDelegationPda,
@@ -80,3 +129,25 @@ export {
   leashFailureFromCode,
   toSdkError,
 } from "./program-errors.ts";
+export {
+  ACCOUNT_OFFSETS,
+  type AgentStatusSnapshot,
+  agentToView,
+  fetchAgentDelegation,
+  fetchAgentView,
+  fetchAgentViews,
+  fetchOpenRequests,
+  fetchPayees,
+  fetchPrincipalView,
+  payeeToView,
+  principalToView,
+  readAgentStatus,
+  requestToView,
+} from "./read.ts";
+export {
+  buildTransactionMessage,
+  type PlannedTransaction,
+  packTransactions,
+  sendInstructions,
+  sendPlan,
+} from "./transactions.ts";

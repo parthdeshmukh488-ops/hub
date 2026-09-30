@@ -10,7 +10,8 @@ export type LeashSdkErrorCode =
   | "UNSUPPORTED_PAYMENT"
   | "MERCHANT_REJECTED"
   | "NETWORK_ERROR"
-  | "PROGRAM_ERROR";
+  | "PROGRAM_ERROR"
+  | "TRANSACTION_FAILED";
 
 /**
  * Base class of every error the SDK throws. `code` is stable; `message` is for humans and logs.
@@ -105,5 +106,19 @@ export class LeashNetworkError extends LeashSdkError {
   constructor(detail: string) {
     super("NETWORK_ERROR", `Network error: ${detail}`);
     this.name = "LeashNetworkError";
+  }
+}
+
+/**
+ * A transaction failed for a reason that is neither a Leash error nor the network: e.g. the agent
+ * key cannot pay the fee. `reason` is the runtime's error name (e.g. `InsufficientFundsForFee`).
+ */
+export class TransactionFailedError extends LeashSdkError {
+  readonly reason: string;
+
+  constructor(reason: string) {
+    super("TRANSACTION_FAILED", `The transaction failed: ${reason}`);
+    this.name = "TransactionFailedError";
+    this.reason = reason;
   }
 }

@@ -7,6 +7,7 @@ import type {
   PolicyView,
   RequestStatus,
 } from "@leash/contracts";
+import type { PolicyState } from "./evaluate/types.ts";
 import {
   AgentStatus as ChainAgentStatus,
   DenialReason as ChainDenialReason,
@@ -84,10 +85,20 @@ export function policyToView(policy: Policy): PolicyView {
 
 /** A policy view as the `Policy` argument of `create_agent` and `update_policy`. */
 export function policyFromView(view: PolicyView): PolicyArgs {
+  return policyToChain(policyStateFromView(view));
+}
+
+/** The on-chain `Policy` as the evaluator's `PolicyState` (bigint amounts, contract names). */
+export function policyToState(policy: Policy): PolicyState {
+  return { ...policy, payeeMode: PAYEE_MODE_FROM_CHAIN[policy.payeeMode] };
+}
+
+/** A policy view (JSON) as a `PolicyState`, the policy type the owner builders take. */
+export function policyStateFromView(view: PolicyView): PolicyState {
   return {
     maxPerPayment: BigInt(view.maxPerPayment),
     maxPerRequest: BigInt(view.maxPerRequest),
-    payeeMode: PAYEE_MODE_TO_CHAIN[view.payeeMode],
+    payeeMode: view.payeeMode,
     velocityMaxPayments: view.velocityMaxPayments,
     velocityWindowSecs: view.velocityWindowSecs,
     tripwireMaxStrikes: view.tripwireMaxStrikes,
@@ -95,6 +106,11 @@ export function policyFromView(view: PolicyView): PolicyArgs {
     requestTtlSecs: view.requestTtlSecs,
     validUntil: BigInt(view.validUntil ?? 0),
   };
+}
+
+/** A `PolicyState` as the `Policy` argument of `create_agent` and `update_policy`. */
+export function policyToChain(policy: PolicyState): PolicyArgs {
+  return { ...policy, payeeMode: PAYEE_MODE_TO_CHAIN[policy.payeeMode] };
 }
 
 /** Payee limits (JSON) as the `PayeeLimits` argument of `add_payee` and `update_payee`. */
