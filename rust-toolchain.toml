@@ -1,0 +1,6 @@
+# Host toolchain for tests, clippy and IDL generation. SBF builds (`anchor build`,
+# `cargo build-sbf`) use the Solana platform tools' own compiler instead.
+[toolchain]
+channel = "1.94.1"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

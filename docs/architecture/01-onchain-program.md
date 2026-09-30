@@ -144,7 +144,7 @@ A policy that breaks any rule is rejected with `InvalidPolicy`.
 
 ## 5. Enums
 
-Stored as `u8`. The numeric values are part of the contract and never change; new variants are appended.
+Stored as `u8`. The numeric values are part of the contract and never change; new variants are appended. Borsh stores an enum as its variant index, so the variants are declared (and listed in the IDL) in value order. `DenialReason` is the one enum whose codes start at 1: code *n* is stored as *n − 1*. Decoders read the variant name through the IDL ([ADR](../adr/20260930-ws1-program-interface.md)).
 
 | Enum | Values |
 | --- | --- |
@@ -188,7 +188,7 @@ Common accounts used by every instruction that emits events (Anchor `#[event_cpi
 | `create_agent` | owner (payer) | `principal` (mut), `agent` (init), `mint` | `agent_key: Pubkey, label: [u8;32], policy: Policy` | Validate policy; `agent_key` must not be the owner; `agent_count += 1` | `AgentCreated` |
 | `update_policy` | owner | `principal`, `agent` (mut) | `policy: Policy` | Validate and replace the policy (counters are kept) | `PolicyUpdated` |
 | `freeze_agent` | owner **or** guardian | `principal`, `agent` (mut) | – | `status = Frozen`, `freeze_reason = Owner` or `Guardian` (idempotent) | `AgentFrozen` |
-| `unfreeze_agent` | owner | `principal`, `agent` (mut) | – | `status = Active`, reason `None`, `strikes = 0`, `strike_window_start = 0` | `AgentUnfrozen` |
+| `unfreeze_agent` | owner | `principal`, `agent` (mut) | – | `status = Active`, reason `None`, `strikes = 0`, `strike_window_start = 0` (idempotent) | `AgentUnfrozen` |
 | `close_agent` | owner (rent receiver) | `principal` (mut), `agent` (mut, close) | – | Requires `payee_count == 0 && open_requests == 0` (else `AgentNotEmpty`); `agent_count -= 1` | `AgentClosed` |
 | `add_payee` | owner (payer) | `principal`, `agent` (mut), `payee_entry` (init) | `payee: Pubkey, label: [u8;32], limits: PayeeLimits` | `payee` must not be the agent key or the Agent PDA (`InvalidPayee`); `payee_count += 1` | `PayeeAdded` |
 | `update_payee` | owner | `principal`, `agent`, `payee_entry` (mut) | `label: [u8;32], limits: PayeeLimits` | Replace label and limits (period counters are kept) | `PayeeUpdated` |
@@ -196,7 +196,9 @@ Common accounts used by every instruction that emits events (Anchor `#[event_cpi
 | `approve_request` | owner | `principal`, `agent`, `request` (mut) | – | Requires `Pending` and not expired; sets `Approved`, `approved_at` | `RequestApproved` |
 | `reject_request` | owner **or** guardian | `principal`, `agent` (mut), `request` (mut, close), `rent_receiver` (mut, must equal `request.rent_payer`) | – | `open_requests -= 1` | `RequestRejected` |
 
-`PayeeLimits = { max_per_payment: u64, period_limit: u64, period_secs: u32 }`; `period_secs` must be > 0 when `period_limit` > 0.
+`PayeeLimits = { max_per_payment: u64, period_limit: u64, period_secs: u32 }`; `period_secs` must be > 0 when `period_limit` > 0 (else `InvalidPolicy`).
+
+Idempotent instructions change nothing and emit nothing when there is nothing to change. `freeze_agent` on a frozen agent keeps the first reason; `unfreeze_agent` on an active agent leaves its strikes alone.
 
 Every owner instruction checks `principal.owner == signer` and `agent.principal == principal` (Anchor `has_one` plus seeds). Guardian checks: `principal.guardian != Pubkey::default() && signer == principal.guardian`, otherwise `Unauthorized`.
 
@@ -215,9 +217,9 @@ Every owner instruction checks `principal.owner == signer` and `agent.principal 
 | 5 | `request` | ✓ | | **Optional.** An approved `PaymentRequest` to consume |
 | 6 | `request_rent_receiver` | ✓ | | **Optional.** Required iff `request` is present; must equal `request.rent_payer` |
 | 7 | `delegation` | ✓ | | Subscriptions Fixed or Recurring delegation with `delegator == owner`, `delegatee == agent PDA`, `mint == agent.mint`, else `DelegationMismatch` |
-| 8 | `subscription_authority` | | | Subscriptions SA PDA `["SubscriptionAuthority", owner, mint]` |
-| 9 | `source_token_account` | ✓ | | Owner's token account for `mint` (the delegation debits it) |
-| 10 | `destination_token_account` | ✓ | | `mint` must match (`MintMismatch`); its **owner** is the payee wallet |
+| 8 | `subscription_authority` | | | Subscriptions SA PDA `["SubscriptionAuthority", owner, mint]`: owned by Subscriptions and the one the delegation names, else `DelegationMismatch` |
+| 9 | `source_token_account` | ✓ | | The owner's **associated** token account for `mint`, the only one the delegation debits, else `DelegationMismatch` |
+| 10 | `destination_token_account` | ✓ | | `mint` must match (`MintMismatch`); its **owner** is the payee wallet; not the source and not owned by the agent key or the Agent PDA, else `InvalidDestination` |
 | 11 | `mint` | | | Must equal `agent.mint` |
 | 12 | `token_program` | | | SPL Token or Token-2022, matching the mint |
 | 13 | `subscriptions_program` | | | Must equal the Subscriptions program ID |
@@ -226,9 +228,9 @@ Every owner instruction checks `principal.owner == signer` and `agent.principal 
 
 Steps:
 
-1. Validate accounts (errors, never denials): signer, seeds, mint, token program, delegation ownership and version, destination mint. A delegation `version != 1` is rejected with `UnsupportedDelegation`.
+1. Validate accounts (errors, never denials): signer, seeds, mint, token program, delegation ownership and version, both token accounts' mint, the source and destination rules of the table above, and `request_rent_receiver` present exactly when `request` is (else `RequestMismatch`). A delegation that is not a version-1 Fixed or Recurring account of the exact v1 size is rejected with `UnsupportedDelegation`.
 2. Run `evaluate` (§7). If it returns a denial, **fail** with the matching `Denied*` error. Nothing is written.
-3. Update counters as defined in §7.2 (velocity window, payee period, payee and agent totals). If a request was consumed, close it (rent to `request_rent_receiver`) and decrement `open_requests`.
+3. Update counters as defined in §7.2 (velocity window, payee period, payee and agent totals). If a request was consumed, decrement `open_requests` and close it (rent to `request_rent_receiver`; the program closes it right after step 4).
 4. CPI into Subscriptions (§8) with the Agent PDA signing as delegatee.
 5. Emit `PaymentExecuted`.
 
@@ -404,7 +406,7 @@ Emitted with `emit_cpi!`. Every event carries `timestamp: i64`.
 | `PayeeUpdated` | `agent, payee, label, limits` |
 | `PayeeRemoved` | `agent, payee` |
 | `PaymentExecuted` | `principal, agent, payee, destination, mint, amount, reference, memo, delegation, request_nonce: Option<u64>, payments_count` |
-| `PaymentDenied` | `principal, agent, payee, destination, amount, reason: DenialReason, strikes, tripped: bool, reference, memo` |
+| `PaymentDenied` | `principal, agent, payee, destination, amount, reason: DenialReason, strikes, tripped: bool, reference, memo`. `strikes` counts the strikes in the current window after the attempt; a report that adds no strike shows those still counting (0 once the window ended) |
 | `PaymentRequested` | `agent, request, nonce, payee, amount, reference, memo, expires_at` |
 | `RequestApproved` | `agent, request, nonce` |
 | `RequestRejected` | `agent, request, nonce, by` |
@@ -439,6 +441,8 @@ One `#[error_code] enum LeashError`. **The first twelve variants are the denials
 
 New errors are appended at the end. Existing codes never move.
 
+`InvalidDestination`: the destination token account is the source, or is owned by the agent key or the Agent PDA, so an agent can never pay itself, whatever its payee mode.
+
 ## 11. Testing requirements
 
 WS1 is done when all of these pass in CI (LiteSVM, with the real Subscriptions `.so` loaded):
@@ -460,10 +464,10 @@ WS1 is done when all of these pass in CI (LiteSVM, with the real Subscriptions `
 - Pitch statement for production: the upgrade authority moves to a timelocked multisig or is revoked, so "nobody can change the rules" is literally true.
 - Account `version` fields and `reserved` bytes allow append-only evolution. Instruction and event changes follow the contract-change process ([04-conventions.md](04-conventions.md#6-changing-a-contract)).
 
-## 13. Open questions for WS1 (decide, then record the decision in an ADR)
+## 13. Decisions WS1 took ([ADR](../adr/20260930-ws1-program-interface.md))
 
-| Question | Default if nobody decides |
+| Question | Decision |
 | --- | --- |
-| Can Anchor 1.x `close` constraints be applied to `Option<Account>` (the `request` in `pay`)? | If not, close manually: transfer lamports and zero the data. |
-| Subscriptions program ID on devnet: canonical ID deployed? | WS0 verifies. If it is missing, deploy the audited source at a new ID and select it with a cargo feature `devnet-subscriptions`. |
+| Can Anchor 1.x `close` constraints be applied to `Option<Account>` (the `request` in `pay`)? | `pay` closes a consumed request itself with Anchor's `AccountsClose::close`: lamports to `request_rent_receiver`, account assigned to the system program and shrunk to 0 bytes. Anchor's exit skips closed accounts. |
+| Subscriptions program ID on devnet: canonical ID deployed? | The canonical ID stays until WS0's devnet check says otherwise. If it is missing, deploy the audited source at a new ID and select it with a cargo feature `devnet-subscriptions`. |
 | One `Payee` per `(agent, payee)`, or also per-principal shared payees? | Per agent only (least privilege). Shared payees can be added later without breaking changes. |

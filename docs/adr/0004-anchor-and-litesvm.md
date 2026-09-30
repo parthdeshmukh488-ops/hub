@@ -19,14 +19,14 @@
 3. **Shared test vectors** (`packages/contracts/test-vectors/policy.json`) drive both the program tests and the TypeScript evaluator tests (WS2), which proves parity.
 4. The built program is committed to `artifacts/programs/leash.so`, with a `artifacts/programs/CHECKSUMS` line and the commit it was built from, so cloud sessions without the SBF toolchain can run LiteSVM tests.
 
-Pinned versions (WS1 fills these in):
+Pinned versions (WS1, [ADR 20260930-ws1-program-interface](20260930-ws1-program-interface.md)):
 
 | Tool | Version |
 | --- | --- |
-| Anchor (Rust + CLI) | _tbd_ |
-| Solana / Agave CLI | _tbd_ |
-| Rust toolchain | _tbd_ |
-| litesvm | _tbd_ |
+| Anchor (Rust crates `anchor-lang`, `anchor-spl`; CLI) | 1.2.0 (`anchor-lang-idl` 0.1.4 builds the IDL) |
+| Solana / Agave CLI | _set by the first SBF build on a machine with the toolchain_ |
+| Rust toolchain (host: tests, clippy, IDL) | 1.94.1 (`rust-toolchain.toml`, CI) |
+| litesvm | _set with the first LiteSVM suite_ |
 
 ## Consequences
 

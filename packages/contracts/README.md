@@ -2,7 +2,7 @@
 
 The single off-chain source of truth for Leash. Every interface between two workstreams is defined here once, as zod schemas plus inferred TypeScript types, exactly as specified in [docs/architecture/02-contracts.md](../../docs/architecture/02-contracts.md).
 
-Owned by **WS0**; everyone else changes it through the [contract-change process](../../docs/architecture/04-conventions.md#6-changing-a-contract). `idl/` is written only by WS1.
+Owned by **WS0**; everyone else changes it through the [contract-change process](../../docs/architecture/04-conventions.md#6-changing-a-contract). `idl/` is written only by WS1: `idl/leash.json` is the program's Anchor IDL, regenerated with `cargo run -p leash --example idl -- --write` (CI fails when it is stale). `test/idl.test.ts` checks it against this package: errors, program ID, constants and seeds, `pay`'s accounts, enum order, account and event fields.
 
 ## What's inside
 
@@ -49,7 +49,7 @@ Addresses are deterministic but are not real PDAs of the placeholder program ID.
 ## Commands
 
 ```bash
-pnpm --filter @leash/contracts test       # 144 tests: schemas, units (property-based), vectors
+pnpm --filter @leash/contracts test       # 177 tests: schemas, units (property-based), vectors, the IDL
 pnpm --filter @leash/contracts generate   # regenerate fixtures/ and test-vectors/ (deterministic)
 pnpm env:example                          # regenerate the root .env.example from ENV_VARS
 ```

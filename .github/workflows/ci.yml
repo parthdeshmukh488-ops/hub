@@ -35,9 +35,11 @@ jobs:
       - name: Detect program workspace
         id: detect
         run: echo "present=$([ -f Cargo.toml ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      # Keep the toolchain in sync with rust-toolchain.toml (new clippy lints arrive with new Rust).
       - if: steps.detect.outputs.present == 'true'
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: 1.94.1
           components: rustfmt, clippy
       - if: steps.detect.outputs.present == 'true'
         run: cargo fmt --all -- --check
@@ -45,3 +47,6 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
       - if: steps.detect.outputs.present == 'true'
         run: cargo test
+      - if: steps.detect.outputs.present == 'true'
+        name: The committed IDL matches the program
+        run: cargo run --quiet -p leash --example idl -- --check

@@ -349,6 +349,29 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *CI had failed on every push since WS6 step 1. The root `.gitignore` rule `data/` also matched `apps/web/src/data/`, so six web source files were never committed. Local checks passed and CI could not find the modules. Claude reproduced the failure from a clean clone, narrowed the rule, committed the missing files, and added `pnpm check:ignored` to `pnpm check` so an ignore rule can never hide source files again.*
 
+## Turn 22
+
+**Parth:**
+
+> do if that is only the way
+
+*Claude fast-forwarded `main` to the fix. CI went green on the branch and on `main`.*
+
+## Turn 23
+
+**Parth:**
+
+> first lets do the project wisely then the pitch
+
+*Claude took the critical path, WS1, as far as a cloud session can go without the Solana toolchain:*
+- *It verified that the Anchor 1.2.0 crates are official (co-owned by the Solana Foundation) and read the Subscriptions source at tag `program-v0.5.0`. The spec's account layouts and CPI account order matched it.*
+- *It wrote the whole Anchor program: accounts, enums, events, errors and all 18 instructions.*
+- *It ported the policy evaluation and upstream's allowance logic line for line; the Rust `evaluate` passes all 60 shared vectors.*
+- *It generated the IDL with Anchor's own builder and committed it, with a CI check and a contracts test that pin it to `@leash/contracts`.*
+- *Choices the spec left open went into an additive ADR (contracts 1.3.0).*
+
+*Building `leash.so`, the program ID, the LiteSVM suites and the devnet deployment still need a machine with the Solana toolchain. Details: [docs/workstreams/status/WS1.md](../workstreams/status/WS1.md).*
+
 ---
 
 ## Attachments

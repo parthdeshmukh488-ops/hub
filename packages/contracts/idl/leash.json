@@ -1,0 +1,3776 @@
+{
+  "address": "5ZDkdhcRtUrWLpK4vMx3C3r1w8iZyVaXvXzC5kvtQpM5",
+  "metadata": {
+    "name": "leash",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Leash: an on-chain spending firewall for AI agents"
+  },
+  "instructions": [
+    {
+      "name": "add_payee",
+      "docs": [
+        "Adds a wallet to an agent's allowlist."
+      ],
+      "discriminator": [
+        248,
+        28,
+        137,
+        95,
+        9,
+        128,
+        223,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "docs": [
+            "Pays the rent."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payee_entry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  121,
+                  101,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "arg",
+                "path": "payee"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "payee",
+          "type": "pubkey"
+        },
+        {
+          "name": "label",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "limits",
+          "type": {
+            "defined": {
+              "name": "PayeeLimits"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "approve_request",
+      "docs": [
+        "Approves a pending payment request."
+      ],
+      "discriminator": [
+        89,
+        68,
+        167,
+        104,
+        93,
+        25,
+        178,
+        205
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          },
+          "relations": [
+            "request"
+          ]
+        },
+        {
+          "name": "request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "request.nonce",
+                "account": "PaymentRequest"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "close_agent",
+      "docs": [
+        "Closes an agent that has no payees and no open requests."
+      ],
+      "discriminator": [
+        52,
+        185,
+        104,
+        145,
+        157,
+        30,
+        87,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "docs": [
+            "Receives the rent."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_agent",
+      "docs": [
+        "Creates an agent for `agent_key` with a validated policy."
+      ],
+      "discriminator": [
+        143,
+        66,
+        198,
+        95,
+        110,
+        85,
+        83,
+        249
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "docs": [
+            "Pays the rent."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "arg",
+                "path": "agent_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "docs": [
+            "The only mint this agent can pay with (SPL Token or Token-2022)."
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "agent_key",
+          "type": "pubkey"
+        },
+        {
+          "name": "label",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "policy",
+          "type": {
+            "defined": {
+              "name": "Policy"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "expire_request",
+      "docs": [
+        "Closes an expired payment request."
+      ],
+      "discriminator": [
+        219,
+        189,
+        105,
+        97,
+        227,
+        47,
+        124,
+        23
+      ],
+      "accounts": [
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent.principal",
+                "account": "Agent"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          },
+          "relations": [
+            "request"
+          ]
+        },
+        {
+          "name": "request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "request.nonce",
+                "account": "PaymentRequest"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent_receiver",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "freeze_agent",
+      "docs": [
+        "Freezes one agent. Owner or guardian."
+      ],
+      "discriminator": [
+        142,
+        40,
+        239,
+        10,
+        18,
+        216,
+        106,
+        176
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "docs": [
+            "The owner or the guardian."
+          ],
+          "signer": true
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal.owner",
+                "account": "Principal"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "freeze_principal",
+      "docs": [
+        "Freezes every agent of the owner. Owner or guardian."
+      ],
+      "discriminator": [
+        100,
+        59,
+        226,
+        7,
+        162,
+        213,
+        137,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "docs": [
+            "The owner or the guardian."
+          ],
+          "signer": true
+        },
+        {
+          "name": "principal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal.owner",
+                "account": "Principal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_principal",
+      "docs": [
+        "Creates the owner's principal, optionally with a guardian."
+      ],
+      "discriminator": [
+        225,
+        79,
+        180,
+        238,
+        201,
+        66,
+        190,
+        196
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "docs": [
+            "The owner wallet; pays the rent."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "principal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "guardian",
+          "type": {
+            "option": "pubkey"
+          }
+        }
+      ]
+    },
+    {
+      "name": "pay",
+      "docs": [
+        "Pays an allowed payee through the Subscriptions delegation, or fails."
+      ],
+      "discriminator": [
+        119,
+        18,
+        216,
+        65,
+        192,
+        117,
+        122,
+        220
+      ],
+      "accounts": [
+        {
+          "name": "agent_key",
+          "docs": [
+            "Must be `agent.agent_key`. Not the fee payer in x402 flows."
+          ],
+          "signer": true,
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal.owner",
+                "account": "Principal"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payee_entry",
+          "docs": [
+            "The allowlist entry for the destination's owner. Required in `AllowListOnly` mode;",
+            "`evaluate` checks that it belongs to this agent and names the payee."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "request",
+          "docs": [
+            "An approved request to consume; `evaluate` checks it."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "request_rent_receiver",
+          "docs": [
+            "be `request.rent_payer` (checked in the handler)."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "delegation",
+          "docs": [
+            "program, v1 layout, delegator, delegatee, mint). Subscriptions writes it during the CPI."
+          ],
+          "writable": true
+        },
+        {
+          "name": "subscription_authority",
+          "docs": [
+            "by the delegation (checked in the handler). Subscriptions verifies its contents."
+          ]
+        },
+        {
+          "name": "source_token_account",
+          "docs": [
+            "The owner's associated token account for `mint`; the delegation debits it."
+          ],
+          "writable": true
+        },
+        {
+          "name": "destination_token_account",
+          "docs": [
+            "Its owner is the payee wallet the allowlist is checked against."
+          ],
+          "writable": true
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "subscriptions_program",
+          "address": "De1egAFMkMWZSN5rYXRj9CAdheBamobVNubTsi9avR44"
+        },
+        {
+          "name": "subscriptions_event_authority",
+          "address": "3Hnj4BYoDgtpBuqXfiy7Y8cNa3jXaNd4oqgSXBzkMcH7"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "PayArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "reject_request",
+      "docs": [
+        "Rejects a payment request. Owner or guardian."
+      ],
+      "discriminator": [
+        11,
+        232,
+        75,
+        149,
+        197,
+        137,
+        152,
+        208
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "docs": [
+            "The owner or the guardian."
+          ],
+          "signer": true
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal.owner",
+                "account": "Principal"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          },
+          "relations": [
+            "request"
+          ]
+        },
+        {
+          "name": "request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "request.nonce",
+                "account": "PaymentRequest"
+              }
+            ]
+          }
+        },
+        {
+          "name": "rent_receiver",
+          "writable": true
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "remove_payee",
+      "docs": [
+        "Removes an allowlist entry."
+      ],
+      "discriminator": [
+        107,
+        214,
+        166,
+        252,
+        91,
+        122,
+        83,
+        219
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "docs": [
+            "Receives the rent."
+          ],
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          },
+          "relations": [
+            "payee_entry"
+          ]
+        },
+        {
+          "name": "payee_entry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  121,
+                  101,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "payee_entry.payee",
+                "account": "Payee"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "report_denied_attempt",
+      "docs": [
+        "Records a payment the policy denies; fails if the policy would allow it."
+      ],
+      "discriminator": [
+        167,
+        78,
+        41,
+        136,
+        49,
+        247,
+        187,
+        154
+      ],
+      "accounts": [
+        {
+          "name": "agent_key",
+          "signer": true,
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal.owner",
+                "account": "Principal"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payee_entry",
+          "optional": true
+        },
+        {
+          "name": "delegation"
+        },
+        {
+          "name": "source_token_account"
+        },
+        {
+          "name": "destination_token_account"
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "PayArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "request_payment",
+      "docs": [
+        "Asks the owner to approve a payment above the instant limit."
+      ],
+      "discriminator": [
+        200,
+        214,
+        181,
+        94,
+        178,
+        84,
+        71,
+        247
+      ],
+      "accounts": [
+        {
+          "name": "agent_key",
+          "signer": true,
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "rent_payer",
+          "docs": [
+            "Pays the request's rent and gets it back when the request closes. Usually the agent key."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal.owner",
+                "account": "Principal"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payee_entry",
+          "docs": [
+            "The allowlist entry for `payee`; required in `AllowListOnly` mode."
+          ],
+          "optional": true
+        },
+        {
+          "name": "request",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  113,
+                  117,
+                  101,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "agent.stats.request_nonce",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "RequestArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "set_guardian",
+      "docs": [
+        "Sets or clears the guardian."
+      ],
+      "discriminator": [
+        147,
+        243,
+        50,
+        121,
+        154,
+        164,
+        50,
+        30
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "guardian",
+          "type": {
+            "option": "pubkey"
+          }
+        }
+      ]
+    },
+    {
+      "name": "unfreeze_agent",
+      "docs": [
+        "Reactivates one agent and clears its strikes. Owner only."
+      ],
+      "discriminator": [
+        31,
+        194,
+        10,
+        120,
+        66,
+        217,
+        180,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "unfreeze_principal",
+      "docs": [
+        "Lifts the global freeze. Owner only."
+      ],
+      "discriminator": [
+        87,
+        36,
+        91,
+        117,
+        175,
+        212,
+        108,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_payee",
+      "docs": [
+        "Replaces an allowlist entry's label and limits."
+      ],
+      "discriminator": [
+        194,
+        47,
+        172,
+        2,
+        192,
+        16,
+        104,
+        65
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          },
+          "relations": [
+            "payee_entry"
+          ]
+        },
+        {
+          "name": "payee_entry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  121,
+                  101,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent"
+              },
+              {
+                "kind": "account",
+                "path": "payee_entry.payee",
+                "account": "Payee"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "label",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "limits",
+          "type": {
+            "defined": {
+              "name": "PayeeLimits"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_policy",
+      "docs": [
+        "Replaces an agent's policy; its counters are kept."
+      ],
+      "discriminator": [
+        212,
+        245,
+        246,
+        7,
+        163,
+        151,
+        18,
+        57
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "principal"
+          ]
+        },
+        {
+          "name": "principal",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  105,
+                  110,
+                  99,
+                  105,
+                  112,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          },
+          "relations": [
+            "agent"
+          ]
+        },
+        {
+          "name": "agent",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "principal"
+              },
+              {
+                "kind": "account",
+                "path": "agent.agent_key",
+                "account": "Agent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "policy",
+          "type": {
+            "defined": {
+              "name": "Policy"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Agent",
+      "discriminator": [
+        47,
+        166,
+        112,
+        147,
+        155,
+        197,
+        86,
+        7
+      ]
+    },
+    {
+      "name": "Payee",
+      "discriminator": [
+        55,
+        185,
+        7,
+        92,
+        94,
+        200,
+        10,
+        246
+      ]
+    },
+    {
+      "name": "PaymentRequest",
+      "discriminator": [
+        27,
+        20,
+        202,
+        96,
+        101,
+        242,
+        124,
+        69
+      ]
+    },
+    {
+      "name": "Principal",
+      "discriminator": [
+        0,
+        19,
+        239,
+        113,
+        115,
+        34,
+        165,
+        148
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AgentClosed",
+      "discriminator": [
+        72,
+        133,
+        207,
+        59,
+        220,
+        188,
+        201,
+        165
+      ]
+    },
+    {
+      "name": "AgentCreated",
+      "discriminator": [
+        237,
+        44,
+        61,
+        111,
+        90,
+        251,
+        241,
+        34
+      ]
+    },
+    {
+      "name": "AgentFrozen",
+      "discriminator": [
+        49,
+        38,
+        208,
+        185,
+        219,
+        3,
+        92,
+        27
+      ]
+    },
+    {
+      "name": "AgentUnfrozen",
+      "discriminator": [
+        209,
+        209,
+        139,
+        83,
+        146,
+        43,
+        100,
+        252
+      ]
+    },
+    {
+      "name": "GuardianChanged",
+      "discriminator": [
+        152,
+        239,
+        217,
+        24,
+        162,
+        189,
+        236,
+        143
+      ]
+    },
+    {
+      "name": "PayeeAdded",
+      "discriminator": [
+        3,
+        246,
+        5,
+        50,
+        2,
+        252,
+        12,
+        195
+      ]
+    },
+    {
+      "name": "PayeeRemoved",
+      "discriminator": [
+        186,
+        151,
+        150,
+        29,
+        118,
+        119,
+        0,
+        177
+      ]
+    },
+    {
+      "name": "PayeeUpdated",
+      "discriminator": [
+        122,
+        31,
+        67,
+        61,
+        156,
+        226,
+        14,
+        10
+      ]
+    },
+    {
+      "name": "PaymentDenied",
+      "discriminator": [
+        7,
+        233,
+        237,
+        248,
+        17,
+        16,
+        228,
+        64
+      ]
+    },
+    {
+      "name": "PaymentExecuted",
+      "discriminator": [
+        153,
+        165,
+        141,
+        18,
+        246,
+        20,
+        204,
+        227
+      ]
+    },
+    {
+      "name": "PaymentRequested",
+      "discriminator": [
+        128,
+        118,
+        126,
+        1,
+        220,
+        196,
+        38,
+        63
+      ]
+    },
+    {
+      "name": "PolicyUpdated",
+      "discriminator": [
+        225,
+        112,
+        112,
+        67,
+        95,
+        236,
+        245,
+        161
+      ]
+    },
+    {
+      "name": "PrincipalFrozen",
+      "discriminator": [
+        212,
+        200,
+        35,
+        3,
+        42,
+        228,
+        213,
+        72
+      ]
+    },
+    {
+      "name": "PrincipalInitialized",
+      "discriminator": [
+        234,
+        14,
+        10,
+        248,
+        226,
+        254,
+        127,
+        33
+      ]
+    },
+    {
+      "name": "PrincipalUnfrozen",
+      "discriminator": [
+        30,
+        111,
+        240,
+        242,
+        182,
+        170,
+        196,
+        174
+      ]
+    },
+    {
+      "name": "RequestApproved",
+      "discriminator": [
+        158,
+        196,
+        69,
+        207,
+        98,
+        44,
+        119,
+        187
+      ]
+    },
+    {
+      "name": "RequestExpired",
+      "discriminator": [
+        190,
+        61,
+        247,
+        223,
+        89,
+        107,
+        245,
+        252
+      ]
+    },
+    {
+      "name": "RequestRejected",
+      "discriminator": [
+        92,
+        222,
+        126,
+        51,
+        111,
+        175,
+        57,
+        199
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "DeniedPrincipalFrozen",
+      "msg": "All agents of this owner are frozen"
+    },
+    {
+      "code": 6001,
+      "name": "DeniedAgentFrozen",
+      "msg": "This agent is frozen"
+    },
+    {
+      "code": 6002,
+      "name": "DeniedAgentExpired",
+      "msg": "This agent's policy has expired"
+    },
+    {
+      "code": 6003,
+      "name": "DeniedPayeeNotAllowed",
+      "msg": "The payee is not on this agent's allowlist"
+    },
+    {
+      "code": 6004,
+      "name": "DeniedExceedsPaymentLimit",
+      "msg": "The amount is above this agent's limit per payment"
+    },
+    {
+      "code": 6005,
+      "name": "DeniedApprovalRequired",
+      "msg": "The amount needs the owner's approval"
+    },
+    {
+      "code": 6006,
+      "name": "DeniedExceedsPayeePaymentLimit",
+      "msg": "The amount is above this payee's limit per payment"
+    },
+    {
+      "code": 6007,
+      "name": "DeniedExceedsPayeePeriodLimit",
+      "msg": "This payee's budget for the period is used up"
+    },
+    {
+      "code": 6008,
+      "name": "DeniedVelocityExceeded",
+      "msg": "Too many payments in the current window"
+    },
+    {
+      "code": 6009,
+      "name": "DeniedAllowanceExpired",
+      "msg": "The allowance has expired"
+    },
+    {
+      "code": 6010,
+      "name": "DeniedAllowanceExceeded",
+      "msg": "Not enough allowance left"
+    },
+    {
+      "code": 6011,
+      "name": "DeniedInsufficientFunds",
+      "msg": "The owner's token account holds less than the amount"
+    },
+    {
+      "code": 6012,
+      "name": "Unauthorized",
+      "msg": "The signer is not allowed to do this"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidPolicy",
+      "msg": "The policy breaks a rule"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidAmount",
+      "msg": "The amount must be greater than zero"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidAgentKey",
+      "msg": "The agent key must not be the owner"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidPayee",
+      "msg": "The payee must not be the agent key or the agent account"
+    },
+    {
+      "code": 6017,
+      "name": "MintMismatch",
+      "msg": "The mint does not match the agent's mint"
+    },
+    {
+      "code": 6018,
+      "name": "InvalidDestination",
+      "msg": "The destination token account is not a valid destination"
+    },
+    {
+      "code": 6019,
+      "name": "DelegationMismatch",
+      "msg": "The delegation does not belong to this owner, agent and mint"
+    },
+    {
+      "code": 6020,
+      "name": "UnsupportedDelegation",
+      "msg": "Unsupported delegation account"
+    },
+    {
+      "code": 6021,
+      "name": "RequestMismatch",
+      "msg": "The payment does not match the request"
+    },
+    {
+      "code": 6022,
+      "name": "RequestNotApproved",
+      "msg": "The request is not approved"
+    },
+    {
+      "code": 6023,
+      "name": "RequestExpired",
+      "msg": "The request has expired"
+    },
+    {
+      "code": 6024,
+      "name": "RequestNotPending",
+      "msg": "The request is not pending"
+    },
+    {
+      "code": 6025,
+      "name": "RequestNotExpired",
+      "msg": "The request has not expired yet"
+    },
+    {
+      "code": 6026,
+      "name": "ApprovalsDisabled",
+      "msg": "Approvals are switched off for this agent"
+    },
+    {
+      "code": 6027,
+      "name": "ApprovalNotNeeded",
+      "msg": "The amount is within the instant limit"
+    },
+    {
+      "code": 6028,
+      "name": "TooManyOpenRequests",
+      "msg": "Too many open payment requests"
+    },
+    {
+      "code": 6029,
+      "name": "AttemptWouldSucceed",
+      "msg": "The policy allows this payment"
+    },
+    {
+      "code": 6030,
+      "name": "AgentNotEmpty",
+      "msg": "The agent still has payees or open requests"
+    },
+    {
+      "code": 6031,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Agent",
+      "docs": [
+        "Seeds: `[AGENT_SEED, principal, agent_key]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "docs": [
+              "Denormalized from the principal, for `memcmp` queries."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_key",
+            "docs": [
+              "Signs `pay`, `request_payment` and `report_denied_attempt`."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "docs": [
+              "The only mint this agent can pay with."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "label",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "AgentStatus"
+              }
+            }
+          },
+          {
+            "name": "freeze_reason",
+            "docs": [
+              "`None` while active."
+            ],
+            "type": {
+              "defined": {
+                "name": "FreezeReason"
+              }
+            }
+          },
+          {
+            "name": "frozen_at",
+            "type": "i64"
+          },
+          {
+            "name": "payee_count",
+            "docs": [
+              "Live `Payee` accounts."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "open_requests",
+            "docs": [
+              "Live `PaymentRequest` accounts."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "policy",
+            "type": {
+              "defined": {
+                "name": "Policy"
+              }
+            }
+          },
+          {
+            "name": "stats",
+            "type": {
+              "defined": {
+                "name": "AgentStats"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "label",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "policy",
+            "type": {
+              "defined": {
+                "name": "Policy"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentFrozen",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "reason",
+            "type": {
+              "defined": {
+                "name": "FreezeReason"
+              }
+            }
+          },
+          {
+            "name": "by",
+            "docs": [
+              "For `Tripwire`, the agent key."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentStats",
+      "docs": [
+        "Counters kept by the program. Windows follow §7.2; a start of 0 means \"never started\"."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payments_count",
+            "type": "u64"
+          },
+          {
+            "name": "total_paid",
+            "type": "u64"
+          },
+          {
+            "name": "denied_count",
+            "docs": [
+              "Reported denials."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "last_payment_at",
+            "type": "i64"
+          },
+          {
+            "name": "velocity_window_start",
+            "type": "i64"
+          },
+          {
+            "name": "velocity_count",
+            "type": "u16"
+          },
+          {
+            "name": "strike_window_start",
+            "type": "i64"
+          },
+          {
+            "name": "strikes",
+            "type": "u8"
+          },
+          {
+            "name": "request_nonce",
+            "docs": [
+              "The next `PaymentRequest` nonce."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentStatus",
+      "docs": [
+        "Whether an agent may pay."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Frozen"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentUnfrozen",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DenialReason",
+      "docs": [
+        "Why the policy blocked a payment (01 §5). The first failing check of §7.1 wins."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "PrincipalFrozen"
+          },
+          {
+            "name": "AgentFrozen"
+          },
+          {
+            "name": "AgentExpired"
+          },
+          {
+            "name": "PayeeNotAllowed"
+          },
+          {
+            "name": "ExceedsPaymentLimit"
+          },
+          {
+            "name": "ApprovalRequired"
+          },
+          {
+            "name": "ExceedsPayeePaymentLimit"
+          },
+          {
+            "name": "ExceedsPayeePeriodLimit"
+          },
+          {
+            "name": "VelocityExceeded"
+          },
+          {
+            "name": "AllowanceExpired"
+          },
+          {
+            "name": "AllowanceExceeded"
+          },
+          {
+            "name": "InsufficientFunds"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FreezeReason",
+      "docs": [
+        "Why an agent is frozen; `None` while it is active."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Owner"
+          },
+          {
+            "name": "Guardian"
+          },
+          {
+            "name": "Tripwire"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GuardianChanged",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "guardian",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayArgs",
+      "docs": [
+        "Arguments of `pay` and `report_denied_attempt`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "reference",
+            "docs": [
+              "Binds the payment to its context (x402 memo hash, request reference)."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "memo",
+            "docs": [
+              "The human-readable purpose, UTF-8, zero-padded."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Payee",
+      "docs": [
+        "Seeds: `[PAYEE_SEED, agent, payee]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee",
+            "docs": [
+              "The wallet that must **own** the destination token account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "label",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "max_per_payment",
+            "docs": [
+              "0 = no payee-specific cap."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "period_limit",
+            "docs": [
+              "0 = no payee-specific period budget."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "period_secs",
+            "docs": [
+              "> 0 when `period_limit` > 0."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "period_start",
+            "docs": [
+              "Window start (§7.2)."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "spent_in_period",
+            "type": "u64"
+          },
+          {
+            "name": "total_paid",
+            "type": "u64"
+          },
+          {
+            "name": "payments_count",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayeeAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee",
+            "type": "pubkey"
+          },
+          {
+            "name": "label",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "limits",
+            "type": {
+              "defined": {
+                "name": "PayeeLimits"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayeeLimits",
+      "docs": [
+        "A payee's own limits, on top of the agent's policy. Stored flat in `Payee`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_per_payment",
+            "docs": [
+              "0 = no payee-specific cap."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "period_limit",
+            "docs": [
+              "0 = no payee-specific period budget."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "period_secs",
+            "docs": [
+              "Must be > 0 when `period_limit` > 0."
+            ],
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayeeMode",
+      "docs": [
+        "Which destinations an agent may pay."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "AllowListOnly"
+          },
+          {
+            "name": "AnyPayee"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayeeRemoved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PayeeUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee",
+            "type": "pubkey"
+          },
+          {
+            "name": "label",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "limits",
+            "type": {
+              "defined": {
+                "name": "PayeeLimits"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PaymentDenied",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee",
+            "docs": [
+              "The wallet that owns the destination token account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "docs": [
+              "The destination token account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "reason",
+            "type": {
+              "defined": {
+                "name": "DenialReason"
+              }
+            }
+          },
+          {
+            "name": "strikes",
+            "docs": [
+              "Strikes in the current window after this attempt."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "tripped",
+            "docs": [
+              "True if this attempt froze the agent."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "reference",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "memo",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PaymentExecuted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "payee",
+            "docs": [
+              "The wallet that owns the destination token account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "docs": [
+              "The destination token account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "reference",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "memo",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "delegation",
+            "type": "pubkey"
+          },
+          {
+            "name": "request_nonce",
+            "docs": [
+              "Set when the payment consumed an approved request."
+            ],
+            "type": {
+              "option": "u64"
+            }
+          },
+          {
+            "name": "payments_count",
+            "docs": [
+              "The agent's payment count after this payment."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PaymentRequest",
+      "docs": [
+        "Seeds: `[REQUEST_SEED, agent, nonce.to_le_bytes()]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "docs": [
+              "Taken from `agent.stats.request_nonce` at creation."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "payee",
+            "docs": [
+              "The payee wallet."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "docs": [
+              "The exact amount that may be paid."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "reference",
+            "docs": [
+              "Must match the later `pay`."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "memo",
+            "docs": [
+              "Purpose shown to the owner."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "docs": [
+              "`Pending` or `Approved`; terminal outcomes close the account."
+            ],
+            "type": {
+              "defined": {
+                "name": "RequestStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "approved_at",
+            "type": "i64"
+          },
+          {
+            "name": "rent_payer",
+            "docs": [
+              "Receives the rent back when the account closes."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PaymentRequested",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "request",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "payee",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "reference",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "memo",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Policy",
+      "docs": [
+        "The rules an agent's payments must follow. Stored in `Agent`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_per_payment",
+            "docs": [
+              "Instant limit per payment. Must be > 0."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_per_request",
+            "docs": [
+              "Upper bound for approved requests. 0 disables approvals; otherwise > `max_per_payment`."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "payee_mode",
+            "type": {
+              "defined": {
+                "name": "PayeeMode"
+              }
+            }
+          },
+          {
+            "name": "velocity_max_payments",
+            "docs": [
+              "Executed payments per window. 0 = off."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "velocity_window_secs",
+            "docs": [
+              "Must be > 0 when the rate limit is on."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "tripwire_max_strikes",
+            "docs": [
+              "Strikes that freeze the agent. 0 = off."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "tripwire_window_secs",
+            "docs": [
+              "Must be > 0 when the tripwire is on."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "request_ttl_secs",
+            "docs": [
+              "Payment request lifetime; in `1..=MAX_REQUEST_TTL_SECS` when approvals are on."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "valid_until",
+            "docs": [
+              "0 = no expiry; otherwise in the future when set."
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PolicyUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "policy",
+            "type": {
+              "defined": {
+                "name": "Policy"
+              }
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Principal",
+      "docs": [
+        "Seeds: `[PRINCIPAL_SEED, owner]`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "owner",
+            "docs": [
+              "The owner wallet."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "guardian",
+            "docs": [
+              "`Pubkey::default()` means no guardian."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "frozen",
+            "docs": [
+              "Global off switch for all agents of this owner."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "frozen_at",
+            "docs": [
+              "0 if not frozen."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "frozen_by",
+            "docs": [
+              "Default if not frozen."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_count",
+            "docs": [
+              "Live agents."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "reserved",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrincipalFrozen",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "by",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrincipalInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "guardian",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrincipalUnfrozen",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "principal",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestApproved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "request",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "payee",
+            "docs": [
+              "The payee wallet (the owner of the destination token account)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "reference",
+            "docs": [
+              "Must match the later `pay`."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "memo",
+            "docs": [
+              "Purpose shown to the owner, UTF-8, zero-padded."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestExpired",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "request",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestRejected",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent",
+            "type": "pubkey"
+          },
+          {
+            "name": "request",
+            "type": "pubkey"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "by",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RequestStatus",
+      "docs": [
+        "Lifecycle of a payment request. Terminal outcomes close the account."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pending"
+          },
+          {
+            "name": "Approved"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "ACCOUNT_VERSION",
+      "docs": [
+        "Written to every account; later versions only append fields (01 §12)."
+      ],
+      "type": "u8",
+      "value": "1"
+    },
+    {
+      "name": "AGENT_SEED",
+      "docs": [
+        "`Agent` seeds: `[AGENT_SEED, principal, agent_key]`. The Agent PDA is the Subscriptions",
+        "delegatee."
+      ],
+      "type": "bytes",
+      "value": "[97, 103, 101, 110, 116]"
+    },
+    {
+      "name": "MAX_OPEN_REQUESTS",
+      "docs": [
+        "Open payment requests per agent (spam guard)."
+      ],
+      "type": "u16",
+      "value": "8"
+    },
+    {
+      "name": "MAX_REQUEST_TTL_SECS",
+      "docs": [
+        "Longest lifetime of a payment request: 7 days."
+      ],
+      "type": "u32",
+      "value": "604800"
+    },
+    {
+      "name": "PAYEE_SEED",
+      "docs": [
+        "`Payee` seeds: `[PAYEE_SEED, agent, payee_wallet]`."
+      ],
+      "type": "bytes",
+      "value": "[112, 97, 121, 101, 101]"
+    },
+    {
+      "name": "PRINCIPAL_SEED",
+      "docs": [
+        "`Principal` seeds: `[PRINCIPAL_SEED, owner]`."
+      ],
+      "type": "bytes",
+      "value": "[112, 114, 105, 110, 99, 105, 112, 97, 108]"
+    },
+    {
+      "name": "REQUEST_SEED",
+      "docs": [
+        "`PaymentRequest` seeds: `[REQUEST_SEED, agent, nonce as u64 little-endian]`."
+      ],
+      "type": "bytes",
+      "value": "[114, 101, 113, 117, 101, 115, 116]"
+    }
+  ]
+}

@@ -18,6 +18,7 @@
   - [Denial reporting policy](../../adr/20260929-ws0-denial-reporting-policy.md): strikes always reported, `approvalRequired` never, others once per reason per minute.
 
 - 2026-09-30, CI fix: every CI run since WS6 step 1 failed because the root `.gitignore` rule `data/` also hid `apps/web/src/data/` (six source files never reached GitHub). The rule now ignores only runtime data folders (`/data/`, `apps/*/data/`, `services/*/data/`). A new guard, `pnpm check:ignored` (part of `pnpm check`), fails when `.gitignore` hides any source file. CI can't catch this itself, since ignored files never reach it.
+- 2026-09-30, with WS1: the Rust CI job now pins Rust 1.94.1 (as `rust-toolchain.toml` does), so new clippy lints can't break CI unannounced. It also runs `cargo run -p leash --example idl -- --check`, which fails when `packages/contracts/idl/leash.json` drifts from the program.
 
 ## Next
 
