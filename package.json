@@ -21,6 +21,8 @@
     "check:ignored": "tsx scripts/check-ignored.ts",
     "keys": "tsx scripts/keys.ts",
     "devnet:check": "tsx scripts/devnet-check.ts",
+    "devnet:setup": "pnpm --filter @leash/sdk devnet:setup",
+    "devnet:smoke": "pnpm --filter @leash/sdk devnet:smoke",
     "localnet": "bash scripts/localnet.sh",
     "artifact:subscriptions": "bash scripts/subscriptions-artifact.sh"
   },

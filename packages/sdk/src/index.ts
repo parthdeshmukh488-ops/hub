@@ -144,6 +144,7 @@ export {
   readAgentStatus,
   requestToView,
 } from "./read.ts";
+export { type LeashRpcApi, type RpcChainOptions, rpcChain } from "./rpc-chain.ts";
 export {
   buildTransactionMessage,
   type PlannedTransaction,

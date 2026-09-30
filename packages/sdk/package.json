@@ -12,7 +12,9 @@
     "generate": "tsx scripts/generate.ts",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "devnet:setup": "tsx scripts/devnet-setup.ts",
+    "devnet:smoke": "tsx scripts/devnet-smoke.ts"
   },
   "dependencies": {
     "@leash/contracts": "workspace:*",

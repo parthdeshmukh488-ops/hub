@@ -14,7 +14,6 @@ import {
   FreezeReason as ChainFreezeReason,
   PayeeMode as ChainPayeeMode,
   RequestStatus as ChainRequestStatus,
-  type PayeeLimitsArgs,
   type Policy,
   type PolicyArgs,
 } from "./generated/leash/index.ts";
@@ -114,7 +113,11 @@ export function policyToChain(policy: PolicyState): PolicyArgs {
 }
 
 /** Payee limits (JSON) as the `PayeeLimits` argument of `add_payee` and `update_payee`. */
-export function payeeLimitsFromView(limits: PayeeLimits): PayeeLimitsArgs {
+export function payeeLimitsFromView(limits: PayeeLimits): {
+  maxPerPayment: bigint;
+  periodLimit: bigint;
+  periodSecs: number;
+} {
   return {
     maxPerPayment: BigInt(limits.maxPerPayment),
     periodLimit: BigInt(limits.periodLimit),
