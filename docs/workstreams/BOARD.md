@@ -23,7 +23,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | # | Session | Must run on | First build step | Unblocks |
 | --- | --- | --- | --- | --- |
 | 1 | **WS1** Leash program | your laptop (Solana toolchain) | Done, live on devnet. Rebuild and upgrade on the laptop after any program change. | the devnet demo |
-| 2 | **WS2** SDK | anywhere | Step 2 done. **Step 1 can start: the IDL is committed**, then step 3. | almost everyone |
+| 2 | **WS2** SDK | anywhere | Step 2 done. **Steps 1 and 3–6 in progress in the cloud** (Codama client, reads, owner builders, `LeashAgent`, events). | almost everyone |
 | 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet + pairing) and step 3 writes need the IDL. | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Done: keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Step 1 done. Step 2 (chain ingestion) needs the IDL and RPC access. | WS5, WS6 live data |
@@ -38,6 +38,19 @@ Fewer terminals? Combine sessions in this order:
 - **2 terminals:** laptop = WS0 step 4 → WS1 · second = WS2 → WS3.
 - **3 terminals:** add WS6 → WS4 → WS5.
 - **4 terminals:** add WS8 → WS7 → WS9.
+
+## Laptop queue (needs the Solana toolchain or devnet)
+
+Parth runs one Claude session on the laptop, which has the Solana toolchain and devnet access. The cloud session writes and tests the code: LiteSVM runs there on the committed `.so` files. The laptop does only what needs a real chain, in this order. Each item names its trigger; see the [message](messages/20260930-1554-from-architect-to-ws1-laptop-queue.md) for details.
+
+| # | Task | Trigger | Who |
+| --- | --- | --- | --- |
+| 1 | Fund the demo keys on devnet. SOL for `owner-demo`, `agent`, `guardian`, `facilitator`, `merchant`. About 20 devnet USDC for `owner-demo`. Check with `pnpm devnet:check`. | now | Parth in the browser (faucet.solana.com, faucet.circle.com); the laptop session verifies |
+| 2 | `pnpm devnet:setup` (the demo world: principal, allowance, agents, allowlist) and `pnpm devnet:smoke` (one real payment, one blocked attempt reported, freeze and unfreeze). Commit the printed addresses and signatures. | WS2 announces "owner builders and `LeashAgent` ready" | laptop session |
+| 3 | Run the indexer in chain mode against devnet and check the smoke test's events come out as the contract JSON. | WS4 announces chain mode | laptop session |
+| 4 | x402 end to end: facilitator plus merchant paywall on `pnpm localnet`, then on devnet. | WS3 announces the facilitator | laptop session |
+| 5 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |
+| – | After any program change: rebuild, update `CHECKSUMS`, upgrade on devnet with the deployer key, and check that the dump equals the committed `.so`. | only if WS1's source changes | laptop session |
 
 ## Handoffs to announce
 
