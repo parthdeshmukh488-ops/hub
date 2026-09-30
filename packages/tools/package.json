@@ -10,6 +10,11 @@
   "scripts": {
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@leash/contracts": "workspace:*",
+    "@leash/sdk": "workspace:*",
+    "zod": "4.6.5"
   }
 }

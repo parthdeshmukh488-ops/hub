@@ -329,6 +329,18 @@ User messages are reproduced verbatim. Claude's replies are reproduced verbatim,
 
 *A test runs every paid route through the SDK's evaluator under the demo preset, confirming the storyline's outcomes. Details: [docs/workstreams/status/WS8.md](../workstreams/status/WS8.md).*
 
+## Turn 20
+
+**Parth:**
+
+> merge and  move next
+
+*Claude fast-forwarded `main` (commit `c2bc4b7`). It then built WS7 build step 1: `@leash/tools`, the four agent tools, tested against mocked ports for every error path.*
+- *To keep every message the model sees true, Claude added two tool error codes with an additive ADR (contracts 1.2.0), made `leash_pay` open approval requests like `leash_fetch`, and made the "recorded" sentence appear only when the attempt really is on-chain.*
+- *It added the SDK's typed errors and sent the port interfaces to WS2 and WS3.*
+
+*Details: [docs/workstreams/status/WS7.md](../workstreams/status/WS7.md).*
+
 ---
 
 ## Attachments

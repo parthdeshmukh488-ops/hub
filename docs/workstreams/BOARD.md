@@ -12,7 +12,8 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | WS6 web app | **Steps 1 and 3 (read side) done:** live indexer data over REST + WebSocket, activity log with CSV, approvals inbox, what-if tester using the SDK evaluator ([status](status/WS6.md)). Writes wait for the wallet (step 2) and the IDL. |
 | WS4 indexer | **Build step 1 done:** every REST route and `/v1/stream` in fixture-replay mode on port 4100, 42 tests; contracts 1.1.0 ([status](status/WS4.md)). |
 | WS8 merchant and lab | **Build step 1 done:** every route's final content, catalog, lab with five guide variants, 18 tests incl. Leash outcomes per route ([status](status/WS8.md)). Paywalls wait for WS3. |
-| WS1, WS3, WS5, WS7, WS9 | Skeletons only. Not started. |
+| WS7 tools | **Build step 1 done:** `@leash/tools` (four tools, every error path, 19 tests); SDK typed errors; contracts 1.2.0 ([status](status/WS7.md)). Ports sent to WS2 and WS3. |
+| WS1, WS3, WS5, WS9 | Skeletons only. Not started. |
 
 ## Who starts now
 
@@ -26,7 +27,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Step 1 done. Step 2 (chain ingestion) needs the IDL and RPC access. | WS5, WS6 live data |
 | 6 | **WS8** merchants and lab | anywhere | Step 1 done. Step 2 (paywalls) needs WS3. | WS7 demo |
-| 7 | **WS7** tools, MCP, agent | anywhere | Step 1: `@leash/tools` against a mocked agent | the demo |
+| 7 | **WS7** tools, MCP, agent | anywhere | Step 1 done. Step 4 (MCP) can start; step 2 needs a real `LeashAgent`. | the demo |
 | 8 | **WS5** Sentinel | anywhere | Step 1: rules engine on the storyline fixture | alerts |
 | 9 | **WS3** x402 + facilitator | anywhere | Step 1: facilitator for standard payments | WS7, WS8 paid routes |
 | 10 | **WS9** integration and story | anywhere | Step 1: README v1 + deck narrative | the pitch |
@@ -57,6 +58,7 @@ When you finish one of these, write a message to the listed sessions ([how](mess
 - **zod 4 keeps running checks after one fails.** Never write a `refine` that assumes an earlier check passed.
 - **Three spec corrections:** [inclusive allowance expiry](../adr/20260929-ws0-allowance-expiry-is-inclusive.md), [switched-off limits are not tracked](../adr/20260929-ws0-disabled-limits-are-not-tracked.md), [denial reporting policy](../adr/20260929-ws0-denial-reporting-policy.md).
 - **`main` exists** (created 2026-09-30 from `claude/whu-hackathon-ideas-lz8trx`). Start new sessions from it.
-- **Contracts are 1.1.0** ([ADR 20260930-ws4-fixture-replay](../adr/20260930-ws4-fixture-replay.md), additive): the storyline carries account facts, plus two replay env vars.
+- **Contracts are 1.2.0** ([ADR 20260930-ws7-approval-request-errors](../adr/20260930-ws7-approval-request-errors.md), additive): two tool codes for failed approval requests, honest "recorded" sentence.
+- **Contracts 1.1.0** ([ADR 20260930-ws4-fixture-replay](../adr/20260930-ws4-fixture-replay.md), additive): the storyline carries account facts, plus two replay env vars.
 - **The Leash program ID is a placeholder** (`LEASH_PROGRAM_ID_PLACEHOLDER`) until WS1 records the real one.
 - **Money helpers, schemas and copy come from `@leash/contracts`.** If you need something that isn't there, message WS0 (or the architect) instead of redefining it locally.

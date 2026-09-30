@@ -133,7 +133,17 @@ importers:
         specifier: 4.10.2
         version: 4.10.2
 
-  packages/tools: {}
+  packages/tools:
+    dependencies:
+      '@leash/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@leash/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
 
   packages/x402: {}
 
