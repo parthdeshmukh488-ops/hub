@@ -146,8 +146,14 @@ export function decodeDelegation(address: string, data: Uint8Array): DecodedDele
   };
 }
 
-/** The contracts `AllowanceView` of a delegation at time `now` (period rolled forward). */
-export function allowanceAt(delegation: DecodedDelegation, now: bigint): AllowanceView {
+/**
+ * The contracts `AllowanceView` of a delegation at time `now` (period rolled forward). Takes a
+ * decoded account, or any record with its address, mint and state (the indexer's projection).
+ */
+export function allowanceAt(
+  delegation: Pick<DecodedDelegation, "address" | "mint" | "state">,
+  now: bigint,
+): AllowanceView {
   const { state } = delegation;
   const expiresAt = state.expiryTs === 0n ? null : Number(state.expiryTs);
   const base = {

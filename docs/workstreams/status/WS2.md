@@ -23,6 +23,8 @@
 - API refinements against the brief's target shape: `decodeDelegation(address, data)` returns `DecodedDelegation` (the brief said `decodeDelegation(data): DelegationData`), and `evaluatePayment` also returns the effects of an allowed payment and the strike flag of a denial.
 - Messages sent: `20260929-1815-from-ws2-to-ws1-parity-edge-cases.md`, `20260929-1815-from-ws2-to-all-evaluator-ready.md`.
 
+- 2026-09-30 (from the WS4 work): `allowanceAt` accepts any `{ address, mint, state }`, so the indexer can compute views from its stored delegation state. Type widening only; all 100 tests unchanged.
+
 ## Next
 
 - Build step 1 (Codama client, PDAs, codecs, error mapping) when WS1 announces the IDL. Then step 3 (read path).
