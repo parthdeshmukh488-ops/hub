@@ -12,7 +12,17 @@ export {
   rollRecurringPeriod,
   SUBSCRIPTIONS_DELEGATION_LAYOUT,
 } from "./allowance.ts";
-export { LeashSdkError, type LeashSdkErrorCode } from "./errors.ts";
+export {
+  ApprovalNotPossibleError,
+  type AttemptedPayment,
+  LeashNetworkError,
+  LeashSdkError,
+  type LeashSdkErrorCode,
+  MerchantRejectedError,
+  NotPairedError,
+  PaymentDeniedError,
+  UnsupportedPaymentError,
+} from "./errors.ts";
 export { evaluatePayment, rollWindow } from "./evaluate/evaluate.ts";
 export type {
   AgentState,

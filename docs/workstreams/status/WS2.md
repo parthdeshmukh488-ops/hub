@@ -25,6 +25,8 @@
 
 - 2026-09-30 (from the WS4 work): `allowanceAt` accepts any `{ address, mint, state }`, so the indexer can compute views from its stored delegation state. Type widening only; all 100 tests unchanged.
 
+- 2026-09-30 (from the WS7 work): typed errors in `src/errors.ts` (`PaymentDeniedError` with `attempted`, `ApprovalNotPossibleError`, `NotPairedError`, `UnsupportedPaymentError`, `MerchantRejectedError`, `LeashNetworkError`), as the brief planned. WS7's port for `LeashAgent` is in `packages/tools/src/ports.ts` (message 20260930-0500).
+
 ## Next
 
 - Build step 1 (Codama client, PDAs, codecs, error mapping) when WS1 announces the IDL. Then step 3 (read path).
