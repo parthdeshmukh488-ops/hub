@@ -5,8 +5,25 @@
   "type": "module",
   "description": "Claude-powered demo agent with a deterministic scenario runner.",
   "scripts": {
+    "demo": "tsx src/main.ts",
+    "demo:all": "tsx src/main.ts all",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.129.0",
+    "@leash/contracts": "workspace:*",
+    "@leash/sdk": "workspace:*",
+    "@leash/tools": "workspace:*",
+    "@solana/kit": "8.4.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@leash/merchant-demo": "workspace:*",
+    "@leash/x402": "workspace:*",
+    "hono": "4.13.11",
+    "litesvm": "1.5.0",
+    "tsx": "4.23.15"
   }
 }
