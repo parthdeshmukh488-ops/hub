@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { type StreamServerMessage, StreamServerMessageSchema } from "@leash/contracts";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import WebSocket from "ws";
 import { createPipeline } from "../src/pipeline.ts";
 import { StreamHub, type StreamHubOptions } from "../src/stream.ts";
@@ -56,14 +56,31 @@ async function connect(url: string, headers: Record<string, string> = {}) {
     for (let i = 0; i < 200 && !predicate(); i++) await new Promise((r) => setTimeout(r, 10));
     expect(predicate()).toBe(true);
   };
+  const errors = () => messages.filter((m) => m.type === "error").length;
+  /**
+   * Resolves once the server has handled everything this client sent so far, and this client
+   * has received everything the server sent before that. The server handles one socket's
+   * messages in order and answers an unparseable one with an error, so that error is a
+   * barrier. No test has to guess how long a message takes.
+   */
+  const sync = async () => {
+    const before = errors();
+    socket.send("sync");
+    await until(() => errors() > before);
+  };
   return {
     socket,
     messages,
     closed,
     until,
+    sync,
     send: (message: unknown) => socket.send(JSON.stringify(message)),
   };
 }
+
+/** Message types a client received, without the replies to `sync()`. */
+const typesOf = (messages: StreamServerMessage[]) =>
+  messages.filter((m) => m.type !== "error").map((m) => m.type);
 
 describe("/v1/stream (02-contracts §7.2)", () => {
   it("says hello, then streams events and agent updates for subscribed owners only", async () => {
@@ -75,7 +92,8 @@ describe("/v1/stream (02-contracts §7.2)", () => {
 
     subscriber.send({ type: "subscribe", owners: [key("owner")] });
     bystander.send({ type: "subscribe", owners: [key("attacker")] });
-    await new Promise((r) => setTimeout(r, 50));
+    await subscriber.sync();
+    await bystander.sync();
     await sink.events(storyline.events);
 
     const events = () => subscriber.messages.filter((m) => m.type === "event");
@@ -87,7 +105,8 @@ describe("/v1/stream (02-contracts §7.2)", () => {
       (m) => m.type === "agent" && m.agent.status === "frozen",
     );
     expect(frozen?.type === "agent" && frozen.agent.freezeReason).toBe("tripwire");
-    expect(bystander.messages.map((m) => m.type)).toEqual(["hello"]);
+    await bystander.sync();
+    expect(typesOf(bystander.messages)).toEqual(["hello"]);
   });
 
   it("stops streaming after unsubscribe", async () => {
@@ -95,10 +114,11 @@ describe("/v1/stream (02-contracts §7.2)", () => {
     const client = await connect(url);
     client.send({ type: "subscribe", owners: [key("owner")] });
     client.send({ type: "unsubscribe", owners: [key("owner")] });
-    await new Promise((r) => setTimeout(r, 50));
+    await client.sync();
     await sink.events(storyline.events.slice(0, 3));
-    await new Promise((r) => setTimeout(r, 50));
-    expect(client.messages.map((m) => m.type)).toEqual(["hello"]);
+    // Anything published for the owner would arrive before the reply to this sync.
+    await client.sync();
+    expect(typesOf(client.messages)).toEqual(["hello"]);
   });
 
   it("answers malformed messages with an error", async () => {
@@ -110,15 +130,26 @@ describe("/v1/stream (02-contracts §7.2)", () => {
   });
 
   it("pings, and drops a client that never answers", async () => {
-    const { url } = await start({ pingIntervalMs: 40 });
+    // The heartbeat is driven by hand: with a real short interval, a busy machine could delay
+    // the polite client's pong past the next beat and drop it too.
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    cleanups.push(() => vi.useRealTimers());
+    const interval = 20_000;
+    const { url } = await start({ pingIntervalMs: interval });
     const silent = await connect(url);
     const polite = await connect(url);
     polite.socket.on("message", (data) => {
       if (JSON.parse(data.toString()).type === "ping") polite.send({ type: "pong" });
     });
+
+    vi.advanceTimersByTime(interval); // pings both
+    await polite.until(() => polite.messages.some((m) => m.type === "ping"));
+    await polite.sync(); // the server has seen the pong
+    vi.advanceTimersByTime(interval); // drops the one that did not answer
+
     expect(await silent.closed).toBe(1006);
-    expect(polite.messages.some((m) => m.type === "ping")).toBe(true);
     expect(polite.socket.readyState).toBe(WebSocket.OPEN);
+    expect(silent.messages.some((m) => m.type === "ping")).toBe(true);
   });
 
   it("drops a client that cannot keep up", async () => {

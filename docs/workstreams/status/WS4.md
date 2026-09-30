@@ -22,6 +22,8 @@
   - Updated the generator, `.env.example` and 02 §13–§14.
 - In the SDK, `allowanceAt` now accepts any `{ address, mint, state }` (a type widening, no behaviour change), so the indexer reuses it instead of copying it.
 
+- 2026-09-30: `test/stream.test.ts` no longer depends on timing. It drives the heartbeat by hand and uses an in-order `sync()` barrier instead of sleeps. A short real ping interval once dropped the polite client on a busy CI runner (`main`, run 36701442666).
+
 ## Next
 
 - Step 2, chain ingestion. Needs WS1's IDL and WS2's `decodeLeashEvents`, and a machine that can reach Solana RPC (not this cloud).
