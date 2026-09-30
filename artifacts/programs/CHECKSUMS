@@ -1,0 +1,11 @@
+# Program binaries for the LiteSVM tests and the localnet script (ADR-0007).
+# Verify the files:   cd artifacts/programs && sha256sum -c CHECKSUMS
+# Lines starting with # are provenance; sha256sum skips them.
+#
+# leash.so (WS1): `anchor build` on 2026-09-30 with Anchor CLI 1.2.0 and Agave 4.1.2
+#   (cargo-build-sbf 4.1.0, platform-tools v1.54). Program ID HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu.
+#   Source: programs/leash/src at git tree 7e9de8b34aedbe7e2166c944934a167029cd53fd
+#   (check: git rev-parse HEAD:programs/leash/src), programs/leash/Cargo.toml sha256
+#   9fd46db9c44e468242b9219359d269c5421a364b277990e2da907f14ce086bd9, Cargo.lock sha256
+#   da989a221217b635205c7cefbe849a84f49c09eb011a48cc0fd81fcbc21d308f.
+96cf66b13ce329d6cd45b74a41f3eb1d7b497f62383a48cfd5416aeed31c693a  leash.so

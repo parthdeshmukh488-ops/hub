@@ -14,6 +14,7 @@ import {
   isLeashProgramIdPlaceholder,
   isStrike,
   LEASH_ERRORS,
+  LEASH_PROGRAM_ID,
   LEASH_PROGRAM_ID_PLACEHOLDER,
   leashErrorName,
   leashSmartWalletAllowlist,
@@ -80,7 +81,12 @@ describe("config", () => {
   it("derives the program-ID placeholder from its documented hash", () => {
     const digest = createHash("sha256").update("leash:program-id-placeholder").digest();
     expect(base58(digest)).toBe(LEASH_PROGRAM_ID_PLACEHOLDER);
-    expect(isLeashProgramIdPlaceholder(PROGRAM_IDS.leash)).toBe(true);
+    expect(isLeashProgramIdPlaceholder(LEASH_PROGRAM_ID_PLACEHOLDER)).toBe(true);
+  });
+
+  it("uses the real Leash program ID, not the placeholder", () => {
+    expect(PROGRAM_IDS.leash).toBe(LEASH_PROGRAM_ID);
+    expect(isLeashProgramIdPlaceholder(PROGRAM_IDS.leash)).toBe(false);
   });
 
   it("has valid addresses for every program", () => {

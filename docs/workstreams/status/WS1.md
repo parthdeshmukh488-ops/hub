@@ -1,8 +1,8 @@
 # WS1 status: Leash program
 
-- Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session: no Solana toolchain)
+- Session branches: `claude/whu-hackathon-ideas-lz8trx` (cloud session: no Solana toolchain) and `main` (laptop session, with the Solana toolchain)
 - Last updated: 2026-09-30
-- Current build step: steps 1 and 3 done; handlers for steps 2 and 4–6 written; their LiteSVM tests need the laptop
+- Current build step: steps 1 and 3 done; program ID and `leash.so` done on the laptop; handlers for steps 2 and 4–6 written, their LiteSVM suites are next
 
 ## Done
 
@@ -25,6 +25,11 @@
   - `report_denied_attempt` with the tripwire;
   - `request_payment` and `expire_request`.
   - Their state transitions are unit-tested on the host: strikes and tripwire, windows, counters, policy rules, request checks, the delegation layout, and the CPI bytes and account order.
+- **Laptop, 2026-09-30: program ID and `leash.so`.**
+  - Agave 4.1.2 and Anchor CLI 1.2.0 installed; versions recorded in ADR-0004.
+  - Program ID `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu` ([ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md), contracts 1.4.0) in `declare_id!`, `Anchor.toml`, the IDL's `address` and `PROGRAM_IDS.leash`. `anchor keys sync` confirms them against `.keys/leash-program.json` (never committed; Parth has a backup).
+  - `anchor build` produced `artifacts/programs/leash.so` (442,776 bytes), with its provenance and sha256 in `artifacts/programs/CHECKSUMS`. Its `target/idl/leash.json` is byte for byte the committed IDL.
+  - `programs/leash/scripts/wsl-build.sh build|check` runs both on WSL, Linux or macOS.
 - Check: `cargo test` passes (61 tests: 45 unit, 14 evaluator, 2 vector suites), as do `cargo clippy --all-targets -- -D warnings` and `cargo fmt --check`. CI runs them all, plus the IDL check.
 - Decisions: [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md), contracts 1.3.0.
   - Enum encoding: `DenialReason` code n is stored as n − 1.
@@ -37,19 +42,12 @@
 
 ## Next (needs a machine with the Solana toolchain)
 
-1. Install Agave and Anchor CLI 1.2.0, and record the Agave version in ADR-0004.
-2. Program keypair:
-   - `solana-keygen new -o .keys/leash-program.json`, and give Parth a backup;
-   - copy it to `target/deploy/leash-keypair.json`, then run `anchor keys sync`;
-   - regenerate the IDL (`--write`);
-   - record the ID in `PROGRAM_IDS.leash` with a one-line ADR;
-   - message WS2 and WS4.
-3. `anchor build`, then commit `artifacts/programs/leash.so` with a `CHECKSUMS` line. `subscriptions.so` comes from WS0 step 4 (tag `program-v0.5.0`, `just build-program`).
-4. The LiteSVM suites of the brief, failure cases first:
+1. `subscriptions.so` from WS0 step 4 (tag `program-v0.5.0`). Then the LiteSVM suites of the brief, failure cases first:
    - `admin`, `pay`, `report`, `requests`, `invariants` (I1 property test), `substitution`, `x402-shape`;
    - plus a subset of the vectors on the real program;
    - measure compute units into `CU.md` (`pay` without a request must stay under 100k).
-5. Hardening: tick the checklist below with tests; deploy to devnet.
+   - LiteSVM 0.17 (the Agave 4.x runtime that loads Anchor 1.2's SBPF v3 binaries) needs rustc ≥ 1.97.1, so the suites bring a host toolchain bump from 1.94.1 (`rust-toolchain.toml`, CI, ADR-0004).
+2. Hardening: tick the checklist below with tests; deploy to devnet (Parth approves the deployment).
 
 ## Security checklist (03-security §4)
 
@@ -72,8 +70,8 @@ Written in code, **not yet proven by LiteSVM tests**:
 ## Open items
 
 - Stack usage of `pay` on SBF has not been measured. If LiteSVM reports a stack frame violation, box `EvalInput` or split the handler.
-- `artifacts/programs/` does not exist yet (`subscriptions.so`, WS0 step 4).
-- Devnet: the canonical Subscriptions deployment is unverified (WS0 `devnet-check`).
+- `artifacts/programs/subscriptions.so` comes with WS0 step 4.
+- Devnet, checked by RPC on 2026-09-30: the canonical Subscriptions program is deployed and executable, and the USDC mint `4zMMC9…DncDU` exists (6 decimals, SPL Token). WS0's `devnet-check` script will repeat the check.
 
 ## Questions for other workstreams
 
@@ -82,3 +80,4 @@ Written in code, **not yet proven by LiteSVM tests**:
 ## Contract changes proposed
 
 - [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md) (additive, contracts 1.3.0): the committed IDL and the clarifications of 01 §5, §6, §9, §10, §13.
+- [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md) (additive, contracts 1.4.0): the real program ID.

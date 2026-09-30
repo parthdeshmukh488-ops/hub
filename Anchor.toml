@@ -5,13 +5,13 @@ anchor_version = "1.2.0"
 resolution = true
 skip-lint = false
 
-# The placeholder ID until the program keypair exists (.keys/leash-program.json, never
-# committed). `anchor keys sync` then rewrites these lines and `declare_id!` in lib.rs.
+# The program keypair lives in .keys/leash-program.json (never committed; Parth keeps a backup).
+# `anchor keys sync` checks these lines and `declare_id!` in lib.rs against it.
 [programs.localnet]
-leash = "5ZDkdhcRtUrWLpK4vMx3C3r1w8iZyVaXvXzC5kvtQpM5"
+leash = "HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu"
 
 [programs.devnet]
-leash = "5ZDkdhcRtUrWLpK4vMx3C3r1w8iZyVaXvXzC5kvtQpM5"
+leash = "HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu"
 
 [provider]
 cluster = "localnet"

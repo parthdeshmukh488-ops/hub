@@ -22,7 +22,7 @@ use constants::LABEL_LEN;
 pub use instructions::*;
 use state::{PayeeLimits, Policy};
 
-declare_id!("5ZDkdhcRtUrWLpK4vMx3C3r1w8iZyVaXvXzC5kvtQpM5");
+declare_id!("HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu");
 
 #[program]
 pub mod leash {

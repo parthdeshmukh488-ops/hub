@@ -30,8 +30,8 @@
 
 ## Open items
 
-- `LEASH_PROGRAM_ID_PLACEHOLDER` stays until WS1 generates the program keypair. WS1 then updates `PROGRAM_IDS.leash` through a one-line contract-change ADR.
-- The devnet USDC mint (`4zMMC9sr…DncDU`) and the canonical Subscriptions deployment on devnet are unverified until `devnet-check` runs.
+- Done by WS1 on 2026-09-30: `PROGRAM_IDS.leash` is the real ID (`LEASH_PROGRAM_ID`, [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md), contracts 1.4.0). The placeholder stays exported.
+- The devnet USDC mint (`4zMMC9sr…DncDU`) and the canonical Subscriptions deployment exist on devnet (RPC check by the laptop session, 2026-09-30). `devnet-check` will make this repeatable.
 - `AGENTS.md` at the root is written by the `turbo` CLI (a managed agent-guidance block). Kept on purpose.
 
 ## Questions for other workstreams

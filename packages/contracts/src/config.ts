@@ -16,14 +16,20 @@ export const SignatureSchema = z
   .regex(/^[1-9A-HJ-NP-Za-km-z]{64,88}$/, "expected a base58 transaction signature");
 
 /**
- * Placeholder for the Leash program ID until WS1 generates the program keypair.
+ * The placeholder the Leash program ID had before WS1 generated the program keypair.
  * A valid address that no program owns: sha256("leash:program-id-placeholder").
  */
 export const LEASH_PROGRAM_ID_PLACEHOLDER = "5ZDkdhcRtUrWLpK4vMx3C3r1w8iZyVaXvXzC5kvtQpM5";
 
+/**
+ * The Leash program ID (ADR 20260930-ws1-program-id). It never changes; the keypair is never
+ * committed.
+ */
+export const LEASH_PROGRAM_ID = "HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu";
+
 /** Program IDs used by Leash (02-contracts §2.2). */
 export const PROGRAM_IDS = {
-  leash: LEASH_PROGRAM_ID_PLACEHOLDER,
+  leash: LEASH_PROGRAM_ID,
   subscriptions: "De1egAFMkMWZSN5rYXRj9CAdheBamobVNubTsi9avR44",
   splToken: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
   token2022: "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",

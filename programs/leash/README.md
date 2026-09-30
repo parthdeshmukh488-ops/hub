@@ -11,9 +11,10 @@ Owned by **WS1**. Specification: [01-onchain-program.md](../../docs/architecture
 | Interface: 4 accounts, 5 enums, 18 instructions, 18 events, 32 errors | Done. IDL committed at [`packages/contracts/idl/leash.json`](../../packages/contracts/idl/leash.json), checked in CI |
 | Policy evaluation (01 §7) | Done: pure Rust, 60/60 shared vectors |
 | Instruction handlers | Written and compiling. The pure parts (evaluation, windows, strikes, counters, policy rules, delegation layout, CPI bytes) are unit-tested on the host. |
-| LiteSVM suites (01 §11), `leash.so`, program ID, `CU.md` | Need a machine with the Solana toolchain ([ADR-0007](../../docs/adr/0007-environments-and-artifacts.md)) |
+| Program ID and `leash.so` | Done on the laptop: `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu` ([ADR](../../docs/adr/20260930-ws1-program-id.md)); binary at [`artifacts/programs/leash.so`](../../artifacts/programs/CHECKSUMS) |
+| LiteSVM suites (01 §11), `CU.md`, devnet | Need a machine with the Solana toolchain ([ADR-0007](../../docs/adr/0007-environments-and-artifacts.md)) |
 
-The program ID is still `LEASH_PROGRAM_ID_PLACEHOLDER` (`5ZDkdhcR…vXzC5kvtQpM5`).
+The program ID is `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu`. Its keypair lives in `.keys/leash-program.json`, which is never committed; Parth keeps a backup.
 
 ## Commands
 
@@ -29,16 +30,16 @@ cargo run -p leash --example idl -- --check      # CI: fails if the committed ID
 
 The `idl` example calls Anchor's IDL builder (`anchor-lang-idl` 0.1.4) with the same options as `anchor idl build`, so its output is byte for byte what `anchor build` writes to `target/idl/leash.json`. It needs neither the Anchor CLI nor the Solana toolchain.
 
-With the Solana toolchain (Agave CLI, Anchor CLI 1.2.0):
+With the Solana toolchain (Agave CLI 4.1.2, Anchor CLI 1.2.0) and `.keys/leash-program.json` in place:
 
 ```bash
-solana-keygen new -o .keys/leash-program.json          # once; never committed, keep a backup
-mkdir -p target/deploy && cp .keys/leash-program.json target/deploy/leash-keypair.json
-anchor keys sync                                       # writes the ID into lib.rs and Anchor.toml
-anchor build                                           # target/deploy/leash.so + target/idl/leash.json
+bash programs/leash/scripts/wsl-build.sh build   # anchor build + IDL; copies leash.so, the IDL and Cargo.lock back
+bash programs/leash/scripts/wsl-build.sh check   # what CI runs: fmt, clippy, cargo test, the IDL drift check
 ```
 
-After a program change, commit `artifacts/programs/leash.so` with its `CHECKSUMS` line, and the IDL (`--write`), in the same commit.
+The script mirrors the repository to `~/leash-build` first, because cargo is slow on a Windows drive under WSL. It works the same on Linux and macOS. Without it: copy the keypair to `target/deploy/leash-keypair.json`, then `anchor keys sync` (checks the ID in `lib.rs` and `Anchor.toml`) and `anchor build`. `anchor build`'s `target/idl/leash.json` is byte for byte the IDL the `idl` example writes (checked on 2026-09-30).
+
+After a program change, commit `artifacts/programs/leash.so`, its provenance and sha256 in [`artifacts/programs/CHECKSUMS`](../../artifacts/programs/CHECKSUMS), and the IDL, in the same commit.
 
 ## Layout
 
@@ -53,6 +54,7 @@ After a program change, commit `artifacts/programs/leash.so` with its `CHECKSUMS
 | `tests/vectors.rs` | Every case of `packages/contracts/test-vectors/policy.json` against `evaluate`, outcome and effects |
 | `tests/evaluate.rs` | The branches the vectors don't reach, and invariants I1–I3 over random states (the same cases as the SDK's tests) |
 | `examples/idl.rs` | IDL generation and the CI drift check |
+| `scripts/wsl-build.sh` | `anchor build` with the Solana toolchain, copying `leash.so`, the IDL and `Cargo.lock` back into the repository |
 
 ## How `pay` decides
 
