@@ -1,7 +1,12 @@
 import { mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
-import { CAIP2, LeashStatusOutputSchema, resolveClusterConfig } from "@leash/contracts";
+import {
+  buildPairingUrl,
+  CAIP2,
+  LeashStatusOutputSchema,
+  resolveClusterConfig,
+} from "@leash/contracts";
 import { LeashNetworkError, NotPairedError } from "@leash/sdk";
 import { createTestbed } from "@leash/sdk/testing";
 import { createLeashFacilitator } from "@leash/x402/facilitator";
@@ -102,6 +107,11 @@ describe("connectLeash", () => {
         cluster,
         signer,
         owner: bed.keys.owner.address,
+        pairingLink: buildPairingUrl("http://localhost:3000", {
+          agentKey: signer.address,
+          label: "Research agent",
+          cluster: "localnet",
+        }),
         chain: bed.chain,
         fetch: async (input, init) => merchant.fetch(new Request(input, init)),
         priorityFeeMicroLamports: 1n,
@@ -150,10 +160,14 @@ describe("connectLeash", () => {
     });
   });
 
-  it("answers NOT_PAIRED for a key no owner has paired", async () => {
+  it("answers NOT_PAIRED for a key no owner has paired, with the pairing link", async () => {
     const { bed, connect } = await setup();
     const { tools } = connect(bed.keys.stranger);
-    expect(await tools.status()).toMatchObject({ ok: false, code: "NOT_PAIRED" });
+    const status = await tools.status();
+    expect(status).toMatchObject({ ok: false, code: "NOT_PAIRED" });
+    expect(!status.ok && status.message).toContain(
+      "Pairing link for the owner: http://localhost:3000/pair?agentKey=",
+    );
     expect(
       await tools.pay({ to: bed.keys.merchant.address, amountUsdc: "0.01", purpose: "x" }),
     ).toMatchObject({ ok: false, code: "NOT_PAIRED", recorded: false });
@@ -172,7 +186,12 @@ describe("connectLeash", () => {
 });
 
 describe("waitForPairing", () => {
-  const AGENT_KEY = "4gMnh13Pfx3twF8FpVp7bbGiZD9J4wyXWuCdKZnDVUT9";
+  const LINK = buildPairingUrl("http://localhost:3000", {
+    agentKey: "4gMnh13Pfx3twF8FpVp7bbGiZD9J4wyXWuCdKZnDVUT9",
+    label: "Research Assistant",
+    preset: "research-assistant",
+    cluster: "devnet",
+  });
   const instant = async () => {};
 
   function agentAnswering(...answers: Array<"unpaired" | "paired" | "down">) {
@@ -182,7 +201,7 @@ describe("waitForPairing", () => {
       if (next === "down") throw new LeashNetworkError("rpc down");
       return {};
     });
-    return { address: AGENT_KEY, status };
+    return { status };
   }
 
   it("hands out the pairing link once, polls, and reports when the owner has paired", async () => {
@@ -193,10 +212,7 @@ describe("waitForPairing", () => {
     const sleep = vi.fn(instant);
     const paired = await waitForPairing({
       agent,
-      webUrl: "http://localhost:3000",
-      label: "Research Assistant",
-      preset: "research-assistant",
-      cluster: "devnet",
+      link: LINK,
       onUnpaired,
       onPaired,
       onError,
@@ -205,9 +221,7 @@ describe("waitForPairing", () => {
     });
     expect(paired).toBe(true);
     expect(onUnpaired).toHaveBeenCalledOnce();
-    expect(onUnpaired).toHaveBeenCalledWith(
-      `http://localhost:3000/pair?agentKey=${AGENT_KEY}&label=Research+Assistant&preset=research-assistant&cluster=devnet`,
-    );
+    expect(onUnpaired).toHaveBeenCalledWith(LINK);
     expect(onError).toHaveBeenCalledWith(expect.any(LeashNetworkError));
     expect(onPaired).toHaveBeenCalledOnce();
     expect(sleep).toHaveBeenCalledTimes(3);
@@ -219,9 +233,7 @@ describe("waitForPairing", () => {
     const onPaired = vi.fn();
     const paired = await waitForPairing({
       agent: agentAnswering("paired"),
-      webUrl: "http://localhost:3000",
-      label: "MCP agent",
-      cluster: "localnet",
+      link: LINK,
       onUnpaired,
       onPaired,
     });
@@ -236,9 +248,7 @@ describe("waitForPairing", () => {
     const started = Date.now();
     const paired = await waitForPairing({
       agent: agentAnswering("unpaired", "unpaired"),
-      webUrl: "http://localhost:3000",
-      label: "MCP agent",
-      cluster: "localnet",
+      link: LINK,
       onUnpaired,
       signal: controller.signal,
       intervalMs: 60_000,
@@ -251,9 +261,7 @@ describe("waitForPairing", () => {
     expect(
       await waitForPairing({
         agent: agentAnswering("down"),
-        webUrl: "http://localhost:3000",
-        label: "MCP agent",
-        cluster: "localnet",
+        link: LINK,
         onUnpaired,
         signal: aborted.signal,
       }),

@@ -1,16 +1,11 @@
-import { buildPairingUrl, type Cluster, type PresetId } from "@leash/contracts";
 import { NotPairedError } from "@leash/sdk";
 
 export type PairingOptions = {
   /** `LeashAgent`: `status()` throws `NotPairedError` until the Agent PDA exists. */
-  agent: { readonly address: string; status(): Promise<unknown> };
-  /** Base URL of the web app that opens pairing links. */
-  webUrl: string;
-  /** The name the owner sees (at most 32 bytes). */
-  label: string;
-  preset?: PresetId;
-  cluster: Cluster;
-  /** Called once, with the pairing link, when the agent turns out not to be paired. */
+  agent: { status(): Promise<unknown> };
+  /** The pairing link (`buildPairingUrl` from `@leash/contracts`). */
+  link: string;
+  /** Called once, with the link, when the agent turns out not to be paired. */
   onUnpaired(link: string): void;
   /** Called when pairing completes after `onUnpaired`. */
   onPaired?(): void;
@@ -52,14 +47,7 @@ export async function waitForPairing(options: PairingOptions): Promise<boolean> 
       if (!(error instanceof NotPairedError)) options.onError?.(error);
       else if (!announced) {
         announced = true;
-        options.onUnpaired(
-          buildPairingUrl(options.webUrl, {
-            agentKey: options.agent.address,
-            label: options.label,
-            preset: options.preset ?? "custom",
-            cluster: options.cluster,
-          }),
-        );
+        options.onUnpaired(options.link);
       }
     }
     await sleep(options.intervalMs ?? 5_000, options.signal);

@@ -30,6 +30,11 @@ export type LeashToolsOptions = {
   leashFetch: LeashFetchPort;
   /** For explorer links in receipts. */
   cluster: ClusterConfig;
+  /**
+   * The pairing link (02-contracts §11). NOT_PAIRED messages carry it, so the model can hand it
+   * to the owner, who is asked to pair the agent.
+   */
+  pairingLink?: string;
 };
 
 export type ToolOutput =
@@ -77,7 +82,20 @@ const memo = (purpose: string) => truncateUtf8(purpose, PROGRAM_CONSTANTS.memoLe
  * The four Leash tools (02-contracts §8). They translate; the SDK and the program decide. Denials
  * come back as `ToolError`s with the contract's messages, which tell the model to stop.
  */
-export function createLeashTools({ agent, leashFetch, cluster }: LeashToolsOptions): LeashTools {
+export function createLeashTools({
+  agent,
+  leashFetch,
+  cluster,
+  pairingLink,
+}: LeashToolsOptions): LeashTools {
+  /** `fromError`, with the pairing link added to NOT_PAIRED. */
+  const failure = (error: unknown): ToolError => {
+    const result = fromError(error);
+    return result.code === "NOT_PAIRED" && pairingLink
+      ? toolError("NOT_PAIRED", { detail: `Pairing link for the owner: ${pairingLink}` })
+      : result;
+  };
+
   const receipt = (payment: PaymentResult): PaymentReceipt => ({
     signature: payment.signature,
     explorerUrl: explorerTxUrl(cluster, payment.signature),
@@ -94,12 +112,12 @@ export function createLeashTools({ agent, leashFetch, cluster }: LeashToolsOptio
    */
   async function denied(error: unknown, purpose: string): Promise<ToolError> {
     if (!(error instanceof PaymentDeniedError) || error.reason !== "approvalRequired")
-      return fromError(error);
+      return failure(error);
     try {
       const request = await agent.requestApproval({ ...error.attempted, purpose });
       return toolError("APPROVAL_REQUIRED", { detail: `Request: ${request.address}.` });
     } catch (requestError) {
-      return fromError(requestError);
+      return failure(requestError);
     }
   }
 
@@ -169,7 +187,7 @@ export function createLeashTools({ agent, leashFetch, cluster }: LeashToolsOptio
           },
         };
       } catch (error) {
-        return fromError(error);
+        return failure(error);
       }
     },
 
@@ -179,7 +197,7 @@ export function createLeashTools({ agent, leashFetch, cluster }: LeashToolsOptio
       try {
         return statusOutput(await agent.status());
       } catch (error) {
-        return fromError(error);
+        return failure(error);
       }
     },
 

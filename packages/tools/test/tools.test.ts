@@ -56,6 +56,7 @@ const paid: PaymentResult = {
 function setup(
   overrides: Partial<LeashAgentPort> = {},
   fetchImpl?: (request: FetchRequest) => Promise<FetchResult>,
+  pairingLink?: string,
 ) {
   const agent: LeashAgentPort = {
     status: vi.fn(async () => ({
@@ -77,7 +78,12 @@ function setup(
         payment: null,
       })),
   );
-  const tools = createLeashTools({ agent, leashFetch, cluster: resolveClusterConfig("devnet") });
+  const tools = createLeashTools({
+    agent,
+    leashFetch,
+    cluster: resolveClusterConfig("devnet"),
+    ...(pairingLink ? { pairingLink } : {}),
+  });
   return { tools, agent, leashFetch };
 }
 
@@ -348,6 +354,50 @@ describe("every failure maps to the contract", () => {
         recorded: false,
       });
     }
+  });
+
+  it("hands the model the pairing link with every NOT_PAIRED, and only then", async () => {
+    const link =
+      "http://localhost:3000/pair?agentKey=x&label=MCP+agent&preset=custom&cluster=devnet";
+    const notPaired = async () => Promise.reject(new NotPairedError());
+    const { tools } = setup(
+      { status: vi.fn(notPaired), pay: vi.fn(notPaired), requestApproval: vi.fn(notPaired) },
+      notPaired,
+      link,
+    );
+    const expected = {
+      ok: false,
+      code: "NOT_PAIRED",
+      message: `${TOOL_ERROR_MESSAGES.NOT_PAIRED} Pairing link for the owner: ${link}`,
+      recorded: false,
+    };
+    expect(await tools.status()).toMatchObject(expected);
+    expect(await tools.fetch({ url: "https://m.example/", purpose: "x" })).toMatchObject(expected);
+    expect(await tools.pay({ to: MERCHANT, amountUsdc: "1", purpose: "x" })).toMatchObject(
+      expected,
+    );
+    expect(
+      await tools.requestApproval({ to: MERCHANT, amountUsdc: "1", purpose: "x" }),
+    ).toMatchObject(expected);
+    // An approval request that fails because the agent is not paired says so too.
+    const { tools: approving } = setup(
+      {
+        pay: vi.fn(async () => Promise.reject(denial("approvalRequired"))),
+        requestApproval: vi.fn(notPaired),
+      },
+      undefined,
+      link,
+    );
+    expect(await approving.pay({ to: MERCHANT, amountUsdc: "3", purpose: "x" })).toMatchObject(
+      expected,
+    );
+    const { tools: network } = setup(
+      {},
+      async () => Promise.reject(new LeashNetworkError("x")),
+      link,
+    );
+    const out = await network.fetch({ url: "https://m.example/", purpose: "x" });
+    expect(!out.ok && out.message).toBe(TOOL_ERROR_MESSAGES.NETWORK_ERROR);
   });
 
   it("never passes an underlying error's text to the model (T17)", async () => {

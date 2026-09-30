@@ -21,6 +21,8 @@ export type ConnectLeashOptions = {
   fetch?: typeof globalThis.fetch;
   /** SDK warnings (failed reports, a low SOL balance). Default: `console`. */
   logger?: LeashAgentOptions["logger"];
+  /** Put into NOT_PAIRED tool messages (see `createLeashTools`). */
+  pairingLink?: string;
 };
 
 /** Everything an agent runtime needs, wired together. */
@@ -53,6 +55,11 @@ export function connectLeash(options: ConnectLeashOptions): LeashRuntime {
     ...(options.fetch ? { fetch: options.fetch } : {}),
     ...(fee === undefined ? {} : { priorityFeeMicroLamports: fee }),
   });
-  const tools = createLeashTools({ agent, leashFetch, cluster });
+  const tools = createLeashTools({
+    agent,
+    leashFetch,
+    cluster,
+    ...(options.pairingLink ? { pairingLink: options.pairingLink } : {}),
+  });
   return { cluster, chain, agent, leashFetch, tools };
 }
