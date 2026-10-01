@@ -2,7 +2,7 @@
 
 - Session branch: `claude/compassionate-keller-5rmytv`
 - Last updated: 2026-10-01
-- Current build step: 1–2 done; 3 (Telegram) next
+- Current build step: 1–3 done; 5 (README) and 4 (autofreeze) next
 
 ## Scope (Task A of the [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md))
 
@@ -78,10 +78,24 @@ New dependencies (to be added to `services/sentinel/package.json`): `ws`, `hono`
 - **Ran against the real indexer** in fixture mode (`INDEXER_REPLAY_SPEED=10`) with `--guardian`: health 200, and exactly the three storyline alerts printed.
 - New dependencies of `services/sentinel`: `@solana/kit` 8.4.0 (reads the keypair's address), `pino` 10.3.1, `ws` 8.22.0; dev: `@types/ws` 8.18.2, `tsx` 4.23.15. All are the versions the other services pin.
 
+- **Build step 3, Telegram** (`src/notifiers/telegram.ts`, `select.ts`, `scripts/telegram-test.ts`):
+  - grammY's `Api`, no `parse_mode`: the title is bold through an entity (UTF-16 length).
+  - `link_preview_options: { is_disabled: true }`.
+  - URL buttons only for public https URLs; other links go in the text.
+  - Errors carry Telegram's reason and never the token.
+  - Console always; Telegram too when both variables are set; only one set stops Sentinel with a message.
+  - `start`, `dev` and `telegram:test` read the repo root's `.env` with Node's `--env-file-if-exists`; no new dependency for that.
+  - `pnpm --filter @leash/sentinel telegram:test` sends the three storyline alerts (for the laptop).
+- 91 tests (9 new) against a fake Bot API: the exact `sendMessage` bodies, buttons vs text links, injection text, errors without the token, URL classification, notifier selection.
+- New dependency: `grammy` 1.46.0 (the current release).
+
 ## Next
-- Build step 3: the Telegram notifier with grammY, tested against a fake bot API (entities, no `parse_mode`, buttons only for public https URLs, link previews off).
+- Step 5: finish the README (how to set Sentinel as guardian; the rest is written).
+- Step 4: guardian autofreeze, as amended by the 1200 message.
 
 ## Open items
+- The real Telegram run is laptop queue item 6 ([message](../messages/20261001-2146-from-ws5-to-ws1-laptop-telegram-ready.md)), after this branch is merged.
+- **The token of @LeashmvpBot was shown in a chat screenshot on 2026-10-01: Parth to revoke it in BotFather and use the new token only in the laptop's `.env`.**
 - The service tests move to `@leash/indexer/testing` once it is on `main` (the fake indexer goes then).
 - An event that happened while Sentinel was down and is older than the newest 200 at start is learned silently, not alerted (documented in the README).
 

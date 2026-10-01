@@ -6,8 +6,7 @@ Owned by **WS5**. Brief: [docs/workstreams/WS5-sentinel.md](../../docs/workstrea
 
 ## Status
 
-**Build steps 1–2 are done:** the rules engine, and the service that runs it on the indexer's stream with console alerts. Next:
-- step 3: Telegram;
+**Build steps 1–3 are done:** the rules engine, the service that runs it on the indexer's stream, and alerts on the console and Telegram. Next:
 - step 4: guardian autofreeze;
 - step 5: the full README (running it, the Telegram bot, setting Sentinel as guardian).
 
@@ -34,7 +33,7 @@ SENTINEL_GUARDIAN_KEYPAIR=.keys/guardian.json pnpm --filter @leash/sentinel star
 
 ### Environment
 
-Parsed in [`src/env.ts`](src/env.ts) (02 §13); a bad value stops Sentinel with a readable message.
+Parsed in [`src/env.ts`](src/env.ts) (02 §13); a bad value stops Sentinel with a readable message. `start`, `dev` and `telegram:test` also read the repo root's `.env` if it exists; variables set in the shell win.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -42,7 +41,7 @@ Parsed in [`src/env.ts`](src/env.ts) (02 §13); a bad value stops Sentinel with 
 | `SENTINEL_GUARDIAN_KEYPAIR` | – | Path to the guardian keypair file. Gives the address to watch; freezes need it (step 4). |
 | `SENTINEL_AUTOFREEZE` | `false` | Allow rule-triggered guardian freezes (step 4; until then, only a warning) |
 | `SENTINEL_WEB_URL` | `http://localhost:3000` | Links in alerts |
-| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | – | Step 3; alerts go to the console until then |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | – | Both set: alerts also go to Telegram. Neither: console only. Only one: Sentinel stops with a message. |
 | `LEASH_CLUSTER`, `LOG_LEVEL` | `localnet`, `info` | |
 
 ## How it works
@@ -64,6 +63,21 @@ GET /v1/guardians/<guardian>/owners   (every 30 s: principals that named this gu
 - **Freezes asked for** by the rules are only logged until step 4.
 - **A notifier that fails** is logged and counted (`alertsFailed`); the other notifiers still get the alert.
 - **Restarts:** history is read silently at start, so a restart never repeats old alerts. An event that happened while Sentinel was down and is older than the newest 200 is not alerted.
+
+## Telegram
+
+The demo bot is [@LeashmvpBot](https://t.me/LeashmvpBot).
+
+**Setting it up** (on the laptop: this cloud may not reach Telegram):
+1. Get the token from @BotFather. Keep it only in the repo root's `.env` as `TELEGRAM_BOT_TOKEN`: never in a chat, a commit, a log or a screenshot. If it leaks, `/revoke` it in BotFather and use the new one.
+2. Send `/start` to the bot. Open `https://api.telegram.org/bot<token>/getUpdates` and copy `result[0].message.chat.id` into `.env` as `TELEGRAM_CHAT_ID`.
+3. Check with `pnpm --filter @leash/sentinel telegram:test`. It sends the three storyline alerts to that chat.
+
+**What a message looks like** ([`src/notifiers/telegram.ts`](src/notifiers/telegram.ts)):
+- An emoji for the severity (🔔 info, ⚠️ warning, 🚨 critical) and the title in bold, then the body.
+- **Links:** public `https` links become buttons. Other links, like `http://localhost:3000`, go in the text, because Telegram rejects such buttons and with them the whole message.
+- **Plain text:** no `parse_mode`, so no label or memo can turn into markup. The bold title is a `bold` entity (offset and length in UTF-16 units, as Telegram counts). Link previews are off.
+- **Errors** name Telegram's reason (`400: Bad Request: chat not found`) and never contain the token. A failed message is logged and counted in `/health`'s `alertsFailed`; the console still gets the alert.
 
 ## Rules
 
@@ -119,7 +133,7 @@ Markup characters stay literal: notifiers send plain text, never a parse mode. T
 ## Develop
 
 ```bash
-pnpm --filter @leash/sentinel test        # rules (storyline snapshot), the loop against a fake indexer
+pnpm --filter @leash/sentinel test        # rules (storyline snapshot), the loop against a fake indexer, Telegram against a fake Bot API
 pnpm --filter @leash/sentinel typecheck
 pnpm --filter @leash/sentinel lint
 ```
@@ -139,3 +153,4 @@ pnpm --filter @leash/sentinel lint
   - an unreachable indexer at start;
   - a failing notifier;
   - the health endpoint.
+- **Telegram** ([`test/telegram.test.ts`](test/telegram.test.ts)) runs against a fake Bot API. It checks the exact `sendMessage` body for the storyline alerts, and that only public https links become buttons. It also checks that injection-shaped labels and memos arrive literal and defanged with only our bold entity, and that errors never contain the token.

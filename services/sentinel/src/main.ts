@@ -6,7 +6,7 @@ import { loadEnv } from "./env.ts";
 import { createHealthServer } from "./health.ts";
 import { createIndexerClient } from "./indexer-client.ts";
 import { createLogger } from "./logger.ts";
-import { createConsoleNotifier } from "./notifiers/console.ts";
+import { selectNotifiers } from "./notifiers/select.ts";
 import { Sentinel } from "./sentinel.ts";
 
 async function main(): Promise<void> {
@@ -20,14 +20,13 @@ async function main(): Promise<void> {
   if (env.SENTINEL_AUTOFREEZE) {
     log.warn("SENTINEL_AUTOFREEZE=true, but guardian freezes are not built yet: alerts only");
   }
-  if (env.TELEGRAM_BOT_TOKEN) {
-    log.warn("TELEGRAM_BOT_TOKEN is set, but the Telegram notifier is not built yet: console only");
-  }
+  const notifiers = selectNotifiers(env);
+  log.info({ notifiers: notifiers.map((n) => n.name) }, "alerts go to");
 
   const sentinel = new Sentinel({
     indexer: createIndexerClient(env.SENTINEL_INDEXER_URL),
     guardian,
-    notifiers: [createConsoleNotifier()],
+    notifiers,
     config,
     webUrl: env.SENTINEL_WEB_URL,
     log,

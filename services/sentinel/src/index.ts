@@ -3,6 +3,8 @@ export * from "./indexer-client.ts";
 export * from "./links.ts";
 export * from "./notifiers/console.ts";
 export * from "./notifiers/notifier.ts";
+export * from "./notifiers/select.ts";
+export * from "./notifiers/telegram.ts";
 export * from "./rules/evaluate.ts";
 export * from "./rules/state.ts";
 export * from "./rules/types.ts";
