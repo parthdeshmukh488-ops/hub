@@ -98,7 +98,7 @@ app.use(leashMerchant({
 - **`wrapFetchWithPayment` flattens errors.** It rethrows anything the scheme throws as a plain `Error`. `createLeashFetch` rethrows the scheme's original typed error instead.
 - **The Memo program.** x402 uses the SPL Memo `MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr`, with no signer accounts; this package uses it. `@solana-program/memo` 0.15 defaults to a different program, so don't use its default.
 - **Post-settlement verification reads parsed transfers.** The facilitator re-checks the confirmed transaction as `getTransaction(..., "jsonParsed")` returns it. `litesvmFacilitatorSigner` reproduces that format.
-- **`toFacilitatorSvmSigner`'s default RPC** only knows devnet, testnet and mainnet. Pass one RPC object to cover `solana:localnet` too; `services/facilitator` does.
+- **`toFacilitatorSvmSigner` misreads a kit RPC.** It tells a single RPC from a per-network map with `"getBalance" in rpc`, which is false for a kit RPC (a Proxy). It then treats the RPC as a map, and every simulation fails with `rpc.simulateTransaction is not a function`. Its default RPCs also know only devnet, testnet and mainnet. Pass `{ [network]: rpc }`, as `services/facilitator` does (`src/signer.ts`, tested).
 
 ## Versions
 

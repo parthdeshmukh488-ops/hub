@@ -54,6 +54,13 @@ Order: step 1 (facilitator + LiteSVM signer + Path 1 test) → step 2 (client sc
   - `services/facilitator`: Hono, the official v2 guards, rate limit, logs with `verificationPath`, 64 KB body limit, low-balance warning, one RPC for every network; 7 tests, including the official `HTTPFacilitatorClient` against our API.
   - READMEs with the sequence diagram and the two-option change a facilitator operator needs.
 
+- **2026-10-01, the laptop's real-validator run found a blocking bug:** the service passed a bare kit RPC to `toFacilitatorSvmSigner`. Its detection (`"getBalance" in rpc`) is false for a kit RPC, a Proxy, so every simulation failed: `rpc.simulateTransaction is not a function`, on localnet and devnet alike.
+  - Fixed in `src/signer.ts`, which passes `{ [network]: rpc }`.
+  - The test runs over a kit RPC with a recording transport, no network. It also pins the upstream behaviour.
+  - The tests had missed it because they use `litesvmFacilitatorSigner`, and nothing imported `main.ts`.
+  - The x402 README's advice ("pass one RPC object") was wrong and is corrected.
+  - Also: the rate limit went from 60 to 120 per minute.
+
 ## Next
 
 - Laptop: run `services/facilitator` against `pnpm localnet`, then devnet, with `.keys/facilitator.json`; WS8 points the merchant at it.
@@ -62,7 +69,7 @@ Order: step 1 (facilitator + LiteSVM signer + Path 1 test) → step 2 (client sc
 ## Open items
 
 - The first run against a real validator is still to come (the laptop).
-- Rate-limit numbers (60 per minute per IP) are constants in code; they become env vars only if the demo needs it (that would be a contracts change, WS0).
+- Rate-limit numbers (120 per minute per IP, raised from 60 on 2026-10-01 so they stay above one agent's velocity limit) are constants in code; they become env vars only if the demo needs it (that would be a contracts change, WS0).
 
 ## Questions for other workstreams
 

@@ -33,7 +33,7 @@ The official `HTTPFacilitatorClient` talks to it unchanged; a test proves it.
 
 ## Safety (03-security T8, T9)
 
-- **Rate limit:** 60 `verify`/`settle` requests per client IP per minute.
+- **Rate limit:** 120 `verify`/`settle` requests per client IP per minute. One agent at Leash's velocity limit (30 payments a minute) needs 60, and the merchant is a single client for every agent it serves.
 - **Request size:** at most 64 KB.
 - **Validation:** request bodies are checked with the official v2 guards.
 - **Handled by the official scheme:** fee-payer isolation, compute-unit caps (400k) and priority-fee caps (50k), simulation before settling, a settlement cache against replays, and a post-settlement check of the transfer.

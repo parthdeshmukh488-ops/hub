@@ -6,11 +6,11 @@ import { resolveClusterConfig } from "@leash/contracts";
 import { createLeashFacilitator } from "@leash/x402/facilitator";
 import { createKeyPairSignerFromBytes, createSolanaRpc, devnet } from "@solana/kit";
 import type { Network } from "@x402/core/types";
-import { toFacilitatorSvmSigner } from "@x402/svm";
 import { createApp } from "./app.ts";
 import { loadEnv } from "./env.ts";
 import { createLogger } from "./logger.ts";
 import { createRateLimiter } from "./rate-limit.ts";
+import { facilitatorSigner } from "./signer.ts";
 
 // The facilitator service: the official ExactSvmScheme with Leash on the smart-wallet allowlist
 // (ADR-0003, 02-contracts §9). Its fee payer pays SOL network fees only.
@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   // One RPC for every network. The devnet brand only types it; localnet speaks the same API.
   const rpc = createSolanaRpc(devnet(config.rpcUrl));
   const facilitator = createLeashFacilitator({
-    signer: toFacilitatorSvmSigner(keypair, rpc),
+    signer: facilitatorSigner(keypair, rpc, config.x402Network),
     networks: config.x402Network as Network,
     leashProgramId: config.programIds.leash,
   });
@@ -61,7 +61,8 @@ async function main(): Promise<void> {
     cluster: env.LEASH_CLUSTER,
     feePayer: keypair.address,
     webOrigin: env.WEB_ORIGIN,
-    rateLimiter: createRateLimiter({ limit: 60, windowMs: 60_000 }),
+    // Above what one agent at the 30-per-minute velocity limit needs (60: verify + settle), with room.
+    rateLimiter: createRateLimiter({ limit: 120, windowMs: 60_000 }),
   });
   serve({ fetch: app.fetch, port: env.FACILITATOR_PORT });
   log.info(
