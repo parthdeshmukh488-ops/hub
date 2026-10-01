@@ -45,8 +45,8 @@ Step 4 (guardian autofreeze) comes only after Parth says so.
 - **For step 4 later:** the SDK's guardian builders (`buildFreezeAgent`, `buildFreezePrincipal`) and the LiteSVM testbed (`@leash/sdk/testing`), so guardian actions can be tested with no chain.
 
 **Telegram:**
-- Parth creates a bot with @BotFather. That gives `TELEGRAM_BOT_TOKEN`.
-- He sends the bot a message and reads `chat.id` from `https://api.telegram.org/bot<token>/getUpdates`. That gives `TELEGRAM_CHAT_ID`.
+- **The demo bot exists: [@LeashmvpBot](https://t.me/LeashmvpBot)** (created by Parth on 2026-10-01). Its token came from @BotFather and is `TELEGRAM_BOT_TOKEN`. It lives only in Parth's local `.env`: never paste it in a chat, a commit or a log. If it leaks, revoke it with BotFather's `/revoke`.
+- Parth sends `/start` to @LeashmvpBot and reads `chat.id` from `https://api.telegram.org/bot<token>/getUpdates`. That gives `TELEGRAM_CHAT_ID`.
 - Both go in a local `.env`, never in git.
 - The cloud may not reach Telegram (or Solana RPC): test with fakes, and the laptop sends the real messages.
 
