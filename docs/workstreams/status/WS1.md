@@ -1,8 +1,8 @@
 # WS1 status: Leash program
 
 - Session branches: `claude/whu-hackathon-ideas-lz8trx` (cloud session: no Solana toolchain) and `main` (laptop session, with the Solana toolchain)
-- Last updated: 2026-09-30
-- Current build step: all seven steps done; the program is live on devnet
+- Last updated: 2026-10-01
+- Current build step: all seven steps done; the program is live on devnet. The laptop session now works through the laptop queue (below).
 
 ## Done
 
@@ -41,7 +41,26 @@
 - **Check:** `cargo test` passes 128 tests (45 unit, 14 evaluator, 2 host vector suites, 66 LiteSVM, and the on-chain vector run), as do `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check` and the IDL drift check.
 - **Decisions:** [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md) (contracts 1.3.0) and [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md) (contracts 1.4.0).
 - **Found while testing:** Anchor 1.2 rejects a writable account passed twice with `ConstraintDuplicateMutableAccount` (2040) before any handler runs. So `pay` with destination = source fails with 2040, not `InvalidDestination`; `report_denied_attempt` (read-only token accounts) still returns `InvalidDestination`. No contract change: it is an extra rejection, and the SDK should treat 2040 as a client bug like the other account errors.
-- Messages handled: through `20260929-1815-from-ws2-to-ws1-parity-edge-cases.md`.
+- Messages handled: through `20261001-0030-from-ws7-to-all-mcp-server-and-demo-agent-ready.md`.
+
+## Laptop queue
+
+The laptop session also runs what needs a real chain for the other workstreams ([BOARD](../BOARD.md)). State on 2026-10-01:
+
+| # | Item | Localnet | Devnet |
+| --- | --- | --- | --- |
+| 1 | Fund the demo keys | not needed | **Open:** all six keys hold 0 SOL (`pnpm devnet:check`) |
+| 2 | `devnet:setup`, `devnet:smoke` | Passed ([message](../messages/20260930-1713-from-ws1-to-ws2-rpcchain-first-real-run.md)) | Waits for item 1 |
+| 3 | Indexer chain mode | n/a | Waits for WS4 |
+| 4 | `x402:smoke` through `services/facilitator` | Passed with a one-line fix that WS3 still has to commit ([message](../messages/20261001-0105-from-ws1-to-all-x402-and-demo-agent-on-a-real-chain.md)) | Waits for item 1 and that fix |
+| 5 | `demo:all -- --scripted` | Passed twice. So did `runaway` and the MCP server over stdio (same message). | Waits for items 2 and 4. LLM mode needs Parth's `ANTHROPIC_API_KEY`. |
+| 6 | The full demo and its recording | n/a | Oct 3–4 |
+
+A run order that works:
+1. `pnpm localnet`, then `pnpm devnet:setup --cluster localnet`.
+2. The facilitator, and the merchant with payments on.
+3. `x402:smoke`, then `devnet:smoke`: its unfreeze clears the strike `x402:smoke` leaves.
+4. The demo, with `AGENT_KEYPAIR=../../.keys/agent.json` or an absolute path.
 
 ## Next
 
