@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { AddressSchema } from "@leash/contracts";
 import { createKeyPairSignerFromBytes, type KeyPairSigner } from "@solana/kit";
@@ -23,7 +24,9 @@ export function parseCliArgs(argv: readonly string[]): Args {
   let values: { guardian?: string; config?: string };
   try {
     ({ values } = parseArgs({
-      args: [...argv],
+      // pnpm passes a `--` through (`pnpm start -- --guardian …`), and `parseArgs` would read
+      // every flag after it as a positional. Sentinel takes no positionals, so drop it.
+      args: argv.filter((arg) => arg !== "--"),
       options: { guardian: { type: "string" }, config: { type: "string" } },
       strict: true,
       allowPositionals: false,
@@ -35,6 +38,14 @@ export function parseCliArgs(argv: readonly string[]): Args {
     throw new Error(`--guardian is not a Solana address: ${values.guardian}\n\n${USAGE}`);
   }
   return { guardian: values.guardian ?? null, config: values.config ?? null };
+}
+
+/**
+ * Where SENTINEL_GUARDIAN_KEYPAIR points. A relative path is the repo root's, as in the other
+ * services: pnpm runs Sentinel in `services/sentinel`, where `.keys/guardian.json` does not exist.
+ */
+export function keypairPathFromRepoRoot(path: string, repoRoot: string): string {
+  return resolve(repoRoot, path);
 }
 
 const KeypairFileSchema = z.array(z.number().int().min(0).max(255)).length(64);

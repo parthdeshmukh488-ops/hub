@@ -4,7 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getAddressDecoder } from "@solana/kit";
 import { describe, expect, it } from "vitest";
-import { keypairAddress, parseCliArgs, resolveGuardian } from "../src/args.ts";
+import {
+  keypairAddress,
+  keypairPathFromRepoRoot,
+  parseCliArgs,
+  resolveGuardian,
+} from "../src/args.ts";
 import { parseEnv } from "../src/env.ts";
 import { createIndexerClient, IndexerError } from "../src/indexer-client.ts";
 import { formatAlert } from "../src/notifiers/console.ts";
@@ -58,6 +63,24 @@ describe("command line", () => {
   it("rejects unknown flags and bad addresses, with the usage", () => {
     expect(() => parseCliArgs(["--scripted"])).toThrow(/Usage: sentinel/);
     expect(() => parseCliArgs(["--guardian", "nope"])).toThrow(/not a Solana address/);
+  });
+
+  it("accepts the -- that pnpm passes through (pnpm start -- --guardian …)", () => {
+    expect(parseCliArgs(["--", "--guardian", GUARDIAN])).toEqual({
+      guardian: GUARDIAN,
+      config: null,
+    });
+  });
+});
+
+describe("the keypair path", () => {
+  it("is the repo root's when relative, as in the other services", () => {
+    expect(keypairPathFromRepoRoot(".keys/guardian.json", "/repo")).toBe(
+      "/repo/.keys/guardian.json",
+    );
+    expect(keypairPathFromRepoRoot("/elsewhere/guardian.json", "/repo")).toBe(
+      "/elsewhere/guardian.json",
+    );
   });
 });
 

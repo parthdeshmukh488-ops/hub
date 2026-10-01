@@ -41,7 +41,7 @@ Parsed in [`src/env.ts`](src/env.ts) (02 §13); a bad value stops Sentinel with 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `SENTINEL_INDEXER_URL` | `http://localhost:4100` | REST and `/v1/stream` |
-| `SENTINEL_GUARDIAN_KEYPAIR` | – | Path to the guardian keypair file. Gives the address to watch, and signs guardian freezes. |
+| `SENTINEL_GUARDIAN_KEYPAIR` | – | Path to the guardian keypair file; a relative path is the repo root's. Gives the address to watch, and signs guardian freezes. |
 | `SENTINEL_AUTOFREEZE` | `false` | Allow rule-triggered guardian freezes. Needs `SENTINEL_GUARDIAN_KEYPAIR`: `true` with only `--guardian` stops Sentinel with a message. |
 | `LEASH_RPC_URL` | per cluster | The RPC that guardian freezes are read and sent through |
 | `SENTINEL_WEB_URL` | `http://localhost:3000` | Links in alerts |

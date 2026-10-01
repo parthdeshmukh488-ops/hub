@@ -1,8 +1,14 @@
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { DEFAULT_PORTS, resolveClusterConfig } from "@leash/contracts";
 import { rpcChain } from "@leash/sdk";
 import { createSolanaRpc } from "@solana/kit";
-import { loadKeypairSigner, parseCliArgs, resolveGuardian } from "./args.ts";
+import {
+  keypairPathFromRepoRoot,
+  loadKeypairSigner,
+  parseCliArgs,
+  resolveGuardian,
+} from "./args.ts";
 import { parseConfig } from "./config.ts";
 import { loadEnv } from "./env.ts";
 import { createGuardian } from "./guardian.ts";
@@ -12,11 +18,16 @@ import { createLogger } from "./logger.ts";
 import { selectNotifiers } from "./notifiers/select.ts";
 import { Sentinel } from "./sentinel.ts";
 
+const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
+
 async function main(): Promise<void> {
   const env = loadEnv();
   const args = parseCliArgs(process.argv.slice(2));
   const log = createLogger(env.LOG_LEVEL, env.LEASH_CLUSTER);
-  const guardian = await resolveGuardian(args.guardian, env.SENTINEL_GUARDIAN_KEYPAIR);
+  const keypairPath =
+    env.SENTINEL_GUARDIAN_KEYPAIR &&
+    keypairPathFromRepoRoot(env.SENTINEL_GUARDIAN_KEYPAIR, REPO_ROOT);
+  const guardian = await resolveGuardian(args.guardian, keypairPath);
   const configPath = args.config ?? new URL("../sentinel.config.json", import.meta.url);
   const config = parseConfig(JSON.parse(readFileSync(configPath, "utf8")));
 
@@ -25,9 +36,7 @@ async function main(): Promise<void> {
       "SENTINEL_AUTOFREEZE=true needs SENTINEL_GUARDIAN_KEYPAIR: --guardian alone is watch-only.",
     );
   }
-  const signer = env.SENTINEL_GUARDIAN_KEYPAIR
-    ? await loadKeypairSigner(env.SENTINEL_GUARDIAN_KEYPAIR)
-    : null;
+  const signer = keypairPath ? await loadKeypairSigner(keypairPath) : null;
   const cluster = resolveClusterConfig(env.LEASH_CLUSTER, { rpcUrl: env.LEASH_RPC_URL });
   const guardianFreezes = createGuardian({
     chain: rpcChain({ rpc: createSolanaRpc(cluster.rpcUrl) }),
