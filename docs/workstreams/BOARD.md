@@ -15,7 +15,8 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | WS7 tools, MCP, demo agent | **Build steps 1–4 done:** `@leash/tools` plus its Node runtime; `@leash/mcp`, a stdio MCP server Claude Code connects to (10 tests); `apps/agent-demo` with a Claude loop, scene scripts, scripted mode and the terminal UI. The scripted pitch storyline passes end to end on the real stack in LiteSVM (35 tests). Real LLM runs and recordings: laptop ([status](status/WS7.md), [message](messages/20261001-0030-from-ws7-to-all-mcp-server-and-demo-agent-ready.md)). |
 | WS1 program | **All seven steps done, live on devnet** (slot 505952773, byte for byte the committed `leash.so`): Anchor 1.2 program, IDL, program ID `HyL9S5mA…HJncu`. The LiteSVM suites run on the real binaries (66 tests, plus all 60 policy vectors on-chain); security checklist ticked; `pay` ≈ 32k CU ([status](status/WS1.md), [CU.md](../../programs/leash/CU.md)). |
 | WS3 x402 + facilitator | **Build steps 1–5 done:** `@leash/x402` (Leash client scheme, `createLeashFetch`, `leashMerchant`, `createLeashFacilitator`), `services/facilitator`. Every row of the test table passes on the real binaries through the unmodified official facilitator; 29 tests ([status](status/WS3.md)). |
-| WS5, WS9 | Skeletons only. Not started. |
+| WS5 Sentinel | **Build steps 1–5 done, on `main`** (second account): the seven alert rules (storyline snapshot test), the indexer stream client, console and Telegram alerts (plain text, untrusted text defanged), guardian autofreeze (off by default, checks the on-chain guardian), health on 4400; 101 tests ([status](status/WS5.md)). |
+| WS9 story | **README v1 and the pitch documents on `main`** (second account): the deck (`.pptx`, PDF), demo script, judge Q&A, video storyboard ([status](status/WS9.md)). Final pass Oct 3–4. |
 
 ## Who starts now
 
@@ -30,9 +31,9 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | 5 | **WS4** indexer | anywhere | Steps 1–2 done. Next: step 3 (stats on chain data) and 4 (reconciliation); a real-chain run on the laptop. | WS5, WS6 live data |
 | 6 | **WS8** merchants and lab | anywhere | Steps 1–2 done (paid routes on through `leashMerchant`). | WS7 demo |
 | 7 | **WS7** tools, MCP, agent | anywhere | Steps 1–4 done. Step 5: pitch polish with WS9. | the demo |
-| 8 | **WS5** Sentinel | anywhere | **Second Claude account** (`deshmukhparth921-commits`), its own session branch: steps 1–3 and 5 ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | alerts |
+| 8 | **WS5** Sentinel | anywhere | Steps 1–5 done, on `main`. Next: the laptop's live run (laptop queue item 6). The second account moves on to Task C, then D, of the [work queue](messages/20261001-1200-from-architect-to-second-account-work-queue.md). | alerts |
 | 9 | **WS3** x402 + facilitator | anywhere | Steps 1–5 done. Next: a real run on localnet/devnet (laptop). | WS7, WS8 paid routes |
-| 10 | **WS9** integration and story | anywhere | **Second Claude account**, its own session branch (first, if one session at a time): README v1, `docs/pitch/` ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | the pitch |
+| 10 | **WS9** integration and story | anywhere | Task B done, on `main`. Final pass Oct 3–4: the demo script's fallback after WS7's fix, the test re-count, the team, the video link ([status](status/WS9.md)). | the pitch |
 
 Fewer terminals? Combine sessions in this order:
 
@@ -51,7 +52,7 @@ Parth runs one Claude session on the laptop, which has the Solana toolchain and 
 | 3 | Run the indexer in chain mode against localnet, then devnet (`LEASH_CLUSTER=devnet INDEXER_POLL_INTERVAL_MS=2000 pnpm --filter @leash/indexer start`), and check the smoke test's events come out as the contract JSON on `/v1/owners/<owner>/events`. | **Ready** (WS4 message 20261001-0200) | laptop session |
 | 4 | x402 end to end on a real chain: done on localnet. It found the facilitator's RPC bug, which is fixed in `2e4e045` (on `main` after the next merge). Devnet next. | **Ready**; devnet needs item 1 and the merge | laptop session |
 | 5 | The demo agent on a real chain: `pnpm --filter agent-demo demo:all -- --scripted` (localnet, then devnet; the four terminals are in `apps/agent-demo/README.md`). Then LLM mode with `ANTHROPIC_API_KEY` and `--record`; promote good recordings. | **Ready** (WS7 message 20261001-0030); needs items 2 and 4 on that cluster | laptop session + Parth (API key) |
-| 6 | **Telegram on the laptop.** Parth gives this session the bot token for [@LeashmvpBot](https://t.me/LeashmvpBot) in the chat. Write it to the repo root's `.env` as `TELEGRAM_BOT_TOKEN`, never to a tracked file. Then Parth sends `/start` to the bot, and `TELEGRAM_CHAT_ID` comes from `https://api.telegram.org/bot<token>/getUpdates`. When WS5's Sentinel lands, run it against the indexer and check that the storyline's alerts reach Parth's phone. | `.env` now; the real test when WS5 is merged | laptop session + Parth |
+| 6 | **Telegram on the laptop.** Parth gives this session the bot token for [@LeashmvpBot](https://t.me/LeashmvpBot) in the chat. Write it to the repo root's `.env` as `TELEGRAM_BOT_TOKEN`, never to a tracked file. Then Parth sends `/start` to the bot, and `TELEGRAM_CHAT_ID` comes from `https://api.telegram.org/bot<token>/getUpdates`. When WS5's Sentinel lands, run it against the indexer and check that the storyline's alerts reach Parth's phone. | **Ready:** Sentinel is on `main`; run it as in WS5's [message](messages/20261001-2146-from-ws5-to-ws1-laptop-telegram-ready.md) (steps 3 and 4) | laptop session + Parth |
 | 7 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |
 | – | After any program change: rebuild, update `CHECKSUMS`, upgrade on devnet with the deployer key, and check that the dump equals the committed `.so`. | only if WS1's source changes | laptop session |
 
