@@ -4,9 +4,16 @@
   "private": true,
   "type": "module",
   "description": "Sentinel: anomaly rules, guardian freezes and Telegram alerts.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@leash/contracts": "workspace:*",
+    "zod": "4.6.5"
   }
 }

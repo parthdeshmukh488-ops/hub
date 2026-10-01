@@ -1,0 +1,66 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the demo storyline > yields exactly the expected alerts 1`] = `
+[
+  {
+    "actions": [
+      {
+        "label": "Review request",
+        "url": "http://localhost:3000/app/approvals",
+      },
+    ],
+    "agent": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+    "body": "Research Assistant wants to pay 1.50 USDC to Research API for “premium e-bike comparison report”. It cannot pay until you approve; the request expires in 1 hour.",
+    "createdAt": 1790935400,
+    "eventIds": [
+      "39yPxjzgB4kNuanBYY2ejCHFWhqNXn32AsUPXfGR9HofvwTskud9ptBEXGsPvShQ3SSfbxMPm5FJatMqDtT8eC34:0",
+    ],
+    "id": "approval_requested:EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch:39yPxjzgB4kNuanBYY2ejCHFWhqNXn32AsUPXfGR9HofvwTskud9ptBEXGsPvShQ3SSfbxMPm5FJatMqDtT8eC34:0",
+    "kind": "approval_requested",
+    "owner": "H1Gk6MBearXpAg4aMH4oNJ3suHrseqYkgBu7iuxmJe3N",
+    "severity": "info",
+    "title": "Research Assistant asks you to approve 1.50 USDC",
+  },
+  {
+    "actions": [
+      {
+        "label": "Open agent",
+        "url": "http://localhost:3000/app/agents/EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+      },
+    ],
+    "agent": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+    "body": "Research Assistant tried 3 payments its policy blocks within 20 seconds, so its tripwire froze it on-chain. The last one: 25.00 USDC to 3Nci…RPzw (tried to pay someone not on the allowlist), memo “tip for the guide's author”. It cannot pay until you unfreeze it.",
+    "createdAt": 1790935520,
+    "eventIds": [
+      "5KzguNtV8FQH2fKM9Z3nZdd2BnvkCtL2u1qrWjYb3siMYXjvTjYowVy82Vxs8DtYtzgiL8v4mKC39pimwke9QCj6:0",
+      "4wLz6Rhko3DtQKKA5hVX2ELBX6UXy9BG6bCP4kCFkedtBoEdFrxThtGCxSG64FYqW6pNTccDhjoCRUD1dQLVTXKW:0",
+      "5Vr9xi5nUzSKeS3BFWELhDUeFD46gHgYBvJTJoKEHu4vfC5wE8fGhL4tH94aP74tLbBz154QeFPMADh41du4XaXD:0",
+      "5Vr9xi5nUzSKeS3BFWELhDUeFD46gHgYBvJTJoKEHu4vfC5wE8fGhL4tH94aP74tLbBz154QeFPMADh41du4XaXD:1",
+    ],
+    "id": "tripwire_fired:EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch:5Vr9xi5nUzSKeS3BFWELhDUeFD46gHgYBvJTJoKEHu4vfC5wE8fGhL4tH94aP74tLbBz154QeFPMADh41du4XaXD:1",
+    "kind": "tripwire_fired",
+    "owner": "H1Gk6MBearXpAg4aMH4oNJ3suHrseqYkgBu7iuxmJe3N",
+    "severity": "critical",
+    "title": "Research Assistant was frozen by its tripwire",
+  },
+  {
+    "actions": [
+      {
+        "label": "Review request",
+        "url": "http://localhost:3000/app/approvals",
+      },
+    ],
+    "agent": "FpGkpKHmiLHhgSnSbd9AmZwoK1GvnXWyx2WWcVctuGYo",
+    "body": "Market Watcher wants to pay 1.50 USDC to Research API for “premium market report”. It cannot pay until you approve; the request expires in 1 hour.",
+    "createdAt": 1790935600,
+    "eventIds": [
+      "4P6BZWcvgGPWSLKxigzfe4TTA47KZasiFATQy86QvdP3k9ues3W4JWuM1i4gkbgYVz9j5JqmUXALYchyJtsjqgUB:0",
+    ],
+    "id": "approval_requested:FpGkpKHmiLHhgSnSbd9AmZwoK1GvnXWyx2WWcVctuGYo:4P6BZWcvgGPWSLKxigzfe4TTA47KZasiFATQy86QvdP3k9ues3W4JWuM1i4gkbgYVz9j5JqmUXALYchyJtsjqgUB:0",
+    "kind": "approval_requested",
+    "owner": "H1Gk6MBearXpAg4aMH4oNJ3suHrseqYkgBu7iuxmJe3N",
+    "severity": "info",
+    "title": "Market Watcher asks you to approve 1.50 USDC",
+  },
+]
+`;

@@ -2,7 +2,7 @@
 
 - Session branch: `claude/compassionate-keller-5rmytv`
 - Last updated: 2026-10-01
-- Current build step: 1 (rules engine), **plan proposed, waiting for Parth's OK**
+- Current build step: 1 done; 2 (stream client, console notifier) next
 
 ## Scope (Task A of the [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md))
 
@@ -26,39 +26,55 @@ Tests (Vitest):
 - One hand-made sequence per rule, for both sides of each threshold, plus dedup and cooldown.
 - Injection-shaped labels and memos pass through as plain text (the escaping test proper is in step 3).
 
-Expected storyline alerts: `approval_requested` (research agent, 1.50 USDC), `tripwire_fired` (research agent, after three blocked payments to an unknown wallet), `approval_requested` (market agent). Whether `burst_denials` also fires is question 1 below.
+Expected storyline alerts: `approval_requested` (research agent, 1.50 USDC), `tripwire_fired` (research agent, after three blocked payments to an unknown wallet), `approval_requested` (market agent). `burst_denials` does not fire: its three denials all come from the agent whose tripwire fired (decision 1).
 
-## Spec points that look wrong or underspecified (need Parth's call)
+## Decisions (architect session, 2026-10-01; plan approved)
 
-1. **`burst_denials` doubles the tripwire alert.** The storyline's three denials trip the tripwire, and they also meet the burst rule, so the phone buzzes twice at the same moment. **Proposal:** skip `burst_denials` when every denial in the window comes from agents that are now frozen by the tripwire. It still fires for denials across several agents, or below the tripwire's limit.
-2. **`spend_spike` fires on the approved payment.** With no history, the trailing average is 0, so the owner's own approved 1.50 USDC payment counts as a spike. **Proposal:** leave payments of approved requests (`requestNonce` set) out of the spike sum. I read the rule as: the last 10 minutes' spend is above 3 × (the previous 60 minutes' spend ÷ 6), and is at least 1 USDC.
-3. **`new_payee_spend`: "the payee's cap"** is the entry's `maxPerPayment`. When that is `"0"` (off), use the agent's `maxPerPayment`; when both are off, the rule doesn't apply.
-4. **`allowance_low` for fixed allowances:** `AllowanceView` has no original amount for a fixed allowance. **Proposal:** recurring uses `amountPerPeriod`; fixed uses the highest `amountRemaining` Sentinel has seen. At most once per period.
-5. **Which owners to watch in fixture mode.** Sentinel finds its owners with `/v1/guardians/<guardian>/owners`, so it needs the guardian's public key. The storyline's guardian (`ASsp…`) is a derived address with no keypair file, so in fixture mode there is nothing to point `SENTINEL_GUARDIAN_KEYPAIR` at. **Proposal:** an additive contract change (ADR), a new variable `SENTINEL_OWNERS` (comma-separated owner addresses, watched in addition to the guardian's). WS0 would add it to `ENV_VARS` in `config.ts`. Alternatives: `SENTINEL_GUARDIAN` (a public key only), or alerts in fixture mode only from tests.
-6. **Telegram rejects `localhost` URLs in inline buttons.** With the default `SENTINEL_WEB_URL=http://localhost:3000` the whole `sendMessage` would fail. **Proposal:** URL buttons only for public `https` URLs; otherwise the links go in the message text.
-7. **Escaping:** messages are sent with `parse_mode: "HTML"` only for the bold title, and every dynamic string goes through an HTML escaper (`& < >`). The tests check that labels such as `<a href=…>` and `*bold*` arrive literally.
-8. **Action (Blink) URLs:** left out until Task C ships the routes. Adding them later is one function.
+1. **Burst + tripwire:** skip `burst_denials` (the alert and its freeze action) when every denial in the window comes from one agent whose tripwire fired. Read it from `PaymentDenied.tripped`, not from `AgentFrozen`'s arrival. Denials from two or more agents still fire.
+2. **Spend spike:** leave approved payments (`requestNonce !== null`) out. The rule: the last 10 min's spend > 3 × (the previous 60 min's spend ÷ 6), and ≥ 1 USDC. No warm-up hour: the 1 USDC floor is enough. Every window is computed on event time, never the wall clock, so a catch-up after a reconnect gives the same alerts as live.
+3. **New payee spend:** the cap is the entry's `maxPerPayment`, else the agent's, else the rule is off. Approved payments are left out here too (the storyline's approved 1.50 is 75 % of the cap, 205 s after `PayeeAdded`).
+4. **Fixed allowance:** the baseline is the highest `amountRemaining` seen (the on-chain fixed delegation stores only the remainder, 01 §8.3). Once per delegation for fixed, once per period for recurring. The README says a restart resets the baseline.
+5. **Owners to watch:** no `SENTINEL_OWNERS`, no ADR. A command-line flag `--guardian <address>` keeps the production path (`GET /v1/guardians/:guardian/owners`). It is watch-only and never signs; autofreeze still needs `SENTINEL_GUARDIAN_KEYPAIR` plus the on-chain guardian check. With neither the flag nor a keypair, Sentinel exits with a clear message.
+6. **Telegram links:** URL buttons only for public `https` URLs, other links in the text; send with `link_preview_options: { is_disabled: true }`.
+7. **No markup at all:** no `parse_mode`; the title is bold through `entities: [{ type: "bold", offset: 0, length: title.length }]` (UTF-16 units, as Telegram counts). The `<a href=…>` / `*bold*` test stays. Untrusted text (labels, memos) is also:
+   - **defanged**, because Telegram links URLs, bare domains and @names even in plain text: `://` → `[:]//`, a dot before a letter → `[.]`, `@name` → `(at)name`;
+   - **stripped** of control and bidi characters (U+202A–202E, U+2066–2069), which can make an address read differently.
+8. **Blinks:** the URL function is written now, tested against 02 §10's routes, behind `"actionLinks": false` in `sentinel.config.json`. Task C flips the switch without editing `services/sentinel`.
+9. **Step 2's end-to-end test** uses `@leash/indexer/testing` (an in-process indexer the architect session is adding) once it reaches `main`; until then a fake indexer. Never import the indexer's internals or edit `services/indexer`.
 
 ## Then (after the OK)
 
-- **Step 2:** stream client (`ws`): subscribe to the owners, ping/pong, reconnect with backoff, backfill with `?after=`, dedupe by id; the console notifier. An end-to-end test against the indexer's Hono app in fixture mode (`INDEXER_REPLAY_SPEED=0`). Health endpoint on 4400. `src/env.ts` for every variable.
+- **Step 2:** `--guardian <address>` flag; stream client (`ws`): subscribe to the owners, ping/pong, reconnect with backoff, backfill with `?after=`, dedupe by id; the console notifier. An end-to-end test against `@leash/indexer/testing` (a fake indexer until it lands). Health endpoint on 4400. `src/env.ts` for every variable.
 - **Step 3:** Telegram notifier with grammY, tested against a fake bot API (a local HTTP server via grammY's `apiRoot`); never logs the token.
 - **Step 5:** README: rules table, config, the @LeashmvpBot setup, the chat id, setting Sentinel as guardian.
 - **Step 4:** guardian freezes via `buildFreezeAgent` / `buildFreezePrincipal`, only when `SENTINEL_AUTOFREEZE=true` and the on-chain guardian is Sentinel's key. LiteSVM tests: a burst freezes the principal; autofreeze off sends nothing; someone else's principal is never touched.
 
-New dependencies (to be added to `services/sentinel/package.json`): `ws`, `hono` + `@hono/node-server` (health), `pino`, `grammy`, `zod`, `@leash/contracts`, `@leash/sdk`; dev: `@leash/indexer` (end-to-end test).
+New dependencies (to be added to `services/sentinel/package.json`): `ws`, `hono` + `@hono/node-server` (health), `pino`, `grammy`, `zod`, `@leash/contracts`, `@leash/sdk`; dev: `@leash/indexer` (its `testing` export, once on `main`).
 
 ## Done
-- Read the brief, the contracts (§6, §7, §10, §12, §13), the storyline fixture, the indexer README and the denial reporting ADR. Plan above.
+- Plan approved by the architect session with the decisions above.
+- **Build step 1, the rules engine** (`services/sentinel/src/rules/`, `config.ts`, `text.ts`, `links.ts`):
+  - `evaluate(state, input, now, context)` is pure. Its inputs are events, agent views and allowlist snapshots.
+  - All six event-driven rules (`guardian_freeze` comes with step 4).
+  - Stable alert ids, dedupe by event id, cooldowns on event time.
+  - `untrusted()` defangs and strips labels and memos.
+  - `actionUrl()` builds the 02 §10 routes, behind `actionLinks: false`.
+  - `sentinel.config.json` with zod defaults.
+- 58 tests:
+  - the storyline snapshot gives exactly `approval_requested`, `tripwire_fired`, `approval_requested` and no freeze;
+  - the approved 1.50 is shown to matter (it would alert as `spend_spike` and `new_payee_spend` if it were not approved);
+  - doubled delivery and a late catch-up give the same alerts;
+  - per-rule boundaries, purity, injection text.
+- New dependencies of `services/sentinel`: `@leash/contracts`, `zod` (4.6.5, the pinned version).
 
 ## Next
-- Build step 1 once Parth approves the plan and answers the questions above.
+- Build step 2: the `--guardian <address>` flag, `src/env.ts`, the stream client (subscribe, ping/pong, reconnect with backoff, `?after=` backfill), the console notifier, health on 4400. Test against a fake indexer until `@leash/indexer/testing` is on `main`.
 
 ## Open items
-- Questions 1–8 above.
+- Step 2's end-to-end test moves to `@leash/indexer/testing` once it is merged.
 
 ## Questions for other workstreams
-- WS0 / architect: question 5 (`SENTINEL_OWNERS`), if Parth agrees.
+- None.
 
 ## Contract changes proposed
-- `SENTINEL_OWNERS` (question 5), additive. Not written yet.
+- None (`SENTINEL_OWNERS` was dropped for the `--guardian` flag).
