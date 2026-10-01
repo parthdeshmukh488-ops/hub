@@ -12,7 +12,8 @@
   - **`docs/pitch/deck.md` v1.** 13 slides, each with on-slide text, visual, speaker line and the judging criterion it serves. A sources table backs every number.
   - **`docs/pitch/img/`.** Three screenshots of the web app in fixture mode (overview, frozen agent, activity), 1280 px at 2× and light theme, from a production build driven by Chromium. They are labelled as sample data.
   - **Facts checked on Oct 1.** 767 automated tests: 639 TypeScript (`pnpm test`) and 128 Rust (CI's `cargo test`). Every relative link in both files resolves (scripted check).
-- Messages sent: `20261001-1215-from-ws9-to-ws4-stream-test-times-out-in-ci.md` and `20261001-1220-from-ws9-to-all-readme-v1-and-deck.md`.
+- Messages sent: `20261001-1220-from-ws9-to-all-readme-v1-and-deck.md`.
+- Found while checking the facts: CI on `main` was red at `b842f9f` (an indexer stream test hit Vitest's 5 s default on a loaded runner). `09ae03a` on `main` fixed it before WS9's message to WS4 went out, so that message was dropped.
 
 ## Rules for every claim
 
@@ -31,7 +32,6 @@
 ## Open items
 
 - **From Parth:** team names and roles (README "Team", slides 1 and 13); any conversations with agent builders (slide 10 says "none yet" until then); the demo video link.
-- **CI on `main` is red:** a timing flake in `services/indexer/test/stream.test.ts` (WS4's lane; message sent with a proposed fix). A PR into `main` can hit it until WS4 merges the fix.
 - The README's pitch link points at `deck.md` until the Google Slides link and the PDF exist.
 
 ## Questions for other workstreams
