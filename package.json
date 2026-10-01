@@ -23,6 +23,7 @@
     "devnet:check": "tsx scripts/devnet-check.ts",
     "devnet:setup": "pnpm --filter @leash/sdk devnet:setup",
     "devnet:smoke": "pnpm --filter @leash/sdk devnet:smoke",
+    "owner:approve": "pnpm --filter @leash/sdk owner:approve",
     "localnet": "bash scripts/localnet.sh",
     "artifact:subscriptions": "bash scripts/subscriptions-artifact.sh"
   },

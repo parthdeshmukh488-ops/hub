@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --coverage",
     "devnet:setup": "tsx scripts/devnet-setup.ts",
-    "devnet:smoke": "tsx scripts/devnet-smoke.ts"
+    "devnet:smoke": "tsx scripts/devnet-smoke.ts",
+    "owner:approve": "tsx scripts/owner-approve.ts"
   },
   "dependencies": {
     "@leash/contracts": "workspace:*",
