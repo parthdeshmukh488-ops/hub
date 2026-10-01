@@ -4,7 +4,7 @@ A carved-out part of WS6: Task C of the second account's [work queue](../message
 
 - Session branch: `claude/compassionate-keller-5rmytv`
 - Last updated: 2026-10-01
-- Current step: building (plan approved by the architect session)
+- Current step: built and tested; waiting on two decisions before the PR (see Open items)
 - Lane:
   - `apps/web/src/app/api/actions/**`
   - `apps/web/src/app/actions.json/**`
@@ -55,13 +55,31 @@ A carved-out part of WS6: Task C of the second account's [work queue](../message
 10. **README:** `apps/web/src/server/actions/README.md`, including the laptop's phone demo through a cloudflared tunnel and `dial.to`.
 
 ## Done
-- Plan recorded.
+- Plan recorded (first commit).
+- **The four Actions, `actions.json` and the icon**, built as planned (`apps/web/src/server/actions/`, thin `route.ts` files):
+  - freeze and freeze-all: owner or guardian;
+  - approve: owner only, disabled when not pending or expired;
+  - reject: owner or guardian, disabled when not pending.
+  - Headers on every response; the browser redirect; errors 400/403/404/409/502 as `{ message }`; no signature in any returned transaction.
+  - Labels and memos are stripped of `\p{Cc}`/`\p{Cf}` and clipped.
+- **26 tests** in `apps/web/test/actions.test.ts` on the LiteSVM testbed (real `leash.so`):
+  - every action, signed by each allowed key, succeeds on-chain and changes the state;
+  - wrong signers get 403, and a hand-built instruction with that signer fails on-chain;
+  - disabled states and 409s, 400s and 404s, the redirect, OPTIONS, `actions.json`, the icon, a memo with bidi and control characters.
+  - The web app's whole suite passes: 66 tests.
+- **README:** `apps/web/src/server/actions/README.md`, with the phone demo (cloudflared, `dial.to`).
+- New dependencies of `@leash/web`: `@solana/kit` 8.4.0 (noop signer, compile, base64) and, dev, `litesvm` 1.5.0 (the testbed).
+- **How approve and reject were tested:** against `fetchRequestView` from the architect's commit `864dcb5`, applied temporarily and not committed.
 
 ## Next
-- Build steps 1–8 in the order above.
+- Once `864dcb5` is on `main`: merge `main`, run `pnpm check`, open the PR into `main`.
 
 ## Open items
-- `fetchRequestView` is on the architect's branch (`864dcb5`), not yet on `main`.
+- **`fetchRequestView` is not on `main` yet** (architect's branch, `864dcb5`). Until it is, `apps/web` does not typecheck on this branch (`request.ts` imports it), so no PR yet. Parth: merge the architect's branch into `main`.
+- **`"actionLinks": true` in `sentinel.config.json` breaks one Sentinel test.** `services/sentinel/test/config.test.ts` checks that the committed file equals the code defaults (`actionLinks: false`). Two fixes, both outside this lane:
+  - (a) set the default to `true` in `services/sentinel/src/config.ts`, and change that test's "leaves Action links off" line;
+  - (b) change the test to compare only the thresholds.
+  Waiting for Parth's choice (or WS5's OK).
 
 ## Questions for other workstreams
 - None.
