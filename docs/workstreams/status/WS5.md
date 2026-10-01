@@ -2,7 +2,7 @@
 
 - Session branch: `claude/compassionate-keller-5rmytv`
 - Last updated: 2026-10-01
-- Current build step: 1 done; 2 (stream client, console notifier) next
+- Current build step: 1–2 done; 3 (Telegram) next
 
 ## Scope (Task A of the [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md))
 
@@ -67,11 +67,23 @@ New dependencies (to be added to `services/sentinel/package.json`): `ws`, `hono`
   - per-rule boundaries, purity, injection text.
 - New dependencies of `services/sentinel`: `@leash/contracts`, `zod` (4.6.5, the pinned version).
 
+- **Build step 2, the service** (`src/main.ts`, `sentinel.ts`, `stream-client.ts`, `indexer-client.ts`, `env.ts`, `args.ts`, `health.ts`, `notifiers/console.ts`):
+  - `--guardian <address>` (watch-only) or the address of `SENTINEL_GUARDIAN_KEYPAIR`; both must agree; with neither, Sentinel exits with a clear message.
+  - Owners from `/v1/guardians/:guardian/owners`, refreshed every 30 s.
+  - Per owner: a silent warm-up (views, allowlists, the newest 200 events), then the subscription, then a `?after=` backfill. On every reconnect, the backfill runs before live messages. One serial queue keeps the inputs in order.
+  - The stream client answers pings, reconnects with backoff, and drops a connection silent for 50 s. An unknown cursor triggers a silent re-warm.
+  - Console notifier; health on 4400 (200/503).
+  - Freezes asked for are logged only (step 4).
+- 82 tests (24 new): the service against a fake indexer built from the contract and fixtures (live storyline, warm-up, backfill without repeats, ping, silence, reset indexer, late owner, unreachable indexer, failing notifier, health), plus env, flags, keypair, REST client and console format.
+- **Ran against the real indexer** in fixture mode (`INDEXER_REPLAY_SPEED=10`) with `--guardian`: health 200, and exactly the three storyline alerts printed.
+- New dependencies of `services/sentinel`: `@solana/kit` 8.4.0 (reads the keypair's address), `pino` 10.3.1, `ws` 8.22.0; dev: `@types/ws` 8.18.2, `tsx` 4.23.15. All are the versions the other services pin.
+
 ## Next
-- Build step 2: the `--guardian <address>` flag, `src/env.ts`, the stream client (subscribe, ping/pong, reconnect with backoff, `?after=` backfill), the console notifier, health on 4400. Test against a fake indexer until `@leash/indexer/testing` is on `main`.
+- Build step 3: the Telegram notifier with grammY, tested against a fake bot API (entities, no `parse_mode`, buttons only for public https URLs, link previews off).
 
 ## Open items
-- Step 2's end-to-end test moves to `@leash/indexer/testing` once it is merged.
+- The service tests move to `@leash/indexer/testing` once it is on `main` (the fake indexer goes then).
+- An event that happened while Sentinel was down and is older than the newest 200 at start is learned silently, not alerted (documented in the README).
 
 ## Questions for other workstreams
 - None.

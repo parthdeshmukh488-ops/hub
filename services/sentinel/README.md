@@ -6,11 +6,64 @@ Owned by **WS5**. Brief: [docs/workstreams/WS5-sentinel.md](../../docs/workstrea
 
 ## Status
 
-**Build step 1 is done: the rules engine.** Next:
-- step 2: the stream client and the console notifier;
+**Build steps 1–2 are done:** the rules engine, and the service that runs it on the indexer's stream with console alerts. Next:
 - step 3: Telegram;
 - step 4: guardian autofreeze;
 - step 5: the full README (running it, the Telegram bot, setting Sentinel as guardian).
+
+## Run it
+
+Sentinel needs the indexer (`SENTINEL_INDEXER_URL`, default `http://localhost:4100`) and to know whose principals to watch:
+
+```bash
+# The demo storyline, with no chain: the indexer replays it at 10× speed, Sentinel prints the alerts.
+INDEXER_SOURCE=fixtures INDEXER_REPLAY_SPEED=10 pnpm --filter @leash/indexer start
+pnpm --filter @leash/sentinel start -- --guardian ASspDfRt1zArNme6rGcsf5SBGzetTWL2dZEmN2zaizQh
+
+# A real chain: watch the principals whose guardian is your guardian key.
+SENTINEL_GUARDIAN_KEYPAIR=.keys/guardian.json pnpm --filter @leash/sentinel start
+```
+
+| Flag | Meaning |
+| --- | --- |
+| `--guardian <address>` | Watch the principals whose guardian is this address. Watch-only: it never signs. Must match `SENTINEL_GUARDIAN_KEYPAIR` if both are given. With neither, Sentinel exits with a message. |
+| `--config <path>` | Thresholds file (default: `sentinel.config.json` in this package) |
+
+`curl localhost:4400/health` answers 200 while Sentinel is connected to the indexer with its owners loaded, else 503:
+`{ ok, connected, guardian, owners, lastEventAt, alertsSent, alertsFailed }`.
+
+### Environment
+
+Parsed in [`src/env.ts`](src/env.ts) (02 §13); a bad value stops Sentinel with a readable message.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `SENTINEL_INDEXER_URL` | `http://localhost:4100` | REST and `/v1/stream` |
+| `SENTINEL_GUARDIAN_KEYPAIR` | – | Path to the guardian keypair file. Gives the address to watch; freezes need it (step 4). |
+| `SENTINEL_AUTOFREEZE` | `false` | Allow rule-triggered guardian freezes (step 4; until then, only a warning) |
+| `SENTINEL_WEB_URL` | `http://localhost:3000` | Links in alerts |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | – | Step 3; alerts go to the console until then |
+| `LEASH_CLUSTER`, `LOG_LEVEL` | `localnet`, `info` | |
+
+## How it works
+
+```text
+GET /v1/guardians/<guardian>/owners   (every 30 s: principals that named this guardian later join)
+  │ per owner, in one serial queue:
+  ├─ warm-up: GET /v1/owners/<owner>, /v1/agents/<agent> (allowlists), the newest 200 events
+  │          → fed to the rules silently: the past sets windows, labels and dedupe, but never alerts
+  ├─ subscribe on /v1/stream
+  └─ backfill: GET …/events?after=<cursor> → alerts
+/v1/stream: event and agent messages → rules → alerts → notifiers
+            reconnect with backoff (0.5 s … 30 s); on every reconnect, backfill each owner first
+```
+
+- **One queue** for every input, so the rules see them in order. Live messages that arrive during a backfill wait behind it; duplicates are dropped by event id.
+- **Silence** (no message for 50 s; the indexer pings every 20 s) counts as a dead connection: Sentinel drops it and reconnects.
+- **An unknown cursor** (the indexer's database was reset) means a fresh, silent warm-up.
+- **Freezes asked for** by the rules are only logged until step 4.
+- **A notifier that fails** is logged and counted (`alertsFailed`); the other notifiers still get the alert.
+- **Restarts:** history is read silently at start, so a restart never repeats old alerts. An event that happened while Sentinel was down and is older than the newest 200 is not alerted.
 
 ## Rules
 
@@ -66,7 +119,7 @@ Markup characters stay literal: notifiers send plain text, never a parse mode. T
 ## Develop
 
 ```bash
-pnpm --filter @leash/sentinel test        # rules on the demo storyline (snapshot) and hand-made sequences
+pnpm --filter @leash/sentinel test        # rules (storyline snapshot), the loop against a fake indexer
 pnpm --filter @leash/sentinel typecheck
 pnpm --filter @leash/sentinel lint
 ```
@@ -76,3 +129,13 @@ pnpm --filter @leash/sentinel lint
   - `tripwire_fired` (Research Assistant);
   - `approval_requested` (Market Watcher).
 - **Other tests:** one per rule, on both sides of each threshold, plus dedupe, cooldowns, purity, event-time catch-up and injection-shaped labels and memos.
+- **The service** ([`test/sentinel.test.ts`](test/sentinel.test.ts)) runs against a fake indexer, built only from the contract and its fixtures. It moves to `@leash/indexer/testing` once that is on `main`. It checks:
+  - the live storyline;
+  - the silent warm-up;
+  - a backfill after a dropped connection, without repeats;
+  - ping/pong and silence;
+  - a reset indexer;
+  - late owners;
+  - an unreachable indexer at start;
+  - a failing notifier;
+  - the health endpoint.
