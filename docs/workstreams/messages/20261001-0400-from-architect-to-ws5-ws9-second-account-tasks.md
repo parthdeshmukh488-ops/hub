@@ -14,7 +14,9 @@ Cloud session 1 keeps building the product next: WS6 step 2 (wallet, pairing, ap
 ## For Parth: how to start a task
 
 1. Open Claude Code on the web with the second account, on `parthdeshmukh488-ops/hub`.
-2. **One session per task.** Paste the task's starter prompt (below). It names the branch and the scope.
+2. **One session per task.** Paste the task's starter prompt (below); it sets the scope.
+   - **Branch:** push to the branch Claude Code gave the session (e.g. `claude/determined-faraday-9rk16e`).
+   - The names `ws5/sentinel` and `ws9/story` below are only suggestions for sessions you start on those branches yourself.
 3. The session reads the docs and proposes a plan. Approve it (or steer); it builds, commits and pushes to its branch.
 4. When a build step is done, open a pull request from its branch into `main`, and merge once CI is green.
 
@@ -23,7 +25,9 @@ Cloud session 1 keeps building the product next: WS6 step 2 (wallet, pairing, ap
 - Let it run only its own package's tests (`pnpm --filter @leash/sentinel test`), and the whole `pnpm check` only before the last push.
 - Say no to scope creep.
 
-## Task A: WS5 Sentinel, Telegram alerts (priority 1)
+**One session at a time?** Then do Task B first: the deck is required for the submission, while the demo runs without Telegram (the owner approves with `pnpm owner:approve`, or in the web app once session 1 ships it). Run both at once if you can.
+
+## Task A: WS5 Sentinel, Telegram alerts (priority 1 for the demo)
 
 **Why:** storyline steps 3 and 4. When the agent asks for approval, and when the tripwire freezes it, the owner's phone buzzes.
 
@@ -55,10 +59,10 @@ Step 4 (guardian autofreeze) comes only after Parth says so.
 - With autofreeze off, Sentinel never sends a transaction.
 - No label or memo can inject Telegram markup (tested).
 
-**Branch:** `ws5/sentinel`.
+**Branch:** the session's own (suggested name: `ws5/sentinel`).
 
 ```text
-You are the WS5 (Sentinel and alerts) engineer on Leash, a spending firewall for AI agents on Solana. Work on the branch ws5/sentinel: create it from the latest main, or merge the latest main into it if it exists.
+You are the WS5 (Sentinel and alerts) engineer on Leash, a spending firewall for AI agents on Solana. Work on the branch this session was created with; merge the latest main into it first.
 
 Before anything else, read CLAUDE.md, docs/workstreams/WS5-sentinel.md and every document its "Read first" section lists, docs/workstreams/status/WS5.md, docs/workstreams/BOARD.md, and the messages in docs/workstreams/messages/ addressed to ws5 or to all. Start with 20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md: it sets your scope.
 
@@ -71,7 +75,7 @@ Rules:
 - Follow docs/architecture/04-conventions.md. Contract changes go through an ADR.
 - This cloud can't reach Solana RPC and may not reach Telegram: test with fakes.
 - Never commit tokens or .env files.
-- End every work block by updating your status file, committing, and pushing to ws5/sentinel.
+- End every work block by updating your status file, committing, and pushing to your branch.
 ```
 
 ## Task B: WS9, the story judges read (priority 2, in parallel)
@@ -100,10 +104,10 @@ Then the actual slide deck for the submission link, built from `deck.md` with Cl
 
 **Honesty:** in the scripted demo, the injection is "simulating a successful injection", and the screen says so. The deck and the script must say it too. The punchline still holds: the policy stops the payment whatever the model decides.
 
-**Branch:** `ws9/story`.
+**Branch:** the session's own (suggested name: `ws9/story`).
 
 ```text
-You are the WS9 (Integration, end-to-end tests and story) engineer on Leash, a spending firewall for AI agents on Solana. Work on the branch ws9/story: create it from the latest main, or merge the latest main into it if it exists.
+You are the WS9 (Integration, end-to-end tests and story) engineer on Leash, a spending firewall for AI agents on Solana. Work on the branch this session was created with; merge the latest main into it first.
 
 Before anything else, read:
 - CLAUDE.md and docs/architecture/00-overview.md;
@@ -122,7 +126,7 @@ Tell me in a short message your outline for the README's first screen and the de
 Rules:
 - Only edit README.md, docs/pitch/ and docs/workstreams/status/WS9.md.
 - Claim only what the status files show as done; label the rest "in progress".
-- End every work block by updating your status file, committing, and pushing to ws9/story.
+- End every work block by updating your status file, committing, and pushing to your branch.
 ```
 
 ## Optional Task C (only if credits remain): WS9 security CI job

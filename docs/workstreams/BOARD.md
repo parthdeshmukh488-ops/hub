@@ -30,9 +30,9 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | 5 | **WS4** indexer | anywhere | Steps 1–2 done. Next: step 3 (stats on chain data) and 4 (reconciliation); a real-chain run on the laptop. | WS5, WS6 live data |
 | 6 | **WS8** merchants and lab | anywhere | Steps 1–2 done (paid routes on through `leashMerchant`). | WS7 demo |
 | 7 | **WS7** tools, MCP, agent | anywhere | Steps 1–4 done. Step 5: pitch polish with WS9. | the demo |
-| 8 | **WS5** Sentinel | anywhere | **Second Claude account** (`deshmukhparth921-commits`), branch `ws5/sentinel`: steps 1–3 and 5 ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | alerts |
+| 8 | **WS5** Sentinel | anywhere | **Second Claude account** (`deshmukhparth921-commits`), its own session branch: steps 1–3 and 5 ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | alerts |
 | 9 | **WS3** x402 + facilitator | anywhere | Steps 1–5 done. Next: a real run on localnet/devnet (laptop). | WS7, WS8 paid routes |
-| 10 | **WS9** integration and story | anywhere | **Second Claude account**, branch `ws9/story`: README v1, `docs/pitch/` ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | the pitch |
+| 10 | **WS9** integration and story | anywhere | **Second Claude account**, its own session branch (first, if one session at a time): README v1, `docs/pitch/` ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | the pitch |
 
 Fewer terminals? Combine sessions in this order:
 
