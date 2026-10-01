@@ -3,7 +3,7 @@
 - Session branch: `claude/determined-faraday-9rk16e` (Parth's second Claude account, cloud)
 - Last updated: 2026-10-01
 - Current build step: Task B's writing is done (README v1, the deck and its PDF, demo script, judge Q&A, video storyboard); next: Parth's placeholders, then keeping it all true as parts ship
-- Messages handled: through `20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md` (including the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md): this session is its Task B)
+- Messages handled: through `20261001-1715-from-architect-to-ws9-pr1-review.md` (on the architect's branch until its next merge; it reviews PR #1). That includes the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md); this session is its Task B.
 
 ## Done
 
@@ -37,7 +37,15 @@
     - honesty rules: say which chain each shot was filmed on, keep the injection disclosure, label any speed-up;
     - recording notes for the laptop.
   - **README:** "The 60-second demo" is now "The demo" (the script runs about 1:45), and the repo map links every pitch document.
-- Messages sent: `20261001-1220-from-ws9-to-all-readme-v1-and-deck.md`.
+- **The architect's review of PR #1 (17:15): good to merge.** Two touch-ups are done:
+  - the judge Q&A says the deployer key is on Parth's laptop, never in the repo or on a server;
+  - the README marks Solana Action links "Next".
+
+  The other two are under "Next".
+- **Task A's plan, approved by Parth (17:16), handed to the fresh Sentinel session** in a message to WS5, so it doesn't re-plan.
+- Messages sent:
+  - `20261001-1220-from-ws9-to-all-readme-v1-and-deck.md`;
+  - `20261001-1720-from-ws9-to-ws5-sentinel-plan-approved.md`.
 - Found while checking the facts: CI on `main` was red at `b842f9f` (an indexer stream test hit Vitest's 5 s default on a loaded runner). `09ae03a` on `main` fixed it before WS9's message to WS4 went out, so that message was dropped.
 
 ## Rules for every claim
@@ -53,7 +61,11 @@
 1. **Parth:** import `leash-deck.pptx` into Google Slides and fill the placeholders. Share it as "Anyone with the link: Viewer", and put that link in the submission. Then re-export the PDF from Google Slides over `docs/pitch/leash-deck.pdf`, so the backup matches.
 2. **The laptop, Oct 3–4:** the devnet rehearsal with the demo script (measure the timings and write them back into it), then the video per the storyboard. Put the video link in the README, on slide 13 and in the submission.
 3. When the in-progress items ship (web wallet actions, Telegram, the devnet run, recordings), move them to "done" in the README table and slide 9, and replace the screenshots with the devnet recording.
-4. Task D of the work queue (the whole storyline in one LiteSVM test in `e2e/`, and the security CI job) is also WS9's lane. The queue plans it as its own session.
+   - When Task C ships, Solana Action links go from "Next" to "Done".
+4. **The final pass, Oct 3–4** (the architect's review):
+   - Once WS7 announces its fix, rewrite the demo script's 0:10–0:30 fallback: a paid step that comes back unpaid then stops the replay, so switch to the video.
+   - Re-count the tests on the final commit, and update the README, slide 9 and `deck.md`.
+5. Task D of the work queue (the whole storyline in one LiteSVM test in `e2e/`, and the security CI job) is also WS9's lane. The queue plans it as its own session.
 
 ## Open items
 

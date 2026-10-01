@@ -81,7 +81,7 @@ As of October 1, 2026. 767 automated tests (639 TypeScript, 128 Rust) run on eve
 | Telegram alerts | In progress | |
 | The full demo on devnet, and its recording | In progress | |
 | Demo agent with a live Claude model, recorded | In progress | |
-| Solana Action links (freeze or approve from any link) | Planned | |
+| Solana Action links (freeze or approve from any link) | Next | |
 
 ## Security model
 

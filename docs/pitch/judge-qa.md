@@ -59,7 +59,7 @@ Yes: whoever can make the agent attempt forbidden payments can trip the wire. Th
 Overcharging hits the per-payment and per-payee caps, and anything above the instant limit needs approval. A swapped `payTo` fails because Leash checks the owner of the destination token account against the allowlist, not the merchant's URL. *(T4, T5)*
 
 **Who can change the program?**
-On devnet, one deployer key, kept offline. Even a malicious upgrade couldn't move more than the allowance, which the Foundation's program enforces. Within the allowance, though, it could pay anyone. So before mainnet the upgrade authority moves to a timelocked multisig, or is revoked. *(T15)*
+On devnet, one deployer key on Parth's laptop, never in the repo or on a server. Even a malicious upgrade couldn't move more than the allowance, which the Foundation's program enforces. Within the allowance, though, it could pay anyone. So before mainnet the upgrade authority moves to a timelocked multisig, or is revoked. *(T15)*
 
 **What if Leash has a bug?**
 The allowance is the ceiling, enforced by the Foundation's audited program, independently of Leash's code. The owner can revoke the delegation at any time as a hard stop. *(invariant I1)*
