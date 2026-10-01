@@ -25,6 +25,9 @@ import { log, testStore } from "./helpers.ts";
 // them like getSignaturesForAddress, and the indexer's views must equal what the SDK reads from
 // the accounts themselves ("events give history; accounts give truth").
 
+/** `vi.waitFor` with room for a loaded CI runner: its default gives up after 1 s. */
+const eventually = <T>(check: () => T | Promise<T>) => vi.waitFor(check, { timeout: 10_000 });
+
 async function world() {
   const bed = await createTestbed();
   const agent = new LeashAgent({
@@ -153,7 +156,7 @@ describe("chain mode", () => {
     await freezeAgent(bed);
     const source = sourceFor(bed, restarted);
     await source.start(sinkOf(bed, restarted));
-    await vi.waitFor(async () =>
+    await eventually(async () =>
       expect(await restarted.cursor("chain")).toMatchObject({
         signature: bed.chain.history.at(-1)?.signature,
       }),
@@ -306,14 +309,14 @@ describe("chain mode", () => {
     expect(source.kind).toBe("chain");
     await source.start(sinkOf(bed, store));
     const latest = () => store.cursor("chain").then((c) => c?.signature);
-    await vi.waitFor(async () => expect(await latest()).toBe(bed.chain.history.at(-1)?.signature));
+    await eventually(async () => expect(await latest()).toBe(bed.chain.history.at(-1)?.signature));
 
     failNext = true;
     source.poke();
-    await vi.waitFor(() => expect(errors).toEqual([new Error("rpc down")]));
+    await eventually(() => expect(errors).toEqual([new Error("rpc down")]));
     await pay(agent, bed, 10_000n);
     source.poke();
-    await vi.waitFor(async () => expect(await latest()).toBe(bed.chain.history.at(-1)?.signature));
+    await eventually(async () => expect(await latest()).toBe(bed.chain.history.at(-1)?.signature));
     await source.stop();
     source.poke();
     expect(source.lagSeconds()).toBe(0);
@@ -345,11 +348,11 @@ describe("chain mode", () => {
       events: async () => {},
       resetProjections: async () => {},
     });
-    await vi.waitFor(() => expect(calls).toBe(1));
+    await eventually(() => expect(calls).toBe(1));
     source.poke();
     release();
     // Without the remembered poke, the next poll would come 60 s later.
-    await vi.waitFor(() => expect(calls).toBe(2));
+    await eventually(() => expect(calls).toBe(2));
     await source.stop();
   });
 });

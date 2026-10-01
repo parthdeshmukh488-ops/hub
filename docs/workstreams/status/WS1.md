@@ -41,26 +41,26 @@
 - **Check:** `cargo test` passes 128 tests (45 unit, 14 evaluator, 2 host vector suites, 66 LiteSVM, and the on-chain vector run), as do `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check` and the IDL drift check.
 - **Decisions:** [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md) (contracts 1.3.0) and [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md) (contracts 1.4.0).
 - **Found while testing:** Anchor 1.2 rejects a writable account passed twice with `ConstraintDuplicateMutableAccount` (2040) before any handler runs. So `pay` with destination = source fails with 2040, not `InvalidDestination`; `report_denied_attempt` (read-only token accounts) still returns `InvalidDestination`. No contract change: it is an extra rejection, and the SDK should treat 2040 as a client bug like the other account errors.
-- Messages handled: through `20261001-0200-from-ws4-to-all-chain-mode-ready.md`.
+- Messages handled: through `20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md`.
 
 ## Laptop queue
 
-The laptop session also runs what needs a real chain for the other workstreams ([BOARD](../BOARD.md)). State on 2026-10-01:
+The laptop session also runs what needs a real chain for the other workstreams ([BOARD](../BOARD.md)). State on 2026-10-01, re-checked at `b842f9f` after the cloud's fixes:
 
 | # | Item | Localnet | Devnet |
 | --- | --- | --- | --- |
 | 1 | Fund the demo keys | not needed | **Open:** all six keys hold 0 SOL (`pnpm devnet:check`) |
 | 2 | `devnet:setup`, `devnet:smoke` | Passed ([message](../messages/20260930-1713-from-ws1-to-ws2-rpcchain-first-real-run.md)) | Waits for item 1 |
-| 3 | Indexer chain mode | Passed: backfill, live, restart ([message](../messages/20261001-0130-from-ws1-to-ws4-indexer-chain-mode-on-a-real-chain.md)) | Waits for item 1 |
-| 4 | `x402:smoke` through `services/facilitator` | Passed with a one-line fix that WS3 still has to commit ([message](../messages/20261001-0105-from-ws1-to-all-x402-and-demo-agent-on-a-real-chain.md)) | Waits for item 1 and that fix |
+| 3 | Indexer chain mode | Passed: backfill, live, restart ([message](../messages/20261001-0130-from-ws1-to-ws4-indexer-chain-mode-on-a-real-chain.md)) | Read only: 40 s of polling at 2 s, no warnings. Events wait for item 1. |
+| 4 | `x402:smoke` through `services/facilitator` | Passed, since `2e4e045` with the repo's own code ([first run](../messages/20261001-0105-from-ws1-to-all-x402-and-demo-agent-on-a-real-chain.md), [re-check](../messages/20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md)) | Waits for item 1 |
 | 5 | `demo:all -- --scripted` | Passed twice. So did `runaway` and the MCP server over stdio (same message). | Waits for items 2 and 4. LLM mode needs Parth's `ANTHROPIC_API_KEY`. |
 | 6 | The full demo and its recording | n/a | Oct 3–4 |
 
 A run order that works:
 1. `pnpm localnet`, then `pnpm devnet:setup --cluster localnet`.
-2. The facilitator, the merchant with payments on, and the indexer on a fresh database (`INDEXER_DB_URL`): a database from an earlier chain stalls it.
-3. `x402:smoke`, then `devnet:smoke`: its unfreeze clears the strike `x402:smoke` leaves.
-4. The demo, with `AGENT_KEYPAIR=../../.keys/agent.json` or an absolute path.
+2. The facilitator, the merchant with payments on (it waits for the facilitator), and the indexer.
+3. `x402:smoke`, then `devnet:smoke`.
+4. `pnpm owner:unfreeze`, then the demo with `AGENT_KEYPAIR=.keys/agent.json`. After a take, `pnpm owner:unfreeze` again.
 
 ## Next
 
