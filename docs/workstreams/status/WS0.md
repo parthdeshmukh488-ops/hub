@@ -1,7 +1,7 @@
 # WS0 status: Platform and shared contracts
 
 - Session branches: `claude/whu-hackathon-ideas-lz8trx` (the architecture session) and `main` (laptop session, step 4)
-- Last updated: 2026-09-30
+- Last updated: 2026-10-01
 - Current build step: all five steps done
 
 ## Done
@@ -24,6 +24,7 @@
   - `pnpm keys` (`scripts/keys.ts`): the six demo keypairs in `.keys/` (Solana CLI format; `solana-keygen pubkey` reads them). Never overwrites, and checks existing files are intact. Prints the addresses and the `.env` lines that take them.
   - `pnpm artifact:subscriptions` (`scripts/subscriptions-artifact.sh`): `artifacts/programs/subscriptions.so` (119,600 bytes), built from tag `program-v0.5.0` (commit `364a4197`) with `cargo build-sbf`. The sha256 and provenance go into `artifacts/programs/CHECKSUMS`. `dump` mode downloads the devnet deployment instead.
   - `pnpm localnet` (`scripts/localnet.sh`): `solana-test-validator` with both programs at their real IDs, checked against `CHECKSUMS` first. Also a mock USDC mint at a stable address (`.keys/localnet-usdc-mint.json`), SOL for every demo key, 1,000 USDC for owner-demo, USDC accounts for merchant and attacker, and `.localnet.json`. Checked from Windows through WSL: both programs executable, owner-demo holding 1,000 USDC.
+    - 2026-10-01: it now keeps about a day of transaction history (`--limit-ledger-size 5000000`). The validator's default, 10,000 shreds, dropped transactions after a few minutes, so the indexer's chain mode found one transaction instead of the whole history.
   - `pnpm devnet:check` (`scripts/devnet-check.ts`): read-only; exits 1 only if a dependency is missing.
   - `.gitattributes` forces LF in every checkout. On Windows, `core.autocrlf=true` had turned the whole tree into CRLF, which failed Biome.
 - **Devnet findings, 2026-09-30:**

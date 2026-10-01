@@ -62,7 +62,10 @@ OWNER="$(address owner-demo)"
 USDC="$(solana-keygen pubkey "$MINT_KEYPAIR")"
 
 mkdir -p "$LEDGER"
-solana-test-validator --reset --quiet --ledger "$LEDGER" \
+# The default keeps 10,000 shreds, a few minutes of history: older transactions then vanish from
+# getTransaction and getSignaturesForAddress, which the indexer and explorer links need. This
+# keeps about a day (a few GB at most; --reset clears it at the next start).
+solana-test-validator --reset --quiet --ledger "$LEDGER" --limit-ledger-size 5000000 \
   --bpf-program "$LEASH_ID" "$PROGRAMS/leash.so" \
   --bpf-program "$SUBSCRIPTIONS_ID" "$PROGRAMS/subscriptions.so" &
 VALIDATOR=$!
