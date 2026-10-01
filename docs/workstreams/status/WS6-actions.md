@@ -4,7 +4,7 @@ A carved-out part of WS6: Task C of the second account's [work queue](../message
 
 - Session branch: `claude/compassionate-keller-5rmytv`
 - Last updated: 2026-10-01
-- Current step: built and tested; waiting on two decisions before the PR (see Open items)
+- Current step: done; PR into `main` open
 - Lane:
   - `apps/web/src/app/api/actions/**`
   - `apps/web/src/app/actions.json/**`
@@ -71,15 +71,23 @@ A carved-out part of WS6: Task C of the second account's [work queue](../message
 - New dependencies of `@leash/web`: `@solana/kit` 8.4.0 (noop signer, compile, base64) and, dev, `litesvm` 1.5.0 (the testbed).
 - **How approve and reject were tested:** against `fetchRequestView` from the architect's commit `864dcb5`, applied temporarily and not committed.
 
+- **Merged `main`** (with `fetchRequestView`, `864dcb5`); the temporary copy is gone. The 26 action tests pass on the real SDK.
+- **Sentinel's Action links are on by default** (architect's decision "a", 2026-10-02). This is an **exception to the lane, for WS5 to see**, limited to:
+  - `services/sentinel/src/config.ts`: `actionLinks` defaults to `true`, and its comment;
+  - `services/sentinel/sentinel.config.json`: `"actionLinks": true`;
+  - `services/sentinel/test/config.test.ts`: the default is on; the partial-file test sets `false`;
+  - `services/sentinel/test/storyline.test.ts`: the off path passes `actionLinks: false` explicitly; the default is now the on path;
+  - `services/sentinel/test/rules.test.ts`: the burst alert's expected actions include "Freeze all agents";
+  - the storyline snapshot, regenerated: approvals carry Approve/Reject, the tripwire carries "Freeze all agents";
+  - the `actionLinks` row of `services/sentinel/README.md`.
+  `test/telegram.test.ts` already passed `actionLinks` explicitly. All 101 Sentinel tests pass.
+
 ## Next
-- Once `864dcb5` is on `main`: merge `main`, run `pnpm check`, open the PR into `main`.
+- Review and merge the PR.
+- **Laptop:** the phone demo in `apps/web/src/server/actions/README.md` (cloudflared tunnel, `SENTINEL_WEB_URL` and `NEXT_PUBLIC_APP_URL` set to it).
 
 ## Open items
-- **`fetchRequestView` is not on `main` yet** (architect's branch, `864dcb5`). Until it is, `apps/web` does not typecheck on this branch (`request.ts` imports it), so no PR yet. Parth: merge the architect's branch into `main`.
-- **`"actionLinks": true` in `sentinel.config.json` breaks one Sentinel test.** `services/sentinel/test/config.test.ts` checks that the committed file equals the code defaults (`actionLinks: false`). Two fixes, both outside this lane:
-  - (a) set the default to `true` in `services/sentinel/src/config.ts`, and change that test's "leaves Action links off" line;
-  - (b) change the test to compare only the thresholds.
-  Waiting for Parth's choice (or WS5's OK).
+- None.
 
 ## Questions for other workstreams
 - None.

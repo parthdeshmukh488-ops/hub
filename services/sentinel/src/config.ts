@@ -13,8 +13,8 @@ const toggle = z.strictObject({ enabled: z.boolean().default(true) });
 export const SentinelConfigSchema = z.strictObject({
   /** One alert per rule per agent (or per owner) within this many seconds of event time. */
   cooldownSecs: seconds.default(600),
-  /** Add Solana Action (Blink) URLs to alerts (02-contracts §10). Off until apps/web serves them. */
-  actionLinks: z.boolean().default(false),
+  /** Add Solana Action (Blink) URLs to alerts (02-contracts §10), served by apps/web. */
+  actionLinks: z.boolean().default(true),
   rules: z
     .strictObject({
       tripwireFired: toggle.prefault({}),

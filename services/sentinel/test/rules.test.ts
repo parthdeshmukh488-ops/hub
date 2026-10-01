@@ -170,7 +170,13 @@ describe("burst_denials", () => {
       agent: null,
       title: "3 blocked payments within 5 minutes",
       eventIds: denials.map((d) => d.id),
-      actions: [{ label: "Open activity", url: "http://localhost:3000/app/activity" }],
+      actions: [
+        { label: "Open activity", url: "http://localhost:3000/app/activity" },
+        {
+          label: "Freeze all agents",
+          url: `http://localhost:3000/api/actions/freeze-all?owner=${OWNER}`,
+        },
+      ],
     });
     expect(alerts[0]?.body).toBe(
       "3 payments were blocked across 3 agents (Research, Market, Spare). " +

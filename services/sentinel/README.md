@@ -152,7 +152,7 @@ Markup characters stay literal: notifiers send plain text, never a parse mode. T
 | Field | Default | Meaning |
 | --- | --- | --- |
 | `cooldownSecs` | `600` | Per-rule cooldown |
-| `actionLinks` | `false` | Add Solana Action (Blink) links (approve, reject, freeze, freeze all) to alerts. Turn on once `apps/web` serves the routes of 02 §10. |
+| `actionLinks` | `true` | Add Solana Action (Blink) links (approve, reject, freeze, freeze all) to alerts. `apps/web` serves them (02 §10); `false` leaves only the web app links. |
 | `rules.<rule>.enabled` | `true` | Switch one rule off |
 | `rules.burstDenials` | `minDenials: 3`, `windowSecs: 300` | |
 | `rules.spendSpike` | `windowSecs: 600`, `baselineSecs: 3600`, `multiplier: 3`, `minAmount: "1000000"` | `minAmount` in base units |

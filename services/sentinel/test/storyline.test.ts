@@ -78,11 +78,11 @@ describe("the demo storyline", () => {
     expect(evaluateAll(state, views, context()).alerts).toEqual([]);
   });
 
-  it("adds Approve and Reject Action links only when actionLinks is on", () => {
-    const off = replay().alerts[0];
+  it("adds Approve and Reject Action links by default, and leaves them out when off", () => {
+    const off = replay(storyline.events, context({ actionLinks: false })).alerts[0];
     expect(off?.actions.map((a) => a.label)).toEqual(["Review request"]);
 
-    const on = replay(storyline.events, context({ actionLinks: true })).alerts[0];
+    const on = replay().alerts[0];
     expect(on?.actions).toEqual([
       { label: "Review request", url: "http://localhost:3000/app/approvals" },
       {
