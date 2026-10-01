@@ -2,7 +2,7 @@
 
 - Session branch: `claude/compassionate-keller-5rmytv`
 - Last updated: 2026-10-01
-- Current build step: 1–3 done; 5 (README) and 4 (autofreeze) next
+- Current build step: all five done (1–5); ready to merge
 
 ## Scope (Task A of the [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md))
 
@@ -89,13 +89,35 @@ New dependencies (to be added to `services/sentinel/package.json`): `ws`, `hono`
 - 91 tests (9 new) against a fake Bot API: the exact `sendMessage` bodies, buttons vs text links, injection text, errors without the token, URL classification, notifier selection.
 - New dependency: `grammy` 1.46.0 (the current release).
 
+- **Build step 4, guardian autofreeze** (`src/guardian.ts`; `main.ts` wiring):
+  - The only code that sends a transaction. It freezes only when all of these hold:
+    - `SENTINEL_AUTOFREEZE=true`;
+    - the keypair is loaded;
+    - the principal's on-chain guardian is that key (read fresh each time);
+    - the target is not frozen yet.
+  - Built with `buildFreezePrincipal` / `buildFreezeAgent`, signed and paid by the guardian.
+  - One attempt per request, never a retry loop. A success sends a `guardian_freeze` alert through the notifiers.
+  - `SENTINEL_AUTOFREEZE=true` with only `--guardian` stops Sentinel with a message.
+  - `LEASH_RPC_URL` is now read (02 §13: used by all).
+- 99 tests (8 new). 7 run on the LiteSVM testbed with the real `leash.so`:
+  - a burst of denials (through the rules) freezes the principal, `frozenBy` = the guardian;
+  - a spike request freezes one agent (reason `guardian`);
+  - autofreeze off, or no keypair: zero transactions sent;
+  - a principal whose guardian is the stranger key: never touched;
+  - already frozen: nothing sent;
+  - a failing send: one attempt, no throw;
+  - an agent not under this owner: skipped.
+  The eighth checks that the loop hands the rules' freezes to the guardian and delivers its alert.
+- **Build step 5, README:** the rules table, config, the Telegram bot and chat id, running it, guardian autofreeze, and how to make Sentinel the guardian.
+- New dependency: `@leash/sdk` (workspace).
+- Telegram set up on the laptop by Parth (2026-10-01).
+
 ## Next
-- Step 5: finish the README (how to set Sentinel as guardian; the rest is written).
-- Step 4: guardian autofreeze, as amended by the 1200 message.
+- Parth merges `claude/compassionate-keller-5rmytv` into `main` (open a PR if wanted).
+- **Laptop, on devnet:** run Sentinel with `SENTINEL_GUARDIAN_KEYPAIR=.keys/guardian.json SENTINEL_AUTOFREEZE=true` beside the indexer in chain mode during the demo run.
 
 ## Open items
-- The real Telegram run is laptop queue item 6 ([message](../messages/20261001-2146-from-ws5-to-ws1-laptop-telegram-ready.md)), after this branch is merged.
-- **The token of @LeashmvpBot was shown in a chat screenshot on 2026-10-01: Parth to revoke it in BotFather and use the new token only in the laptop's `.env`.**
+- **Known risk, accepted by Parth:** the token of @LeashmvpBot was shown in a chat screenshot on 2026-10-01 and was not revoked. If the bot ever misbehaves, `/revoke` it in BotFather and update the laptop's `.env`.
 - The service tests move to `@leash/indexer/testing` once it is on `main` (the fake indexer goes then).
 - An event that happened while Sentinel was down and is older than the newest 200 at start is learned silently, not alerted (documented in the README).
 

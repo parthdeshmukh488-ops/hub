@@ -1,4 +1,4 @@
-import type { LeashEvent } from "@leash/contracts";
+import type { Alert, LeashEvent } from "@leash/contracts";
 import type { SentinelConfig } from "./config.ts";
 import { type IndexerClient, IndexerError } from "./indexer-client.ts";
 import type { Logger } from "./logger.ts";
@@ -22,8 +22,11 @@ export interface SentinelOptions {
   log: Logger;
   /** Unix seconds; stamps `createdAt`. Rules themselves run on event time. */
   clock?: () => number;
-  /** Receives the freezes the rules ask for. Build step 4 executes them; until then, logged. */
-  onActions?: (actions: SentinelAction[]) => Promise<void>;
+  /**
+   * Receives the freezes the rules ask for, with the alerts that asked; returns the alerts to
+   * send about what it did (`guardian_freeze`). The guardian (`guardian.ts`) decides.
+   */
+  onActions?: (actions: SentinelAction[], alerts: Alert[]) => Promise<Alert[]>;
   /** How often to look for principals that newly named this guardian. */
   refreshOwnersMs?: number;
   stream?: StreamClientOptions;
@@ -281,7 +284,18 @@ export class Sentinel {
       if (!silent) this.lastEventAt = this.clock();
     }
     if (silent) return;
-    for (const alert of result.alerts) {
+    await this.deliver(owner, result.alerts);
+    if (result.actions.length > 0) {
+      if (this.options.onActions) {
+        await this.deliver(owner, await this.options.onActions(result.actions, result.alerts));
+      } else {
+        this.options.log.info({ owner, actions: result.actions }, "freeze asked for; no guardian");
+      }
+    }
+  }
+
+  private async deliver(owner: string, alerts: readonly Alert[]): Promise<void> {
+    for (const alert of alerts) {
       this.options.log.info(
         { owner, agent: alert.agent, alert: alert.id, kind: alert.kind },
         "alert",
@@ -298,14 +312,6 @@ export class Sentinel {
           );
         }
       }
-    }
-    if (result.actions.length > 0) {
-      if (this.options.onActions) await this.options.onActions(result.actions);
-      else
-        this.options.log.info(
-          { owner, actions: result.actions },
-          "freeze asked for; autofreeze is not available",
-        );
     }
   }
 }

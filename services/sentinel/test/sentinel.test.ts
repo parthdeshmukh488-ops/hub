@@ -8,7 +8,7 @@ import { createConsoleNotifier } from "../src/notifiers/console.ts";
 import type { Notifier } from "../src/notifiers/notifier.ts";
 import { Sentinel, type SentinelOptions } from "../src/sentinel.ts";
 import { FakeIndexer } from "./fake-indexer.ts";
-import { agentView, key, MARKET, RESEARCH, storyline, WEB_URL } from "./helpers.ts";
+import { agentView, ev, key, MARKET, RESEARCH, SPARE, storyline, T0, WEB_URL } from "./helpers.ts";
 
 const log = pino({ level: "silent" });
 const GUARDIAN = key("guardian");
@@ -197,6 +197,41 @@ describe("Sentinel against the indexer", () => {
     for (const event of events) fake.publish(event);
     await waitFor(() => working.alerts.length === 3, "three alerts");
     expect(sentinel.status()).toMatchObject({ alertsSent: 3, alertsFailed: 3 });
+  });
+
+  it("hands the rules' freezes to the guardian and delivers what it reports", async () => {
+    const asked: unknown[] = [];
+    const { fake, sentinel, notifier } = await setup({
+      onActions: async (actions, alerts) => {
+        asked.push(...actions);
+        const trigger = alerts[0];
+        if (!trigger) return [];
+        return [
+          {
+            ...trigger,
+            id: `guardian_freeze:${trigger.owner}:${trigger.id}`,
+            kind: "guardian_freeze",
+            severity: "critical",
+            title: "Sentinel froze all agents",
+          },
+        ];
+      },
+    });
+    await sentinel.start();
+    await waitFor(() => fake.subscribers() === 1, "the subscription");
+    const nonStrike = { reason: "exceedsPayeePeriodLimit" as const };
+    for (const event of [
+      ev.denied(T0, RESEARCH, nonStrike),
+      ev.denied(T0 + 10, MARKET, nonStrike),
+      ev.denied(T0 + 20, SPARE, nonStrike),
+    ]) {
+      fake.publish(event);
+    }
+    await waitFor(() => notifier.alerts.length === 2, "the burst and the freeze alerts");
+    expect(notifier.alerts.map((a) => a.kind)).toEqual(["burst_denials", "guardian_freeze"]);
+    expect(asked).toEqual([
+      { type: "freezePrincipal", owner: key("owner"), alertId: notifier.alerts[0]?.id },
+    ]);
   });
 
   it("prints alerts with the console notifier", async () => {

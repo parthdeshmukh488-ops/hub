@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { AddressSchema } from "@leash/contracts";
-import { createKeyPairSignerFromBytes } from "@solana/kit";
+import { createKeyPairSignerFromBytes, type KeyPairSigner } from "@solana/kit";
 import { z } from "zod";
 
 // Command-line flags. `--guardian` is watch-only: it names whose principals to watch and never
@@ -41,6 +41,11 @@ const KeypairFileSchema = z.array(z.number().int().min(0).max(255)).length(64);
 
 /** The public address of a keypair file (a 64-byte JSON array, as `solana-keygen` writes). */
 export async function keypairAddress(path: string): Promise<string> {
+  return (await loadKeypairSigner(path)).address;
+}
+
+/** The signer in a keypair file. Errors name the path, never the content. */
+export async function loadKeypairSigner(path: string): Promise<KeyPairSigner> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(readFileSync(path, "utf8"));
@@ -52,8 +57,7 @@ export async function keypairAddress(path: string): Promise<string> {
   const bytes = KeypairFileSchema.safeParse(parsed);
   // Never print the file's content: it is a secret key.
   if (!bytes.success) throw new Error(`SENTINEL_GUARDIAN_KEYPAIR at ${path} is not a keypair file`);
-  const signer = await createKeyPairSignerFromBytes(Uint8Array.from(bytes.data));
-  return signer.address;
+  return createKeyPairSignerFromBytes(Uint8Array.from(bytes.data));
 }
 
 /**

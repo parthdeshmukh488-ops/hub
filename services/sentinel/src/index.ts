@@ -1,4 +1,5 @@
 export * from "./config.ts";
+export * from "./guardian.ts";
 export * from "./indexer-client.ts";
 export * from "./links.ts";
 export * from "./notifiers/console.ts";

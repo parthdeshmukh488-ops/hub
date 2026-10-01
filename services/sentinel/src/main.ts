@@ -1,8 +1,11 @@
 import { readFileSync } from "node:fs";
-import { DEFAULT_PORTS } from "@leash/contracts";
-import { parseCliArgs, resolveGuardian } from "./args.ts";
+import { DEFAULT_PORTS, resolveClusterConfig } from "@leash/contracts";
+import { rpcChain } from "@leash/sdk";
+import { createSolanaRpc } from "@solana/kit";
+import { loadKeypairSigner, parseCliArgs, resolveGuardian } from "./args.ts";
 import { parseConfig } from "./config.ts";
 import { loadEnv } from "./env.ts";
+import { createGuardian } from "./guardian.ts";
 import { createHealthServer } from "./health.ts";
 import { createIndexerClient } from "./indexer-client.ts";
 import { createLogger } from "./logger.ts";
@@ -17,9 +20,28 @@ async function main(): Promise<void> {
   const configPath = args.config ?? new URL("../sentinel.config.json", import.meta.url);
   const config = parseConfig(JSON.parse(readFileSync(configPath, "utf8")));
 
-  if (env.SENTINEL_AUTOFREEZE) {
-    log.warn("SENTINEL_AUTOFREEZE=true, but guardian freezes are not built yet: alerts only");
+  if (env.SENTINEL_AUTOFREEZE && !env.SENTINEL_GUARDIAN_KEYPAIR) {
+    throw new Error(
+      "SENTINEL_AUTOFREEZE=true needs SENTINEL_GUARDIAN_KEYPAIR: --guardian alone is watch-only.",
+    );
   }
+  const signer = env.SENTINEL_GUARDIAN_KEYPAIR
+    ? await loadKeypairSigner(env.SENTINEL_GUARDIAN_KEYPAIR)
+    : null;
+  const cluster = resolveClusterConfig(env.LEASH_CLUSTER, { rpcUrl: env.LEASH_RPC_URL });
+  const guardianFreezes = createGuardian({
+    chain: rpcChain({ rpc: createSolanaRpc(cluster.rpcUrl) }),
+    signer,
+    autofreeze: env.SENTINEL_AUTOFREEZE,
+    webUrl: env.SENTINEL_WEB_URL,
+    log,
+  });
+  log.info(
+    { autofreeze: env.SENTINEL_AUTOFREEZE && signer !== null, rpc: cluster.rpcUrl },
+    env.SENTINEL_AUTOFREEZE
+      ? "autofreeze on: guardian freezes allowed"
+      : "autofreeze off: alerts only",
+  );
   const notifiers = selectNotifiers(env);
   log.info({ notifiers: notifiers.map((n) => n.name) }, "alerts go to");
 
@@ -30,6 +52,7 @@ async function main(): Promise<void> {
     config,
     webUrl: env.SENTINEL_WEB_URL,
     log,
+    onActions: (actions, alerts) => guardianFreezes.act(actions, alerts),
   });
   const health = createHealthServer(() => sentinel.status());
   health.listen(DEFAULT_PORTS.sentinel, () =>

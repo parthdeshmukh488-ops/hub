@@ -6,9 +6,12 @@ Owned by **WS5**. Brief: [docs/workstreams/WS5-sentinel.md](../../docs/workstrea
 
 ## Status
 
-**Build steps 1–3 are done:** the rules engine, the service that runs it on the indexer's stream, and alerts on the console and Telegram. Next:
-- step 4: guardian autofreeze;
-- step 5: the full README (running it, the Telegram bot, setting Sentinel as guardian).
+**All five build steps are done:**
+- the rules engine;
+- the service on the indexer's stream;
+- alerts on the console and Telegram;
+- guardian autofreeze;
+- this README.
 
 ## Run it
 
@@ -38,8 +41,9 @@ Parsed in [`src/env.ts`](src/env.ts) (02 §13); a bad value stops Sentinel with 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `SENTINEL_INDEXER_URL` | `http://localhost:4100` | REST and `/v1/stream` |
-| `SENTINEL_GUARDIAN_KEYPAIR` | – | Path to the guardian keypair file. Gives the address to watch; freezes need it (step 4). |
-| `SENTINEL_AUTOFREEZE` | `false` | Allow rule-triggered guardian freezes (step 4; until then, only a warning) |
+| `SENTINEL_GUARDIAN_KEYPAIR` | – | Path to the guardian keypair file. Gives the address to watch, and signs guardian freezes. |
+| `SENTINEL_AUTOFREEZE` | `false` | Allow rule-triggered guardian freezes. Needs `SENTINEL_GUARDIAN_KEYPAIR`: `true` with only `--guardian` stops Sentinel with a message. |
+| `LEASH_RPC_URL` | per cluster | The RPC that guardian freezes are read and sent through |
 | `SENTINEL_WEB_URL` | `http://localhost:3000` | Links in alerts |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | – | Both set: alerts also go to Telegram. Neither: console only. Only one: Sentinel stops with a message. |
 | `LEASH_CLUSTER`, `LOG_LEVEL` | `localnet`, `info` | |
@@ -60,7 +64,7 @@ GET /v1/guardians/<guardian>/owners   (every 30 s: principals that named this gu
 - **One queue** for every input, so the rules see them in order. Live messages that arrive during a backfill wait behind it; duplicates are dropped by event id.
 - **Silence** (no message for 50 s; the indexer pings every 20 s) counts as a dead connection: Sentinel drops it and reconnects.
 - **An unknown cursor** (the indexer's database was reset) means a fresh, silent warm-up.
-- **Freezes asked for** by the rules are only logged until step 4.
+- **Freezes asked for** by the rules go to the guardian ([below](#guardian-autofreeze)).
 - **A notifier that fails** is logged and counted (`alertsFailed`); the other notifiers still get the alert.
 - **Restarts:** history is read silently at start, so a restart never repeats old alerts. An event that happened while Sentinel was down and is older than the newest 200 is not alerted.
 
@@ -79,6 +83,31 @@ The demo bot is [@LeashmvpBot](https://t.me/LeashmvpBot).
 - **Plain text:** no `parse_mode`, so no label or memo can turn into markup. The bold title is a `bold` entity (offset and length in UTF-16 units, as Telegram counts). Link previews are off.
 - **Errors** name Telegram's reason (`400: Bad Request: chat not found`) and never contain the token. A failed message is logged and counted in `/health`'s `alertsFailed`; the console still gets the alert.
 
+## Guardian autofreeze
+
+`burst_denials` asks to freeze the principal (every agent); `spend_spike` asks to freeze the agent. [`src/guardian.ts`](src/guardian.ts) is the only code in Sentinel that sends a transaction. It sends a freeze only when **all** of these hold:
+1. **`SENTINEL_AUTOFREEZE=true` and `SENTINEL_GUARDIAN_KEYPAIR` is loaded.** Otherwise it logs the request and sends nothing. This is the default.
+2. **The principal's on-chain guardian is that key.** It is read fresh from the chain before every freeze. A principal whose guardian is someone else is never touched.
+3. **The target is not frozen yet.** This makes freezes idempotent.
+
+The freeze is built with the SDK (`buildFreezeAgent`, `buildFreezePrincipal`), and the guardian key signs and pays the fee. A success sends a `guardian_freeze` alert ("Sentinel froze all agents"). Each request is tried once: a failure is logged, never retried in a loop. The cooldown decides when a rule may ask again.
+
+The guardian can freeze and reject requests, nothing else (01 §6.1). It cannot unfreeze, pay or change the policy, so a stolen guardian key can at worst freeze (03-security T14). **Only the owner unfreezes:** `pnpm owner:unfreeze`, or the web app.
+
+### Making Sentinel the guardian
+
+1. **The key:** `pnpm keys` creates `.keys/guardian.json` (gitignored). It needs a little SOL for fees: `pnpm devnet:check` shows the balance.
+2. **Name it as the principal's guardian:**
+   - `pnpm devnet:setup` creates the demo principal with `.keys/guardian` as its guardian.
+   - For another principal, the owner signs `set_guardian` (the SDK's `buildSetGuardian`).
+   - Check with `curl localhost:4100/v1/guardians/<guardian address>/owners`: the owner must be listed.
+3. **Run with freezes allowed:**
+   ```bash
+   SENTINEL_GUARDIAN_KEYPAIR=.keys/guardian.json SENTINEL_AUTOFREEZE=true LEASH_CLUSTER=devnet \
+     pnpm --filter @leash/sentinel start
+   ```
+   The log says `autofreeze on: guardian freezes allowed`.
+
 ## Rules
 
 `evaluate(state, input, now, context) → { state, alerts, actions }` is a pure function per owner ([`src/rules/evaluate.ts`](src/rules/evaluate.ts)). Its input is one of:
@@ -86,7 +115,7 @@ The demo bot is [@LeashmvpBot](https://t.me/LeashmvpBot).
 - an `AgentView` (for the allowance);
 - an allowlist snapshot (labels and caps after a restart).
 
-It never does I/O. `actions` are the guardian freezes the rules ask for; nothing executes them before build step 4, and then only with autofreeze allowed.
+It never does I/O. `actions` are the guardian freezes the rules ask for; the guardian decides whether to send them.
 
 | Rule | Trigger | Severity | Freeze it asks for |
 | --- | --- | --- | --- |
@@ -96,7 +125,7 @@ It never does I/O. `actions` are the guardian freezes the rules ask for; nothing
 | `spend_spike` | an agent's spend in the last 10 min > 3 × (its spend in the 60 min before ÷ 6), and ≥ 1 USDC | warning | the agent |
 | `new_payee_spend` | a payment ≥ 50 % of the payee's per-payment cap (else the agent's) within 10 min of `PayeeAdded` | warning | – |
 | `allowance_low` | < 10 % of the allowance left: once per period (recurring), once per delegation (fixed) | info | – |
-| `guardian_freeze` | Sentinel itself froze something (build step 4) | critical | – |
+| `guardian_freeze` | Sentinel itself froze something (sent by the guardian, not a rule) | critical | – |
 
 How the engine behaves:
 - **Payments of approved requests** count for neither `spend_spike` nor `new_payee_spend`: the owner chose them.
@@ -154,3 +183,10 @@ pnpm --filter @leash/sentinel lint
   - a failing notifier;
   - the health endpoint.
 - **Telegram** ([`test/telegram.test.ts`](test/telegram.test.ts)) runs against a fake Bot API. It checks the exact `sendMessage` body for the storyline alerts, and that only public https links become buttons. It also checks that injection-shaped labels and memos arrive literal and defanged with only our bold entity, and that errors never contain the token.
+- **Guardian freezes** ([`test/guardian.test.ts`](test/guardian.test.ts)) run on the LiteSVM testbed (`@leash/sdk/testing`, the real `leash.so`), with the testbed's `keys.guardian` as guardian. They check:
+  - a burst of denials freezes the principal, signed by the guardian;
+  - a spike request freezes one agent;
+  - with autofreeze off, or without the keypair, no transaction is ever sent;
+  - a principal whose guardian is someone else is never touched;
+  - an already frozen target gets no transaction;
+  - a failed send is tried once and never thrown.

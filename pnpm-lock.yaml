@@ -389,6 +389,9 @@ importers:
       '@leash/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@leash/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
       '@solana/kit':
         specifier: 8.4.0
         version: 8.4.0(typescript@6.0.3)

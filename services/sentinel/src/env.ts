@@ -5,6 +5,8 @@ import { z } from "zod";
 
 const EnvSchema = z.object({
   LEASH_CLUSTER: ClusterSchema.default("localnet"),
+  /** For guardian freezes; the cluster's default when unset. */
+  LEASH_RPC_URL: z.url().optional(),
   SENTINEL_INDEXER_URL: z.url().default("http://localhost:4100"),
   /** A file path, never key material. */
   SENTINEL_GUARDIAN_KEYPAIR: z.string().min(1).optional(),

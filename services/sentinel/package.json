@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@leash/contracts": "workspace:*",
+    "@leash/sdk": "workspace:*",
     "@solana/kit": "8.4.0",
     "grammy": "1.46.0",
     "pino": "10.3.1",
