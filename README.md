@@ -2,7 +2,7 @@
 
 **Spending limits and an off switch for AI agents, enforced on Solana.**
 
-[Pitch, slide by slide](docs/pitch/deck.md) · Demo video: in progress · [Leash program on devnet](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · Built for the Superteam Germany Solana Challenge at WHU, October 2026
+[Pitch deck (PDF)](docs/pitch/leash-deck.pdf) · Demo video: in progress · [Leash program on devnet](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · Built for the Superteam Germany Solana Challenge at WHU, October 2026
 
 ![The Leash control panel after an attack: the Research Assistant agent froze itself after three blocked 25 USDC payments to an unknown wallet](docs/pitch/img/web-overview.png)
 <sub>The Leash control panel replaying the demo story (sample data). The agent tried to pay an unknown wallet three times, was blocked each time, and froze itself.</sub>
@@ -153,7 +153,7 @@ For the devnet demo, `pnpm devnet:check` checks the Subscriptions program and th
 | [`apps/`](apps/) | Web control panel, demo agent, demo merchants and attack lab |
 | [`docs/architecture/`](docs/architecture/00-overview.md) | System design, program spec, contracts, security model, conventions |
 | [`docs/adr/`](docs/adr/README.md) | Architecture decisions |
-| [`docs/pitch/`](docs/pitch/deck.md) | The pitch, slide by slide |
+| [`docs/pitch/`](docs/pitch/deck.md) | The pitch: the deck ([PDF](docs/pitch/leash-deck.pdf), [PowerPoint](docs/pitch/leash-deck.pptx)) and its words, slide by slide |
 | [`docs/workstreams/`](docs/workstreams/README.md) | How the build is split, and where each part stands |
 
 ## How it was built

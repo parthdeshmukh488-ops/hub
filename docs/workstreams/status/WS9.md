@@ -2,7 +2,7 @@
 
 - Session branch: `claude/determined-faraday-9rk16e` (Parth's second Claude account, cloud)
 - Last updated: 2026-10-01
-- Current build step: 1 (narrative) done; next: the slide deck, then the rest of step 5's writing
+- Current build step: 1 (narrative) and the slide deck done; next: the rest of step 5's writing (demo script, judge Q&A, video storyboard)
 - Messages handled: through `20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md` (including the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md): this session is its Task B)
 
 ## Done
@@ -12,6 +12,18 @@
   - **`docs/pitch/deck.md` v1.** 13 slides, each with on-slide text, visual, speaker line and the judging criterion it serves. A sources table backs every number.
   - **`docs/pitch/img/`.** Three screenshots of the web app in fixture mode (overview, frozen agent, activity), 1280 px at 2× and light theme, from a production build driven by Chromium. They are labelled as sample data.
   - **Facts checked on Oct 1.** 767 automated tests: 639 TypeScript (`pnpm test`) and 128 Rust (CI's `cargo test`). Every relative link in both files resolves (scripted check).
+- **The slide deck (2026-10-01):**
+  - **`docs/pitch/leash-deck.pptx`:** 13 slides at 16:9, in Arial, for Parth to import into Google Slides.
+    - It uses the web app's light theme and status colours, with the colour chips as the motif.
+    - The speaker notes are the "Say" lines.
+    - The amber placeholders (team, user conversations) are left for Parth.
+  - **`docs/pitch/leash-deck.pdf`:** the backup link, exported by LibreOffice Impress.
+  - **`docs/pitch/build-deck.cjs`** (pptxgenjs) builds the deck from `deck.md`'s words and crops the screenshots from `img/`. Its header has the commands, and its dependencies stay outside the pnpm workspace.
+  - **`deck.md`** now mirrors the slides word for word.
+  - **Checked:**
+    - the pptx skill's validator passes;
+    - every slide was rendered and inspected, and the overflow and overlaps found were fixed;
+    - `markitdown` shows the text in order.
 - Messages sent: `20261001-1220-from-ws9-to-all-readme-v1-and-deck.md`.
 - Found while checking the facts: CI on `main` was red at `b842f9f` (an indexer stream test hit Vitest's 5 s default on a loaded runner). `09ae03a` on `main` fixed it before WS9's message to WS4 went out, so that message was dropped.
 
@@ -25,7 +37,7 @@
 
 ## Next
 
-1. **The slide deck** from `deck.md`: a `.pptx` built with Claude's slide tools, which Parth imports into Google Slides ("Anyone with the link: Viewer"), and a PDF export in `docs/pitch/` as the backup link.
+1. **Parth:** import `leash-deck.pptx` into Google Slides and fill the placeholders. Share it as "Anyone with the link: Viewer", and put that link in the submission. Then re-export the PDF from Google Slides over `docs/pitch/leash-deck.pdf`, so the backup matches.
 2. `docs/pitch/demo-script.md` (second by second, with both paths for the owner's side: the web app, or `pnpm devnet:setup` / `owner:approve` / `owner:unfreeze`, and the "Before each take" checklist), `judge-qa.md`, `video-storyboard.md`.
    - The demo script must cover the laptop's finding of 12:25: a scripted `leash_fetch` that comes back unpaid (status 500) still shows `✓` and the replay goes on (WS7's lane). Check the summary line before each take.
 3. When the in-progress items ship (web wallet actions, Telegram, the devnet run, recordings), move them to "done" in the README table and slide 9, and replace the screenshots with the devnet recording.
@@ -34,7 +46,8 @@
 ## Open items
 
 - **From Parth:** team names and roles (README "Team", slides 1 and 13); any conversations with agent builders (slide 10 says "none yet" until then); the demo video link.
-- The README's pitch link points at `deck.md` until the Google Slides link and the PDF exist.
+- The README's pitch link points at the PDF in the repo; add the Google Slides link next to it once Parth shares it.
+- Building the PDF needs LibreOffice Impress. The cloud image has only `libreoffice-core`, so this session installed `libreoffice-impress` with apt.
 
 ## Questions for other workstreams
 
