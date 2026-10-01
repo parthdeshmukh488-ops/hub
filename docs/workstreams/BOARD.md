@@ -51,7 +51,8 @@ Parth runs one Claude session on the laptop, which has the Solana toolchain and 
 | 3 | Run the indexer in chain mode against localnet, then devnet (`LEASH_CLUSTER=devnet INDEXER_POLL_INTERVAL_MS=2000 pnpm --filter @leash/indexer start`), and check the smoke test's events come out as the contract JSON on `/v1/owners/<owner>/events`. | **Ready** (WS4 message 20261001-0200) | laptop session |
 | 4 | x402 end to end on a real chain: done on localnet. It found the facilitator's RPC bug, which is fixed in `2e4e045` (on `main` after the next merge). Devnet next. | **Ready**; devnet needs item 1 and the merge | laptop session |
 | 5 | The demo agent on a real chain: `pnpm --filter agent-demo demo:all -- --scripted` (localnet, then devnet; the four terminals are in `apps/agent-demo/README.md`). Then LLM mode with `ANTHROPIC_API_KEY` and `--record`; promote good recordings. | **Ready** (WS7 message 20261001-0030); needs items 2 and 4 on that cluster | laptop session + Parth (API key) |
-| 6 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |
+| 6 | **Telegram on the laptop.** Parth gives this session the bot token for [@LeashmvpBot](https://t.me/LeashmvpBot) in the chat. Write it to the repo root's `.env` as `TELEGRAM_BOT_TOKEN`, never to a tracked file. Then Parth sends `/start` to the bot, and `TELEGRAM_CHAT_ID` comes from `https://api.telegram.org/bot<token>/getUpdates`. When WS5's Sentinel lands, run it against the indexer and check that the storyline's alerts reach Parth's phone. | `.env` now; the real test when WS5 is merged | laptop session + Parth |
+| 7 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |
 | – | After any program change: rebuild, update `CHECKSUMS`, upgrade on devnet with the deployer key, and check that the dump equals the committed `.so`. | only if WS1's source changes | laptop session |
 
 ## Handoffs to announce
