@@ -9,13 +9,14 @@ import {
 } from "@leash/contracts";
 import { connectLeash, loadAgentKey, waitForPairing } from "@leash/tools/node";
 import { ownerDecisions } from "./approvals.ts";
-import { type Env, loadEnv } from "./env.ts";
+import { parseArgs, USAGE } from "./cli.ts";
+import { loadEnv } from "./env.ts";
 import { createExecutor, toolDefinitions } from "./executor.ts";
 import { runAgent } from "./loop.ts";
 import { claudeModel, type Model } from "./model.ts";
 import { SYSTEM_PROMPT } from "./prompt.ts";
 import { type Recording, RecordingSchema, recordingModel, replayModel } from "./recording.ts";
-import { parseScenes, SCENES, type SceneId } from "./scenes.ts";
+import { SCENES, type SceneId } from "./scenes.ts";
 import { createUi } from "./ui.ts";
 
 // The demo agent (WS7 step 2): `pnpm demo [scene…] [--scripted] [--record]`.
@@ -23,34 +24,6 @@ import { createUi } from "./ui.ts";
 const SCENES_DIR = fileURLToPath(new URL("../scenes/", import.meta.url));
 const WEB_URL = `http://localhost:${DEFAULT_PORTS.web}`;
 const LABEL = "Research Assistant";
-const USAGE = `Usage: pnpm --filter @leash/agent-demo demo [normal|approval|injection|runaway|all …] [--scripted] [--record]
-
-  --scripted  replay scenes/<scene>.json instead of asking Claude (no API key needed)
-  --record    LLM mode: save each scene's model turns to scenes/<scene>.recorded.json`;
-
-type Args = { scenes: SceneId[]; scripted: boolean; record: boolean };
-
-function parseArgs(argv: readonly string[], env: Env): Args {
-  const flags = argv.filter((arg) => arg.startsWith("-"));
-  for (const flag of flags) {
-    if (!["--scripted", "--record"].includes(flag))
-      throw new Error(`Unknown option ${flag}.\n\n${USAGE}`);
-  }
-  const args = {
-    scenes: parseScenes(argv.filter((arg) => !arg.startsWith("-"))),
-    scripted: flags.includes("--scripted") || env.AGENT_MODE === "scripted",
-    record: flags.includes("--record"),
-  };
-  if (args.scripted && args.record)
-    throw new Error("--record records LLM runs; it does not combine with --scripted.");
-  if (!args.scripted && !env.ANTHROPIC_API_KEY) {
-    throw new Error(
-      "LLM mode needs ANTHROPIC_API_KEY. Without one, run the scripted demo: --scripted",
-    );
-  }
-  return args;
-}
-
 function loadRecording(scene: SceneId): Recording {
   const file = `${SCENES_DIR}${scene}.json`;
   if (!existsSync(file)) throw new Error(`No recording for "${scene}" at ${file}.`);
@@ -101,6 +74,7 @@ async function main(): Promise<void> {
     },
   });
 
+  const status = await runtime.tools.status();
   const claude = args.scripted
     ? null
     : claudeModel({
@@ -115,6 +89,7 @@ async function main(): Promise<void> {
     claude ? claude.label : "scripted",
     `agent key ${runtime.agent.address}`,
   ]);
+  ui.agentStatus(status);
 
   const execute = createExecutor({ tools: runtime.tools, fetch: globalThis.fetch });
   const awaitOwner = ownerDecisions({
@@ -129,11 +104,11 @@ async function main(): Promise<void> {
     let recorder: ReturnType<typeof recordingModel> | null = null;
     if (claude === null) {
       const recording = loadRecording(id);
-      model = replayModel(recording);
+      model = replayModel(recording, { merchant: env.AGENT_MERCHANT_URL });
       ui.scene(scene.title, task);
       ui.notice(recording.disclosure);
     } else {
-      recorder = args.record ? recordingModel(claude) : null;
+      recorder = args.record ? recordingModel(claude, { merchant: env.AGENT_MERCHANT_URL }) : null;
       model = recorder?.model ?? claude;
       ui.scene(scene.title, task);
     }

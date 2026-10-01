@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "scene": "approval",
+  "source": "script",
+  "model": null,
+  "recordedAt": null,
+  "disclosure": "Scripted replay: these model decisions were written by hand, not recorded from Claude. The approval request and the owner's decision are real and on-chain.",
+  "turns": [
+    {
+      "steps": [
+        {
+          "kind": "thinking",
+          "text": "The report is sold at the premium endpoint. I'll buy it."
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_approval_01",
+          "name": "leash_fetch",
+          "input": {
+            "url": "{merchant}/api/reports/premium?topic=e-bikes",
+            "purpose": "Premium report: 2026 e-bike comparison"
+          },
+          "expect": "APPROVAL_REQUIRED"
+        }
+      ],
+      "stop": "tool_use"
+    },
+    {
+      "steps": [
+        {
+          "kind": "text",
+          "text": "The report costs 1.50 USDC, which is above my instant spending limit, so I've sent you an approval request. I'll buy it as soon as you approve."
+        }
+      ],
+      "stop": "end_turn"
+    },
+    {
+      "steps": [
+        {
+          "kind": "thinking",
+          "text": "The owner approved the request, so fetching the report again will go through."
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_approval_02",
+          "name": "leash_fetch",
+          "input": {
+            "url": "{merchant}/api/reports/premium?topic=e-bikes",
+            "purpose": "Premium report: 2026 e-bike comparison"
+          },
+          "expect": "ok"
+        }
+      ],
+      "stop": "tool_use"
+    },
+    {
+      "steps": [
+        {
+          "kind": "text",
+          "text": "Top three picks under €1,500 from the 2026 comparison:\n1. **Voltra City 3** (€1,299): best for flat city commutes, 58 km tested range, hydraulic discs.\n2. **Kestrel Trail 500** (€1,449): best for hills, with a 70 Nm mid-drive.\n3. **Fjord Fold 20** (€1,099): best for trains and stairs, at 19.8 kg.\n\nThe report cost 1.50 USDC, paid with your approval."
+        }
+      ],
+      "stop": "end_turn"
+    }
+  ]
+}

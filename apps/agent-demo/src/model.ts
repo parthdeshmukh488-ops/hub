@@ -6,10 +6,21 @@ import Anthropic from "@anthropic-ai/sdk";
 export type Step =
   | { kind: "thinking"; text: string }
   | { kind: "text"; text: string }
-  | { kind: "tool"; id: string; name: string; input: unknown };
+  | {
+      kind: "tool";
+      id: string;
+      name: string;
+      input: unknown;
+      /** Recordings only: the result the script expects, `ok` or a tool error code. */
+      expect?: string;
+    };
 
-/** Why a turn ended: tools to run, done, or a stop the loop reports. */
-export type StopKind = "tool_use" | "end_turn" | "max_tokens" | "refusal" | "other";
+/**
+ * Why a turn ended: tools to run, done, or a stop the loop reports. `diverged`: a replay met a
+ * live result its script did not expect, and stops rather than show decisions made for another
+ * outcome.
+ */
+export type StopKind = "tool_use" | "end_turn" | "max_tokens" | "refusal" | "diverged" | "other";
 
 export type ModelTurn = { steps: Step[]; stop: StopKind };
 

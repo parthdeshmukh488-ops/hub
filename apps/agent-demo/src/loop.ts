@@ -79,6 +79,9 @@ export async function runAgent(options: RunOptions): Promise<RunResult> {
     }
     if (turn.stop === "refusal") ui.notice("The model declined to continue (refusal).");
     if (turn.stop === "max_tokens") ui.notice("The model ran out of output tokens.");
+    if (turn.stop === "diverged") {
+      ui.notice("A live result differs from the script, so the replay stops here.");
+    }
     return { ...outcome, stop: turn.stop };
   }
 }

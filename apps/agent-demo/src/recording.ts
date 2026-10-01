@@ -10,12 +10,18 @@ import { SCENE_IDS } from "./scenes.ts";
 const StepSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("thinking"), text: z.string() }),
   z.object({ kind: z.literal("text"), text: z.string() }),
-  z.object({ kind: z.literal("tool"), id: z.string(), name: z.string(), input: z.unknown() }),
+  z.object({
+    kind: z.literal("tool"),
+    id: z.string(),
+    name: z.string(),
+    input: z.unknown(),
+    expect: z.string().optional(),
+  }),
 ]);
 
 const TurnSchema = z.object({
   steps: z.array(StepSchema),
-  stop: z.enum(["tool_use", "end_turn", "max_tokens", "refusal", "other"]),
+  stop: z.enum(["tool_use", "end_turn", "max_tokens", "refusal", "diverged", "other"]),
 });
 
 export const RecordingSchema = z.object({
@@ -31,8 +37,37 @@ export const RecordingSchema = z.object({
 });
 export type Recording = z.infer<typeof RecordingSchema>;
 
-/** Plays a recording's turns in order, whatever the tools return; then ends the turn. */
-export function replayModel(recording: Recording): Model {
+/** Recordings name the merchant's base URL with this placeholder, so they replay against any merchant. */
+export const MERCHANT_PLACEHOLDER = "{merchant}";
+
+/** A copy of `value` with `from` replaced by `to` in every string. */
+function replaceStrings<T>(value: T, from: string, to: string): T {
+  if (typeof value === "string") return value.split(from).join(to) as T;
+  if (Array.isArray(value)) return value.map((item) => replaceStrings(item, from, to)) as T;
+  if (typeof value === "object" && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, replaceStrings(item, from, to)]),
+    ) as T;
+  }
+  return value;
+}
+
+/** `ok`, or the tool error's code: what a script expects of a tool call. */
+export function outcomeOf(content: string): string {
+  try {
+    const output = JSON.parse(content) as { ok?: unknown; code?: unknown };
+    return output.ok === true ? "ok" : typeof output.code === "string" ? output.code : "error";
+  } catch {
+    return "error";
+  }
+}
+
+/**
+ * Plays a recording's turns in order, then ends the turn. If a live tool result differs from what
+ * the recording expects, the replay stops (`diverged`).
+ */
+export function replayModel(recording: Recording, options: { merchant: string }): Model {
+  const turns = replaceStrings(recording.turns, MERCHANT_PLACEHOLDER, options.merchant);
   return {
     label:
       recording.source === "llm"
@@ -40,19 +75,35 @@ export function replayModel(recording: Recording): Model {
         : "scripted replay",
     session(): ModelSession {
       let index = 0;
-      const next = async (): Promise<ModelTurn> =>
-        recording.turns[index++] ?? { steps: [], stop: "end_turn" };
-      return { start: next, next };
+      const play = async (): Promise<ModelTurn> =>
+        turns[index++] ?? { steps: [], stop: "end_turn" };
+      return {
+        start: play,
+        async next(results) {
+          const previous = turns[index - 1]?.steps ?? [];
+          for (const result of results) {
+            const step = previous.find((s) => s.kind === "tool" && s.id === result.id);
+            const expected = step?.kind === "tool" ? step.expect : undefined;
+            if (expected !== undefined && outcomeOf(result.content) !== expected) {
+              return { steps: [], stop: "diverged" };
+            }
+          }
+          return play();
+        },
+      };
     },
   };
 }
 
-/** Wraps a model so each session's turns are kept, for `--record`. */
-export function recordingModel(model: Model): { model: Model; turns: ModelTurn[] } {
+/** Wraps a model so each session's turns are kept, for `--record`, with the merchant's URL as a placeholder. */
+export function recordingModel(
+  model: Model,
+  options: { merchant: string },
+): { model: Model; turns: ModelTurn[] } {
   const turns: ModelTurn[] = [];
   const keep = async (turn: Promise<ModelTurn>) => {
     const value = await turn;
-    turns.push(value);
+    turns.push(replaceStrings(value, options.merchant, MERCHANT_PLACEHOLDER));
     return value;
   };
   return {
@@ -63,7 +114,14 @@ export function recordingModel(model: Model): { model: Model; turns: ModelTurn[]
         const inner = model.session();
         return {
           start: (task) => keep(inner.start(task)),
-          next: (results, note) => keep(inner.next(results, note)),
+          next: (results, note) => {
+            // The results of the last turn's calls become what a replay expects of them.
+            for (const step of turns.at(-1)?.steps ?? []) {
+              const result = step.kind === "tool" && results.find((r) => r.id === step.id);
+              if (result && step.kind === "tool") step.expect = outcomeOf(result.content);
+            }
+            return keep(inner.next(results, note));
+          },
         };
       },
     },

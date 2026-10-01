@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "description": "Demo x402 merchants and the adversarial lab.",
+  "exports": {
+    "./server": "./src/server.ts",
+    "./content": "./src/content.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",

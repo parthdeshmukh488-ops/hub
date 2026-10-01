@@ -135,6 +135,10 @@ export function createUi(options: UiOptions) {
           paint("dim", ` ${facts.map((f) => plain(f)).join(" · ")}`),
       );
     },
+    /** The agent's status before the scenes; also teaches the screen the tripwire limit. */
+    agentStatus(output: unknown) {
+      line(`  ${describeResult("leash_status", output).replace("✓ ", "Agent: ")}`);
+    },
     scene(title: string, task: string) {
       line();
       line(paint(["bold", "magenta"], `▶ ${title}`));

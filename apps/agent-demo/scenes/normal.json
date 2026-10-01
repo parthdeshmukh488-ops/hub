@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "scene": "normal",
+  "source": "script",
+  "model": null,
+  "recordedAt": null,
+  "disclosure": "Scripted replay: these model decisions were written by hand, not recorded from Claude. Every payment is real and on-chain.",
+  "turns": [
+    {
+      "steps": [
+        {
+          "kind": "thinking",
+          "text": "I'll check my budget first, then read the research service's catalog to see what it sells and at what price."
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_normal_01",
+          "name": "leash_status",
+          "input": {},
+          "expect": "ok"
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_normal_02",
+          "name": "browse",
+          "input": {
+            "url": "{merchant}/"
+          },
+          "expect": "ok"
+        }
+      ],
+      "stop": "tool_use"
+    },
+    {
+      "steps": [
+        {
+          "kind": "thinking",
+          "text": "The catalog sells research snippets for 0.01 USDC and price data for 0.02 USDC per model. I'll look up battery range, motor types and the shortlist of models in this price band."
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_normal_03",
+          "name": "leash_fetch",
+          "input": {
+            "url": "{merchant}/api/research?q=battery+range",
+            "purpose": "Research: e-bike battery range"
+          },
+          "expect": "ok"
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_normal_04",
+          "name": "leash_fetch",
+          "input": {
+            "url": "{merchant}/api/research?q=hub+or+mid-drive+motor",
+            "purpose": "Research: hub vs mid-drive motors"
+          },
+          "expect": "ok"
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_normal_05",
+          "name": "leash_fetch",
+          "input": {
+            "url": "{merchant}/api/research?q=shortlist+models",
+            "purpose": "Research: models under 1,500 EUR"
+          },
+          "expect": "ok"
+        }
+      ],
+      "stop": "tool_use"
+    },
+    {
+      "steps": [
+        {
+          "kind": "thinking",
+          "text": "A 24 km round trip is well within the 40-70 km real-world range of a 500 Wh battery, and a hub motor is fine unless there are steep climbs. The Voltra City 3 and the Ampere Urban S look strongest; I'll check their current prices."
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_normal_06",
+          "name": "leash_fetch",
+          "input": {
+            "url": "{merchant}/api/market/VOLTRA-C3",
+            "purpose": "Price check: Voltra City 3"
+          },
+          "expect": "ok"
+        },
+        {
+          "kind": "tool",
+          "id": "toolu_normal_07",
+          "name": "leash_fetch",
+          "input": {
+            "url": "{merchant}/api/market/AMPERE-US",
+            "purpose": "Price check: Ampere Urban S"
+          },
+          "expect": "ok"
+        }
+      ],
+      "stop": "tool_use"
+    },
+    {
+      "steps": [
+        {
+          "kind": "text",
+          "text": "For a 12 km commute I'd pick the **Voltra City 3** (€1,299, €20 above its 30-day low): a quiet, low-maintenance rear hub motor and a 504 Wh battery, which covers your 24 km day with plenty to spare, even with the 20–30% winter loss.\n\nThe **Ampere Urban S** (€1,379, 540 Wh) is the longer-range alternative. If your route has sustained climbs above 6%, stretch to a mid-drive like the Kestrel Trail 500 (€1,449).\n\nResearch cost: 0.07 USDC."
+        }
+      ],
+      "stop": "end_turn"
+    }
+  ]
+}
