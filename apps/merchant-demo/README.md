@@ -50,7 +50,7 @@ The last column is not just documentation: `test/outcomes.test.ts` runs every pa
 | `MERCHANT_PORT` | `4300` | |
 | `MERCHANT_PAY_TO` | the storyline's merchant | Wallet that receives the merchant routes' payments |
 | `LAB_ATTACKER_WALLET` | the storyline's attacker | Wallet the lab tries to get paid |
-| `MERCHANT_PAYMENTS` | `off` | `on`: paid routes answer 402 and are paid over x402 (start the facilitator first) |
+| `MERCHANT_PAYMENTS` | `off` | `on`: paid routes answer 402 and are paid over x402 (at start, the merchant waits until the facilitator answers) |
 | `MERCHANT_FACILITATOR_URL` | `http://localhost:4200` | The facilitator that verifies and settles payments |
 | `LEASH_USDC_MINT` | the cluster's USDC | The mint prices are paid in; required on localnet (`.localnet.json`'s `usdcMint`) |
 | `LEASH_CLUSTER`, `LOG_LEVEL` | `localnet`, `info` | |

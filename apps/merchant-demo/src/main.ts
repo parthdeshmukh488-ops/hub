@@ -6,6 +6,7 @@ import { DemoStorylineSchema, resolveClusterConfig } from "@leash/contracts";
 import { pino } from "pino";
 import { loadContent } from "./content.ts";
 import { loadEnv } from "./env.ts";
+import { waitForFacilitator } from "./facilitator.ts";
 import { type AppConfig, createApp } from "./server.ts";
 
 /** The storyline's merchant and attacker, so an unconfigured merchant matches the fixtures. */
@@ -20,7 +21,7 @@ function demoWallets(): { merchant: string; attacker: string } {
   return { merchant, attacker };
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const env = loadEnv();
   const log = pino({
     level: env.LOG_LEVEL,
@@ -51,6 +52,13 @@ function main(): void {
       asset: cluster.usdcMint,
     };
     log.info({ facilitator: env.MERCHANT_FACILITATOR_URL, asset: cluster.usdcMint }, "payments on");
+    await waitForFacilitator(env.MERCHANT_FACILITATOR_URL, {
+      onWaiting: (attempts) => {
+        if (attempts % 5 === 1) {
+          log.warn({ facilitator: env.MERCHANT_FACILITATOR_URL }, "waiting for the facilitator");
+        }
+      },
+    });
   }
   const app = createApp(
     { wallets, payments: env.MERCHANT_PAYMENTS, ...(x402 ? { x402 } : {}) },
@@ -65,9 +73,7 @@ function main(): void {
   process.once("SIGTERM", stop);
 }
 
-try {
-  main();
-} catch (error) {
+main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
-}
+});
