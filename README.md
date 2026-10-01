@@ -19,7 +19,7 @@
 
 Your money never leaves your wallet. The most an agent can ever spend is the allowance you set in Solana's own audited program; Leash can only make that smaller.
 
-## The 60-second demo
+## The demo
 
 The story the demo tells, with a research agent on a budget:
 
@@ -153,7 +153,7 @@ For the devnet demo, `pnpm devnet:check` checks the Subscriptions program and th
 | [`apps/`](apps/) | Web control panel, demo agent, demo merchants and attack lab |
 | [`docs/architecture/`](docs/architecture/00-overview.md) | System design, program spec, contracts, security model, conventions |
 | [`docs/adr/`](docs/adr/README.md) | Architecture decisions |
-| [`docs/pitch/`](docs/pitch/deck.md) | The pitch: the deck ([PDF](docs/pitch/leash-deck.pdf), [PowerPoint](docs/pitch/leash-deck.pptx)) and its words, slide by slide |
+| [`docs/pitch/`](docs/pitch/deck.md) | The pitch: the deck ([PDF](docs/pitch/leash-deck.pdf), [PowerPoint](docs/pitch/leash-deck.pptx), [slide by slide](docs/pitch/deck.md)), the [demo script](docs/pitch/demo-script.md), [judge Q&A](docs/pitch/judge-qa.md) and [video storyboard](docs/pitch/video-storyboard.md) |
 | [`docs/workstreams/`](docs/workstreams/README.md) | How the build is split, and where each part stands |
 
 ## How it was built
