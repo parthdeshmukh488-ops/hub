@@ -14,6 +14,8 @@
 
 ## Done
 
+- **2026-10-01 (from the WS7 session):** `rpcChain`'s reads now throw `LeashNetworkError` (the cause is kept), so tools answer `NETWORK_ERROR` instead of crashing when the RPC is down. Also new: `scripts/owner-approve.ts` (`pnpm owner:approve [--reject]`), which signs with the owner-demo key and stands in for the owner's phone until WS6 and WS5 can approve.
+
 - **Build step 2, complete (2026-09-29).** `packages/sdk`:
   - `src/evaluate/`: `evaluatePayment(input)` and `rollWindow`, a line-by-line mirror of 01 §7.1–§7.3 and the three `20260929-ws0-*` ADRs. Allowed results carry the counters the program would write (velocity window, payee period, delegation period or remaining amount, whether a request is consumed).
   - `src/allowance.ts`: `isAllowanceExpired`, `rollRecurringPeriod`, `allowanceRemaining`, `decodeDelegation` (v1 layouts only; anything else throws `LeashSdkError` `UNSUPPORTED_DELEGATION`), `allowanceAt` (→ contracts `AllowanceView`). Checked line by line against upstream `transfer_validation.rs`, including `saturating_sub` and the i64 period conversion.

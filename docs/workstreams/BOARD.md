@@ -1,6 +1,6 @@
 # Coordination board
 
-Maintained by the architect session. Every Claude session reads this at startup, right after `CLAUDE.md`. **Last updated: 2026-09-30.**
+Maintained by the architect session. Every Claude session reads this at startup, right after `CLAUDE.md`. **Last updated: 2026-10-01.**
 
 ## Where the project stands
 
@@ -8,11 +8,11 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | --- | --- |
 | Architecture, ADRs, briefs | Done ([architecture/](../architecture/00-overview.md), [adr/](../adr/README.md)) |
 | WS0 platform and contracts | **All five build steps done:** monorepo, `@leash/contracts`, demo fixtures, 60 policy test vectors, CI guards, and (laptop) `pnpm keys`, `subscriptions.so` from the audited tag, `pnpm localnet`, `pnpm devnet:check` ([status](status/WS0.md)). |
-| WS2 SDK | **Build steps 1–6 done:** generated clients, PDAs, errors, event decoding, reads, owner builders, `LeashAgent`, `rpcChain`, `@leash/sdk/testing` (LiteSVM testbed on the real binaries), `devnet:setup`/`devnet:smoke`; 236 tests ([status](status/WS2.md)). Step 7 (API feedback, 1.0) next. |
+| WS2 SDK | **Build steps 1–6 done:** generated clients, PDAs, errors, event decoding, reads, owner builders, `LeashAgent`, `rpcChain`, `@leash/sdk/testing` (LiteSVM testbed on the real binaries), `devnet:setup`/`devnet:smoke`; 239 tests; RPC read failures are `NETWORK_ERROR`; `pnpm owner:approve` stands in for the owner's phone ([status](status/WS2.md)). Step 7 (API feedback, 1.0) next. |
 | WS6 web app | **Steps 1 and 3 (read side) done:** live indexer data over REST + WebSocket, activity log with CSV, approvals inbox, what-if tester using the SDK evaluator ([status](status/WS6.md)). Writes wait for the wallet (step 2) and the IDL. |
 | WS4 indexer | **Build step 1 done:** every REST route and `/v1/stream` in fixture-replay mode on port 4100, 42 tests; contracts 1.1.0 ([status](status/WS4.md)). |
 | WS8 merchant and lab | **Build steps 1–2 done:** final content, catalog, lab with five guide variants; `MERCHANT_PAYMENTS=on` puts the official x402 middleware (via `leashMerchant`) on every paid route, paid by a real Leash agent in tests; 22 tests ([status](status/WS8.md)). |
-| WS7 tools | **Build step 1 done:** `@leash/tools` (four tools, every error path, 19 tests); SDK typed errors; contracts 1.2.0 ([status](status/WS7.md)). Ports sent to WS2 and WS3. |
+| WS7 tools, MCP, demo agent | **Build steps 1–4 done:** `@leash/tools` plus its Node runtime; `@leash/mcp`, a stdio MCP server Claude Code connects to (10 tests); `apps/agent-demo` with a Claude loop, scene scripts, scripted mode and the terminal UI. The scripted pitch storyline passes end to end on the real stack in LiteSVM (35 tests). Real LLM runs and recordings: laptop ([status](status/WS7.md), [message](messages/20261001-0030-from-ws7-to-all-mcp-server-and-demo-agent-ready.md)). |
 | WS1 program | **All seven steps done, live on devnet** (slot 505952773, byte for byte the committed `leash.so`): Anchor 1.2 program, IDL, program ID `HyL9S5mA…HJncu`. The LiteSVM suites run on the real binaries (66 tests, plus all 60 policy vectors on-chain); security checklist ticked; `pay` ≈ 32k CU ([status](status/WS1.md), [CU.md](../../programs/leash/CU.md)). |
 | WS3 x402 + facilitator | **Build steps 1–5 done:** `@leash/x402` (Leash client scheme, `createLeashFetch`, `leashMerchant`, `createLeashFacilitator`), `services/facilitator`. Every row of the test table passes on the real binaries through the unmodified official facilitator; 29 tests ([status](status/WS3.md)). |
 | WS5, WS9 | Skeletons only. Not started. |
@@ -28,8 +28,8 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet + pairing) and step 3 writes need the IDL. | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Done: keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Step 1 done. Step 2 (chain ingestion) needs the IDL and RPC access. | WS5, WS6 live data |
-| 6 | **WS8** merchants and lab | anywhere | Step 1 done. Step 2 (paywalls) needs WS3. | WS7 demo |
-| 7 | **WS7** tools, MCP, agent | anywhere | Step 1 done. Step 4 (MCP) can start; step 2 needs a real `LeashAgent`. | the demo |
+| 6 | **WS8** merchants and lab | anywhere | Steps 1–2 done (paid routes on through `leashMerchant`). | WS7 demo |
+| 7 | **WS7** tools, MCP, agent | anywhere | Steps 1–4 done. Step 5: pitch polish with WS9. | the demo |
 | 8 | **WS5** Sentinel | anywhere | Step 1: rules engine on the storyline fixture | alerts |
 | 9 | **WS3** x402 + facilitator | anywhere | Steps 1–5 done. Next: a real run on localnet/devnet (laptop). | WS7, WS8 paid routes |
 | 10 | **WS9** integration and story | anywhere | Step 1: README v1 + deck narrative | the pitch |
@@ -50,7 +50,8 @@ Parth runs one Claude session on the laptop, which has the Solana toolchain and 
 | 2 | `pnpm devnet:setup` (the demo world: principal, allowance, agents, allowlist) and `pnpm devnet:smoke` (one real payment, one blocked attempt reported, freeze and unfreeze). Commit the printed addresses and signatures. | **Ready** (WS2 message 20260930-1655); needs funded keys (item 1) | laptop session |
 | 3 | Run the indexer in chain mode against devnet and check the smoke test's events come out as the contract JSON. | WS4 announces chain mode | laptop session |
 | 4 | x402 end to end on a real chain: `LEASH_CLUSTER=localnet pnpm --filter @leash/facilitator start`, then `pnpm --filter @leash/x402 x402:smoke --cluster localnet` (paid request settles through Leash; attacker payee blocked and recorded). Then the same on devnet. WS8's merchant joins when its paid routes are on. | **Ready** (WS3 message 20260930-2015); devnet needs item 1 | laptop session |
-| 5 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |
+| 5 | The demo agent on a real chain: `pnpm --filter agent-demo demo:all -- --scripted` (localnet, then devnet; the four terminals are in `apps/agent-demo/README.md`). Then LLM mode with `ANTHROPIC_API_KEY` and `--record`; promote good recordings. | **Ready** (WS7 message 20261001-0030); needs items 2 and 4 on that cluster | laptop session + Parth (API key) |
+| 6 | The full demo on devnet, and its recording. | WS9, Oct 3–4 | laptop session + Parth |
 | – | After any program change: rebuild, update `CHECKSUMS`, upgrade on devnet with the deployer key, and check that the dump equals the committed `.so`. | only if WS1's source changes | laptop session |
 
 ## Handoffs to announce

@@ -1,9 +1,9 @@
 # WS7 status: Agent tools, MCP server and demo agent
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
-- Last updated: 2026-09-30
-- Current build step: 1 and 4 done; 2 (demo agent) in progress: code written, tests next
-- Messages handled: through `20260930-0330-from-ws8-to-ws7-merchant-content-ready.md`
+- Last updated: 2026-10-01
+- Current build step: 1–4 done (step 3 with hand-written scene scripts; real LLM recordings come from the laptop); next: 5, pitch polish with WS9
+- Messages handled: through `20260930-2015-from-ws3-to-all-x402-and-facilitator-ready.md`
 
 ## Plan for build steps 2 and 4 (Parth: "wire the demo flow")
 
@@ -51,27 +51,26 @@ What the cloud can't do: call the Claude API. There's no key here, and runs cost
     - With the README's `claude mcp add …` command, Claude Code 2.1.286 shows the server as `Connected`.
   - **SDK fix (WS2 lane):** `rpcChain` read failures are now `LeashNetworkError`, so tools answer `NETWORK_ERROR` instead of crashing.
   - **Test helper (WS3 lane):** `litesvmFacilitatorClient` in `@leash/x402/testing`.
-- **Demo agent (step 2), written but not yet tested:**
-  - `src/model.ts`: the `Model` interface and the Claude adapter (streaming, adaptive thinking with summaries, `effort: medium`, prompt caching, eager tool input).
-  - `src/loop.ts`, `src/ui.ts` (control characters stripped, OSC 8 explorer links), `src/browse.ts`, `src/approvals.ts` (waits for the owner's on-chain decision).
-  - `src/scenes.ts`, `src/recording.ts` (replay and `--record`), `src/main.ts`.
-  - Lint and typecheck pass; `--help` runs.
-
-- **Build step 1, complete (2026-09-30).**
-  - `createLeashTools({ agent, leashFetch, cluster })` returns `{ definitions, execute, fetch, pay, requestApproval, status }`.
-  - The definitions are generated from the contract's zod schemas.
-  - 19 tests cover: every denial reason mapped to its code and verbatim message; automatic approval requests in `leash_fetch` and `leash_pay`; honest `recorded`; `INVALID_INPUT` with reasons; memo and body truncation; no leaking of underlying error text (T17); bugs rethrown; status from the fixtures. Every output is validated against the contract's output schemas.
-- **Additive contract change** [ADR 20260930-ws7-approval-request-errors](../../adr/20260930-ws7-approval-request-errors.md), contracts 1.2.0:
-  - New tool codes `APPROVAL_NOT_NEEDED` and `TOO_MANY_OPEN_REQUESTS`.
-  - `TOOL_MESSAGE_RECORDED` exported.
-  - Auto-request in `leash_pay` too.
-- SDK: added the typed errors the ports throw (`PaymentDeniedError`, `ApprovalNotPossibleError`, `NotPairedError`, `UnsupportedPaymentError`, `MerchantRejectedError`, `LeashNetworkError`), as WS2's brief planned.
+- **Demo agent (steps 2–3, 2026-10-01), 35 tests:**
+  - **LLM mode:** the Claude adapter (`claude-opus-5-5`, adaptive thinking with summaries, `effort: medium`, streaming, prompt caching, eager tool input), the four Leash tools plus a free `browse`, and a system prompt with no word about attacks.
+  - **Scripted mode:** `scenes/{normal,approval,injection,runaway}.json`, hand-written. Each shows its disclosure on screen, and the injection one says "Simulating a successful injection".
+    - A replay stops when a live result differs from what the script expects, e.g. when the owner declines.
+    - `--record` saves real runs, with the merchant URL kept as a placeholder.
+  - **Terminal UI:** one line per step, clickable explorer links, the tripwire banner, a summary per scene; control characters and bidi overrides are stripped from untrusted text.
+  - **Approval scene:** waits (up to 3 min) for the owner's decision on-chain, then tells the model.
+  - **Tests:** every scene script replays on the real stack: merchant-demo (lab included), the official facilitator, and the program in LiteSVM. The test acts as the owner, both approving and declining.
+    - The whole scripted storyline runs as one demo; that is the DoD command, in process.
+    - A recorded run is promoted to a script and replayed.
+    - Unit tests cover the adapter (stubbed stream), `browse`, escape stripping, the loop's stops, recording, the owner wait and the CLI.
+- **Owner stand-in (WS2 lane):** `pnpm owner:approve [--reject]` approves or rejects pending requests with the owner-demo key, until WS6 and WS5 can.
+- **merchant-demo (WS8 lane):** `package.json` exports `./server` and `./content` for these tests.
 
 ## Next
 
-1. Demo agent tests: a replay model drives the real tools, the real merchant-demo app and the facilitator on LiteSVM, for the normal, approval (the test approves as the owner) and injection scenes, plus the Claude adapter against a stubbed stream. This needs merchant-demo to export `createApp` and `loadContent` (a `package.json` `exports` entry, WS8 lane).
-2. Step 3: hand-written scene scripts in `scenes/*.json`, each with an honest on-screen disclosure. The injection script says "simulating a successful injection". Then `demo:all -- --scripted`.
-3. README for `apps/agent-demo`, then the WS7 handoff message and the BOARD update.
+1. **Laptop (needs a chain and, for LLM mode, `ANTHROPIC_API_KEY`):**
+   - `pnpm --filter agent-demo demo:all -- --scripted` on localnet, then devnet; the README lists the four terminals.
+   - Then LLM mode with `--record`. Promote recordings where the model's own run tells the story; keep the injection script if the model resists, as it says on screen.
+2. **Step 5, pitch polish with WS9:** timing, wording, colours; maybe the terminal QR code for pairing.
 
 ## Open items
 
@@ -79,8 +78,9 @@ What the cloud can't do: call the Claude API. There's no key here, and runs cost
   - `effort: medium` for the demo agent. `low` would feel snappier on stage.
   - `all` = normal → approval → injection. `runaway` is run on its own.
   - `--record` writes `scenes/<scene>.recorded.json`. A recording is promoted to `scenes/<scene>.json` by hand.
+  - On devnet, a payment takes about 2 s, so the runaway scene may never reach 30 per minute. Its replay then stops honestly at the first payment that the script expected to be blocked.
 - Pairing links point at `http://localhost:3000`. A `LEASH_WEB_URL` variable would need an ADR once the web app is deployed. The terminal QR code (§11) is not done yet.
-- The approval scene needs the owner to approve on-chain. There's no web or Telegram approval yet (WS6/WS5). A small owner script would stand in for the owner's phone until then.
+- The approval scene needs the owner's decision on-chain: `pnpm owner:approve` until WS6/WS5 ship theirs.
 
 - Tool definitions are not `strict` (the `headers` map is outside strict schemas); inputs are validated by zod instead.
 - The helper names in the brief changed slightly: `createLeashTools` takes `leashFetch` (the port) rather than `fetchImpl`, because the x402 client is the dependency, not a raw `fetch`.

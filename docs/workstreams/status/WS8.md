@@ -11,6 +11,8 @@ Hono service with payments off; every route of the brief with its final content;
 
 ## Done
 
+- **2026-10-01 (from the WS7 session):** `package.json` exports `./server` and `./content`, so the demo agent's tests run its scenes against this app, lab included.
+
 - **Build step 1, complete (2026-09-30).**
   - Research (10 snippets with search), market data (10 symbols) and the premium comparison report.
   - The buying guide in five variants: four hide the same 25 USDC tip instruction differently, and `none` is the control.
