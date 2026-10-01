@@ -266,6 +266,21 @@ export async function fetchPayees(chain: LeashChain, agent: Address): Promise<Pa
   return payees.sort((a, b) => a.createdAt - b.createdAt || a.payee.localeCompare(b.payee));
 }
 
+/**
+ * One payment request by its address, or null when it is missing (rejected, executed and expired
+ * requests are closed), foreign or another type. Solana Actions get only the request's address.
+ */
+export async function fetchRequestView(
+  chain: LeashChain,
+  request: Address,
+): Promise<RequestView | null> {
+  const [account] = await chain.getAccounts([request]);
+  const decoded = decodeLeash(account, PAYMENT_REQUEST_DISCRIMINATOR, (data) =>
+    getPaymentRequestDecoder().decode(data),
+  );
+  return decoded && requestToView(request, decoded);
+}
+
 /** The agent's open payment requests (pending or approved; expired ones included), by nonce. */
 export async function fetchOpenRequests(chain: LeashChain, agent: Address): Promise<RequestView[]> {
   const requests = await listLeashAccounts(

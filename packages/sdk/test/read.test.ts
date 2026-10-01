@@ -19,6 +19,7 @@ import {
   fetchOpenRequests,
   fetchPayees,
   fetchPrincipalView,
+  fetchRequestView,
   readAgentStatus,
   sendPlan,
 } from "../src/index.ts";
@@ -162,6 +163,10 @@ describe("fetch*View", () => {
       rentPayer: bed.keys.agentKey.address,
     });
     expect(open?.reference).toMatch(/^[0-9a-f]{64}$/);
+    // One request by its address (what a Solana Action gets): the same view, or null.
+    expect(await fetchRequestView(bed.chain, request.address as Address)).toEqual(open);
+    expect(await fetchRequestView(bed.chain, bed.keys.stranger.address)).toBeNull();
+    expect(await fetchRequestView(bed.chain, bed.accounts.agent)).toBeNull();
   });
 
   it("lists every agent of an owner, oldest first", async () => {

@@ -142,6 +142,7 @@ export {
   fetchOpenRequests,
   fetchPayees,
   fetchPrincipalView,
+  fetchRequestView,
   payeeToView,
   principalToView,
   readAgentStatus,
