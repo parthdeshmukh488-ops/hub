@@ -13,14 +13,16 @@ export function parseArgs(
   argv: readonly string[],
   env: Pick<Env, "AGENT_MODE" | "ANTHROPIC_API_KEY">,
 ): Args {
-  const flags = argv.filter((arg) => arg.startsWith("-"));
+  // `pnpm demo:all -- --scripted` passes the `--` through.
+  const words = argv.filter((arg) => arg !== "--");
+  const flags = words.filter((arg) => arg.startsWith("-"));
   for (const flag of flags) {
     if (flag !== "--scripted" && flag !== "--record") {
       throw new Error(`Unknown option ${flag}.\n\n${USAGE}`);
     }
   }
   const args = {
-    scenes: parseScenes(argv.filter((arg) => !arg.startsWith("-"))),
+    scenes: parseScenes(words.filter((arg) => !arg.startsWith("-"))),
     scripted: flags.includes("--scripted") || env.AGENT_MODE === "scripted",
     record: flags.includes("--record"),
   };

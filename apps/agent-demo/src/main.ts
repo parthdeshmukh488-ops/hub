@@ -1,5 +1,3 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   buildPairingUrl,
@@ -8,27 +6,19 @@ import {
   resolveClusterConfig,
 } from "@leash/contracts";
 import { connectLeash, loadAgentKey, waitForPairing } from "@leash/tools/node";
-import { ownerDecisions } from "./approvals.ts";
 import { parseArgs, USAGE } from "./cli.ts";
+import { runDemo, SCENES_DIR } from "./demo.ts";
 import { loadEnv } from "./env.ts";
-import { createExecutor, toolDefinitions } from "./executor.ts";
-import { runAgent } from "./loop.ts";
-import { claudeModel, type Model } from "./model.ts";
+import { toolDefinitions } from "./executor.ts";
+import { claudeModel } from "./model.ts";
 import { SYSTEM_PROMPT } from "./prompt.ts";
-import { type Recording, RecordingSchema, recordingModel, replayModel } from "./recording.ts";
-import { SCENES, type SceneId } from "./scenes.ts";
 import { createUi } from "./ui.ts";
 
-// The demo agent (WS7 step 2): `pnpm demo [scene…] [--scripted] [--record]`.
+// The demo agent (WS7): `pnpm --filter agent-demo demo [scene…] [--scripted] [--record]`. Wires
+// the configured cluster, the agent key and Claude around `runDemo`.
 
-const SCENES_DIR = fileURLToPath(new URL("../scenes/", import.meta.url));
 const WEB_URL = `http://localhost:${DEFAULT_PORTS.web}`;
 const LABEL = "Research Assistant";
-function loadRecording(scene: SceneId): Recording {
-  const file = `${SCENES_DIR}${scene}.json`;
-  if (!existsSync(file)) throw new Error(`No recording for "${scene}" at ${file}.`);
-  return RecordingSchema.parse(JSON.parse(readFileSync(file, "utf8")));
-}
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
@@ -74,7 +64,6 @@ async function main(): Promise<void> {
     },
   });
 
-  const status = await runtime.tools.status();
   const claude = args.scripted
     ? null
     : claudeModel({
@@ -89,52 +78,19 @@ async function main(): Promise<void> {
     claude ? claude.label : "scripted",
     `agent key ${runtime.agent.address}`,
   ]);
-  ui.agentStatus(status);
+  ui.agentStatus(await runtime.tools.status());
 
-  const execute = createExecutor({ tools: runtime.tools, fetch: globalThis.fetch });
-  const awaitOwner = ownerDecisions({
+  await runDemo({
+    tools: runtime.tools,
     chain: runtime.chain,
     agent: await runtime.agent.agentAddress(),
     ui,
+    scenes: args.scenes,
+    merchant: env.AGENT_MERCHANT_URL,
+    fetch: globalThis.fetch,
+    model: claude,
+    record: args.record ? { dir: SCENES_DIR, model: env.AGENT_MODEL } : undefined,
   });
-  for (const id of args.scenes) {
-    const scene = SCENES[id];
-    const task = scene.task(env.AGENT_MERCHANT_URL);
-    let model: Model;
-    let recorder: ReturnType<typeof recordingModel> | null = null;
-    if (claude === null) {
-      const recording = loadRecording(id);
-      model = replayModel(recording, { merchant: env.AGENT_MERCHANT_URL });
-      ui.scene(scene.title, task);
-      ui.notice(recording.disclosure);
-    } else {
-      recorder = args.record ? recordingModel(claude, { merchant: env.AGENT_MERCHANT_URL }) : null;
-      model = recorder?.model ?? claude;
-      ui.scene(scene.title, task);
-    }
-    const result = await runAgent({
-      session: model.session(),
-      task,
-      execute,
-      ui,
-      maxTurns: scene.maxTurns,
-      awaitOwner,
-    });
-    ui.summary(result);
-    if (recorder) {
-      const recording: Recording = {
-        version: 1,
-        scene: id,
-        source: "llm",
-        model: env.AGENT_MODEL,
-        recordedAt: new Date().toISOString(),
-        disclosure: `Replay of a recorded run of ${env.AGENT_MODEL}. The model's decisions are replayed; every tool runs live.`,
-        turns: recorder.turns,
-      };
-      writeFileSync(`${SCENES_DIR}${id}.recorded.json`, `${JSON.stringify(recording, null, 2)}\n`);
-      ui.notice(`Recorded to scenes/${id}.recorded.json.`);
-    }
-  }
 }
 
 main().catch((error: unknown) => {

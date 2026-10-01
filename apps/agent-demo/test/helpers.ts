@@ -130,6 +130,7 @@ export async function demoBed() {
   return {
     bed,
     app,
+    fetch,
     runtime,
     ui,
     lines,
