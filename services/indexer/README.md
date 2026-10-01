@@ -100,6 +100,7 @@ pipeline ── one delivery at a time ──► store (Drizzle + libSQL)
   - Agent-level events get their principal from the `AgentCreated` the source saw, or, after a restart, from the agents in the database.
   - At start, the delegations of the known agents are re-read.
   - `lagSeconds` is the time since the source last knew it had every transaction.
+  - **A cursor the RPC does not know** means the database belonged to another chain, such as a restarted localnet; Agave then fails every page that names the cursor. When a poll fails and `getTransaction` for the cursor returns nothing, the indexer logs a warning, empties its database and backfills. A plain RPC failure only retries.
 - **Fixture replay** ([ADR 20260930-ws4-fixture-replay](../../docs/adr/20260930-ws4-fixture-replay.md)):
   - Times follow the replay clock; deadlines keep their duration.
   - Every loop gets fresh signatures and ids and starts from empty projections.
@@ -109,7 +110,7 @@ pipeline ── one delivery at a time ──► store (Drizzle + libSQL)
 ## Develop
 
 ```bash
-pnpm --filter @leash/indexer test          # 47 tests: fixture parity, chain mode on LiteSVM, a real WebSocket
+pnpm --filter @leash/indexer test          # 49 tests: fixture parity, chain mode on LiteSVM, a real WebSocket
 pnpm --filter @leash/indexer typecheck
 pnpm --filter @leash/indexer lint
 pnpm --filter @leash/indexer db:generate   # after changing src/db/schema.ts; commit drizzle/
@@ -119,4 +120,4 @@ pnpm --filter @leash/indexer db:generate   # after changing src/db/schema.ts; co
 - **Chain mode** ([`test/chain.test.ts`](test/chain.test.ts)) runs on the real `leash.so` in LiteSVM, through the SDK's chain port:
   - Every view equals what the SDK reads from the accounts.
   - A crash between storing and saving the cursor loses and duplicates nothing.
-  - Paging and the backfill limit; failed and not-yet-retrievable transactions; the background loop (start, `poke`, failures, stop).
+  - Paging and the backfill limit; failed and not-yet-retrievable transactions; a cursor from another chain; the background loop (start, `poke`, failures, stop).

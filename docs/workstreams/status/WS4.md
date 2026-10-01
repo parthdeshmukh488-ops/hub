@@ -3,7 +3,7 @@
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-10-01
 - Current build step: 2 (chain ingestion) done; next: 3 (allowances and stats from chain data) and 4 (reconciliation)
-- Messages handled: through `20261001-0030-from-ws7-to-all-mcp-server-and-demo-agent-ready.md`
+- Messages handled: through `20261001-0150-from-ws1-to-ws4-ci-fix-remembered-poke.md`
 
 ## Plan for build step 1 (as executed)
 
@@ -39,6 +39,11 @@
 - In the SDK, `allowanceAt` now accepts any `{ address, mint, state }` (a type widening, no behaviour change), so the indexer reuses it instead of copying it.
 
 - 2026-09-30: `test/stream.test.ts` no longer depends on timing. It drives the heartbeat by hand and uses an in-order `sync()` barrier instead of sleeps. A short real ping interval once dropped the polite client on a busy CI runner (`main`, run 36701442666).
+
+- **2026-10-01, after the laptop's real-validator run:**
+  - It passed: backfill, live following and a restart, with views equal to the chain.
+  - It found a stall: Agave fails `getSignaturesForAddress` when `until` names a transaction it doesn't know, which is what happens after a localnet restart with an old database. The indexer now starts over in that case (logged; `Store.startOver`, tested).
+  - Its fix for a lost `poke` (`fea2387`) is kept.
 
 ## Next
 

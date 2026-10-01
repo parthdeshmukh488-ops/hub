@@ -242,6 +242,52 @@ describe("chain mode", () => {
     expect(types.filter((t) => t === "PaymentExecuted")).toHaveLength(1);
   });
 
+  it("starts over when the RPC does not know its cursor: the database belonged to another chain", async () => {
+    // The old chain: the database stores it, its cursor on a payment.
+    const old = await world();
+    await pay(old.agent, old.bed, 10_000n);
+    await sourceFor(old.bed, old.store).pollOnce(sinkOf(old.bed, old.store));
+    const stale = await old.store.cursor("chain");
+    if (!stale) throw new Error("expected a cursor");
+
+    // A restarted localnet: the same program and keys, but that payment never happened. Agave
+    // answers a page that names an unknown cursor with an error.
+    const bed = await createTestbed();
+    const chain: LeashChain = {
+      ...bed.chain,
+      getSignatures: async (address, page) => {
+        if (page.until && !(await bed.chain.getTransactionRecord(page.until))) {
+          throw new Error(`Transaction ${page.until} not found`);
+        }
+        return bed.chain.getSignatures(address, page);
+      },
+    };
+    const onForeignCursor = vi.fn((_cursor: { signature: string }) => old.store.startOver("chain"));
+    const source = sourceFor(bed, old.store, { chain, onForeignCursor });
+    expect(await source.pollOnce(sinkOf(bed, old.store))).toEqual({ processed: 0 });
+    expect(onForeignCursor).toHaveBeenCalledWith(stale);
+    expect(await old.store.cursor("chain")).toBeNull();
+    expect(await source.pollOnce(sinkOf(bed, old.store))).toEqual({ processed: 1 });
+    const events = await feed(old.store, bed.keys.owner.address);
+    expect(events.map((e) => e.type)).toEqual([
+      "PrincipalInitialized",
+      "AgentCreated",
+      "PayeeAdded",
+    ]);
+
+    // A plain RPC failure with a cursor the chain knows changes nothing.
+    chain.getSignatures = async () => {
+      throw new Error("rpc down");
+    };
+    await expect(source.pollOnce(sinkOf(bed, old.store))).rejects.toThrow("rpc down");
+    chain.getTransactionRecord = async () => {
+      throw new Error("rpc down");
+    };
+    await expect(source.pollOnce(sinkOf(bed, old.store))).rejects.toThrow("rpc down");
+    expect(onForeignCursor).toHaveBeenCalledOnce();
+    expect(await old.store.cursor("chain")).not.toBeNull();
+  });
+
   it("polls in the background: at start, on poke, after failures, until stopped", async () => {
     const { bed, agent, store } = await world();
     const errors: unknown[] = [];

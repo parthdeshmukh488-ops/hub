@@ -93,6 +93,15 @@ export class Store {
       .onConflictDoNothing();
   }
 
+  /**
+   * Empties everything and keeps the database bound to `source`: chain mode starting over when its
+   * cursor belongs to another chain (a restarted localnet).
+   */
+  async startOver(source: SourceKind): Promise<void> {
+    await this.clear();
+    await this.db.insert(t.cursors).values({ source, lastSignature: null, lastSlot: null });
+  }
+
   private async clear(): Promise<void> {
     await this.db.batch([
       this.db.delete(t.events),

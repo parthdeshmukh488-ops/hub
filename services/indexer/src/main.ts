@@ -43,6 +43,13 @@ async function main(): Promise<void> {
         now,
         onError: (err) => log.warn({ err }, "chain poll failed; retrying at the next interval"),
         onGap: (before) => log.warn({ before }, "more new transactions than one poll reads"),
+        onForeignCursor: async (cursor) => {
+          log.warn(
+            { cursor: cursor.signature, slot: cursor.slot },
+            "the RPC does not know the last transaction this database stored: it belongs to another chain (a restarted localnet?). Starting over from an empty database.",
+          );
+          await store.startOver("chain");
+        },
       })
     : createFixtureSource(loadStoryline(), {
         speed: env.INDEXER_REPLAY_SPEED,

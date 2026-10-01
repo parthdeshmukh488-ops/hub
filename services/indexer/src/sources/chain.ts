@@ -42,6 +42,13 @@ export type ChainSourceOptions = {
   onGap?: (skippedBefore: string) => void;
   /** Signatures per page; default 1 000, `getSignaturesForAddress`'s maximum. */
   pageSize?: number;
+  /**
+   * The RPC does not know the cursor's transaction: the database belongs to another chain (a
+   * restarted localnet) or the node no longer has it. The RPC then fails every page that names the
+   * cursor (Agave: "Transaction … not found"). The handler resets the database; the source then
+   * starts over with a backfill. Without it, polls keep failing.
+   */
+  onForeignCursor?: (cursor: ChainCursor) => Promise<void>;
 };
 
 /** A delegation account as the store keeps it. */
@@ -148,9 +155,27 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
     return records;
   }
 
+  /** True if the RPC answers that it does not have `cursor`'s transaction (not merely a failure). */
+  async function unknownToChain(cursor: ChainCursor): Promise<boolean> {
+    try {
+      return (await chain.getTransactionRecord(cursor.signature)) === null;
+    } catch {
+      return false;
+    }
+  }
+
   async function pollOnce(sink: EventSink): Promise<{ processed: number }> {
     const cursor = await options.cursor.load();
-    const fresh = await newSignatures(cursor);
+    let fresh: SignatureInfo[];
+    try {
+      fresh = await newSignatures(cursor);
+    } catch (error) {
+      if (!cursor || !options.onForeignCursor || !(await unknownToChain(cursor))) throw error;
+      await options.onForeignCursor(cursor);
+      principals.clear();
+      caughtUpAt = null;
+      return { processed: 0 };
+    }
     const touched = new Map<string, string | null>();
     let processed = 0;
     for (const info of fresh) {
