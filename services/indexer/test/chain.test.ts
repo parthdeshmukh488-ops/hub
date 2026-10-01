@@ -272,6 +272,40 @@ describe("chain mode", () => {
     source.poke();
     expect(source.lagSeconds()).toBe(0);
   });
+
+  it("polls once more after a poke that came during a poll", async () => {
+    let calls = 0;
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    // The first poll hangs in getSignatures until released; nothing else is read.
+    const chain = {
+      getSignatures: async () => {
+        calls += 1;
+        if (calls === 1) await gate;
+        return [];
+      },
+    } as unknown as LeashChain;
+    const source = createChainSource({
+      chain,
+      programId: LEASH_PROGRAM_ADDRESS,
+      cursor: { load: async () => null, save: async () => {} },
+      pollIntervalMs: 60_000,
+      backfillLimit: 10,
+    });
+    await source.start({
+      accounts: async () => {},
+      events: async () => {},
+      resetProjections: async () => {},
+    });
+    await vi.waitFor(() => expect(calls).toBe(1));
+    source.poke();
+    release();
+    // Without the remembered poke, the next poll would come 60 s later.
+    await vi.waitFor(() => expect(calls).toBe(2));
+    await source.stop();
+  });
 });
 
 /** The owner freezes the agent. */

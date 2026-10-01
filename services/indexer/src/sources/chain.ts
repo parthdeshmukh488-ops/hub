@@ -71,7 +71,7 @@ export function delegationRecord(delegation: DecodedDelegation, agent: string): 
 export type ChainSource = EventSource & {
   /** One poll: reads, stores and advances the cursor. Exposed for tests and tools. */
   pollOnce(sink: EventSink): Promise<{ processed: number }>;
-  /** Polls now instead of at the next interval. */
+  /** Polls now instead of at the next interval. During a poll: once more, right after it. */
   poke(): void;
 };
 
@@ -84,6 +84,8 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
   let controller: AbortController | null = null;
   let running: Promise<void> | null = null;
   let wake: (() => void) | null = null;
+  /** A poke that came while a poll was running: the next nap is skipped. */
+  let poked = false;
   let caughtUpAt: number | null = null;
 
   /** New transactions after the cursor, oldest first. */
@@ -190,6 +192,10 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
   }
 
   function nap(ms: number, signal: AbortSignal): Promise<void> {
+    if (poked) {
+      poked = false;
+      return Promise.resolve();
+    }
     return new Promise((resolve) => {
       const timer = setTimeout(done, ms);
       function done() {
@@ -206,10 +212,14 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
   return {
     kind: "chain",
     pollOnce,
-    poke: () => wake?.(),
+    poke: () => {
+      if (wake) wake();
+      else poked = true;
+    },
     async start(sink) {
       const abort = new AbortController();
       controller = abort;
+      poked = false;
       const report = options.onError ?? ((error: unknown) => Promise.reject(error));
       running = (async () => {
         try {
