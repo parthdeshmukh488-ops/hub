@@ -3,7 +3,7 @@
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-10-01
 - Current build step: 1–4 done (step 3 with hand-written scene scripts; real LLM recordings come from the laptop); next: 5, pitch polish with WS9
-- Messages handled: through `20260930-2015-from-ws3-to-all-x402-and-facilitator-ready.md`
+- Messages handled: through `20261001-0150-from-ws1-to-ws4-ci-fix-remembered-poke.md`
 
 ## Plan for build steps 2 and 4 (Parth: "wire the demo flow")
 
@@ -64,6 +64,12 @@ What the cloud can't do: call the Claude API. There's no key here, and runs cost
     - Unit tests cover the adapter (stubbed stream), `browse`, escape stripping, the loop's stops, recording, the owner wait and the CLI.
 - **Owner stand-in (WS2 lane):** `pnpm owner:approve [--reject]` approves or rejects pending requests with the owner-demo key, until WS6 and WS5 can.
 - **merchant-demo (WS8 lane):** `package.json` exports `./server` and `./content` for these tests.
+
+- **2026-10-01, after the laptop's real-validator run** (the whole demo passed on localnet):
+  - relative `AGENT_KEYPAIR` paths resolve against the repo root;
+  - after a decline, the replay stops before the turns written for an approval;
+  - no strike count on blocks that aren't strikes;
+  - a "Before each take" checklist in the README.
 
 ## Next
 

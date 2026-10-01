@@ -14,6 +14,10 @@
 
 ## Done
 
+- **2026-10-01 (from the cloud session):**
+  - The chain port pages a program's transactions: `getSignatures` with `before`/`until`, and `getTransactionRecord`. The indexer's chain mode uses it.
+  - New script: `pnpm owner:unfreeze`, which unfreezes the demo agent and clears leftover strikes with a freeze and an unfreeze in one transaction (tested on the real program).
+
 - **2026-10-01 (from the WS7 session):** `rpcChain`'s reads now throw `LeashNetworkError` (the cause is kept), so tools answer `NETWORK_ERROR` instead of crashing when the RPC is down. Also new: `scripts/owner-approve.ts` (`pnpm owner:approve [--reject]`), which signs with the owner-demo key and stands in for the owner's phone until WS6 and WS5 can approve.
 
 - **Build step 2, complete (2026-09-29).** `packages/sdk`:
