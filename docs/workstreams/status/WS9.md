@@ -3,7 +3,7 @@
 - Session branch: `claude/determined-faraday-9rk16e` (Parth's second Claude account, cloud)
 - Last updated: 2026-10-01
 - Current build step: 1 (narrative) done; next: the slide deck, then the rest of step 5's writing
-- Messages handled: through `20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md`
+- Messages handled: through `20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md` (including the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md): this session is its Task B)
 
 ## Done
 
@@ -27,7 +27,9 @@
 
 1. **The slide deck** from `deck.md`: a `.pptx` built with Claude's slide tools, which Parth imports into Google Slides ("Anyone with the link: Viewer"), and a PDF export in `docs/pitch/` as the backup link.
 2. `docs/pitch/demo-script.md` (second by second, with both paths for the owner's side: the web app, or `pnpm devnet:setup` / `owner:approve` / `owner:unfreeze`, and the "Before each take" checklist), `judge-qa.md`, `video-storyboard.md`.
+   - The demo script must cover the laptop's finding of 12:25: a scripted `leash_fetch` that comes back unpaid (status 500) still shows `✓` and the replay goes on (WS7's lane). Check the summary line before each take.
 3. When the in-progress items ship (web wallet actions, Telegram, the devnet run, recordings), move them to "done" in the README table and slide 9, and replace the screenshots with the devnet recording.
+4. Task D of the work queue (the whole storyline in one LiteSVM test in `e2e/`, and the security CI job) is also WS9's lane. The queue plans it as its own session.
 
 ## Open items
 
