@@ -53,6 +53,8 @@ export function wrapChain(chain: LeashChain, overrides: Partial<LeashChain>): Le
     simulate: (transaction) => chain.simulate(transaction),
     sendAndConfirm: (transaction) => chain.sendAndConfirm(transaction),
     getRecentTransactions: (address, limit) => chain.getRecentTransactions(address, limit),
+    getSignatures: (address, page) => chain.getSignatures(address, page),
+    getTransactionRecord: (signature) => chain.getTransactionRecord(signature),
     ...overrides,
   };
 }

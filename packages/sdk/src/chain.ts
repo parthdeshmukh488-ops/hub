@@ -30,6 +30,19 @@ export type SimulationResult = {
 /** A blockhash lifetime for a new transaction. */
 export type BlockhashLifetime = { blockhash: Blockhash; lastValidBlockHeight: bigint };
 
+/** A transaction that touched an address, as `getSignatures` lists it. */
+export type SignatureInfo = {
+  signature: string;
+  slot: bigint;
+  /** Null if the transaction succeeded. A failed transaction's events were reverted. */
+  err: unknown;
+  /** Unix seconds; null if the node doesn't know it. */
+  blockTime: bigint | null;
+};
+
+/** One page of `getSignatures`: at most `limit`, older than `before`, newer than `until` (both exclusive). */
+export type SignaturePage = { limit: number; before?: string; until?: string };
+
 export interface LeashChain {
   /** The accounts at `addresses`, in order; missing accounts have `exists: false`. */
   getAccounts(addresses: readonly Address[]): Promise<MaybeEncodedAccount[]>;
@@ -49,6 +62,14 @@ export interface LeashChain {
   sendAndConfirm(transaction: Transaction): Promise<TransactionRecord>;
   /** Recent successful transactions that touched `address`, newest first. */
   getRecentTransactions(address: Address, limit: number): Promise<readonly TransactionRecord[]>;
+  /**
+   * The transactions that touched `address`, newest first, a page at a time (as
+   * `getSignaturesForAddress` pages them). Failed transactions are listed too, so a cursor can
+   * move past them. The indexer follows the Leash program with it.
+   */
+  getSignatures(address: Address, page: SignaturePage): Promise<readonly SignatureInfo[]>;
+  /** One confirmed transaction, or null if the node does not have it (yet). */
+  getTransactionRecord(signature: string): Promise<TransactionRecord | null>;
 }
 
 /** The Clock sysvar. */

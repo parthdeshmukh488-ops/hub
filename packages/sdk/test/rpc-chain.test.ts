@@ -240,6 +240,44 @@ describe("rpcChain", () => {
     expect(getTransaction).toHaveBeenCalledTimes(1);
   });
 
+  it("pages signatures and fetches single transactions, cursors passed through", async () => {
+    const calls: unknown[][] = [];
+    const chain = rpcChain({
+      rpc: {
+        getSignaturesForAddress: (...args: unknown[]) => {
+          calls.push(args);
+          return call([
+            { signature: "s2", slot: 9n, err: null, blockTime: 1_790_935_200n },
+            {
+              signature: "s1",
+              slot: 8n,
+              err: { InstructionError: [0, "GenericError"] },
+              blockTime: null,
+            },
+          ]);
+        },
+        getTransaction: (signature: string) => call(signature === "s2" ? RPC_TRANSACTION : null),
+      } as never,
+      commitment: "finalized",
+    });
+    expect(await chain.getSignatures(LEASH, { limit: 2, before: "b", until: "u" })).toEqual([
+      { signature: "s2", slot: 9n, err: null, blockTime: 1_790_935_200n },
+      {
+        signature: "s1",
+        slot: 8n,
+        err: { InstructionError: [0, "GenericError"] },
+        blockTime: null,
+      },
+    ]);
+    await chain.getSignatures(LEASH, { limit: 1000 });
+    expect(calls).toEqual([
+      [LEASH, { commitment: "finalized", limit: 2, before: "b", until: "u" }],
+      [LEASH, { commitment: "finalized", limit: 1000 }],
+    ]);
+    expect(await chain.getTransactionRecord("s2")).toMatchObject({ signature: "sig", slot: 7n });
+    expect(await chain.getTransactionRecord("s3")).toBeNull();
+  });
+
   it("turns a failed read into LeashNetworkError, cause kept, so the tools say NETWORK_ERROR", async () => {
     const down = new TypeError("fetch failed");
     const failing = { send: vi.fn(async () => Promise.reject(down)) };
@@ -250,6 +288,7 @@ describe("rpcChain", () => {
         getLatestBlockhash: () => failing,
         simulateTransaction: () => failing,
         getSignaturesForAddress: () => failing,
+        getTransaction: () => failing,
       } as never,
     });
     const transaction = await signedTransaction();
@@ -259,6 +298,8 @@ describe("rpcChain", () => {
       () => chain.getLatestBlockhash(),
       () => chain.simulate(transaction),
       () => chain.getRecentTransactions(LEASH, 5),
+      () => chain.getSignatures(LEASH, { limit: 5 }),
+      () => chain.getTransactionRecord("s"),
     ];
     for (const read of reads) {
       const error = await read().catch((e: unknown) => e);

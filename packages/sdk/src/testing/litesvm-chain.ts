@@ -11,7 +11,13 @@ import {
   type Transaction,
 } from "@solana/kit";
 import { FailedTransactionMetadata, type LiteSVM, type TransactionMetadata } from "litesvm";
-import type { AccountFilter, LeashChain, SimulationResult } from "../chain.ts";
+import type {
+  AccountFilter,
+  LeashChain,
+  SignatureInfo,
+  SignaturePage,
+  SimulationResult,
+} from "../chain.ts";
 import type { TransactionRecord } from "../events.ts";
 
 // `LeashChain` on an in-process LiteSVM (the `litesvm` npm package). Errors come out exactly as a
@@ -102,6 +108,31 @@ export function litesvmChain(svm: LiteSVM): LiteSvmChain {
         .map((entry) => entry.record)
         .reverse()
         .slice(0, limit);
+    },
+
+    async getSignatures(address: Address, page: SignaturePage) {
+      // Newest first, like the RPC. Only confirmed transactions are kept here, so `err` is null.
+      const newestFirst = history.filter((entry) => entry.keys.includes(address)).reverse();
+      const start = page.before
+        ? newestFirst.findIndex((entry) => entry.record.signature === page.before) + 1
+        : 0;
+      const infos: SignatureInfo[] = [];
+      // An unknown `before` lists nothing (start 0 would restart from the newest).
+      if (page.before && start === 0) return infos;
+      for (const { record } of newestFirst.slice(start)) {
+        if (record.signature === page.until || infos.length >= page.limit) break;
+        infos.push({
+          signature: record.signature,
+          slot: BigInt(record.slot),
+          err: null,
+          blockTime: record.blockTime === null ? null : BigInt(record.blockTime),
+        });
+      }
+      return infos;
+    },
+
+    async getTransactionRecord(signature: string) {
+      return history.find((entry) => entry.record.signature === signature)?.record ?? null;
     },
   };
 }

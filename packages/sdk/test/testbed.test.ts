@@ -88,6 +88,41 @@ describe("litesvmChain", () => {
     expect(none).toEqual([]);
   });
 
+  it("pages the transactions that touched an address like getSignaturesForAddress", async () => {
+    const bed = await createTestbed();
+    const { agent } = agentOf(bed);
+    const first = await agent.pay({ to: bed.keys.merchant.address, amount: 1n, purpose: "a" });
+    const second = await agent.pay({ to: bed.keys.merchant.address, amount: 2n, purpose: "b" });
+    const all = await bed.chain.getSignatures(LEASH_PROGRAM_ADDRESS, { limit: 10 });
+    // Onboarding, then the two payments, newest first.
+    expect(all.map((s) => s.signature)).toEqual([
+      second.signature,
+      first.signature,
+      bed.chain.history[0]?.signature,
+    ]);
+    expect(all[0]).toEqual({
+      signature: second.signature,
+      slot: expect.any(BigInt),
+      err: null,
+      blockTime: TESTBED_NOW,
+    });
+    const page = (p: { limit: number; before?: string; until?: string }) =>
+      bed.chain
+        .getSignatures(LEASH_PROGRAM_ADDRESS, p)
+        .then((list) => list.map((s) => s.signature));
+    expect(await page({ limit: 1 })).toEqual([second.signature]);
+    expect(await page({ limit: 5, before: second.signature })).toEqual(
+      all.slice(1).map((s) => s.signature),
+    );
+    expect(await page({ limit: 5, until: first.signature })).toEqual([second.signature]);
+    expect(await page({ limit: 5, before: second.signature, until: first.signature })).toEqual([]);
+    expect(await page({ limit: 5, before: "unknown" })).toEqual([]);
+    expect(await bed.chain.getSignatures(bed.keys.attacker.address, { limit: 5 })).toEqual([]);
+
+    expect(await bed.chain.getTransactionRecord(first.signature)).toEqual(bed.chain.history[1]);
+    expect(await bed.chain.getTransactionRecord("unknown")).toBeNull();
+  });
+
   it("reads the clock sysvar and refuses anything else", async () => {
     const bed = await createTestbed();
     const [clock] = await bed.chain.getAccounts([SYSVAR_CLOCK_ADDRESS]);

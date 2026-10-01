@@ -23,7 +23,13 @@ import {
   type SimulateTransactionApi,
   type Transaction,
 } from "@solana/kit";
-import type { AccountFilter, LeashChain, SimulationResult } from "./chain.ts";
+import type {
+  AccountFilter,
+  LeashChain,
+  SignatureInfo,
+  SignaturePage,
+  SimulationResult,
+} from "./chain.ts";
 import { LeashNetworkError } from "./errors.ts";
 import { type TransactionRecord, transactionRecordFromRpc } from "./events.ts";
 
@@ -174,6 +180,40 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
         }
         await sleep(pollIntervalMs);
       }
+    },
+
+    async getSignatures(address: Address, page: SignaturePage) {
+      const entries = await reading("reading signatures", () =>
+        rpc
+          .getSignaturesForAddress(address, {
+            commitment,
+            limit: page.limit,
+            ...(page.before ? { before: page.before as Signature } : {}),
+            ...(page.until ? { until: page.until as Signature } : {}),
+          })
+          .send(),
+      );
+      return entries.map(
+        (entry): SignatureInfo => ({
+          signature: entry.signature,
+          slot: entry.slot,
+          err: entry.err,
+          blockTime: entry.blockTime === null ? null : BigInt(entry.blockTime),
+        }),
+      );
+    },
+
+    async getTransactionRecord(signature: string) {
+      const response = await reading("reading a transaction", () =>
+        rpc
+          .getTransaction(signature as Signature, {
+            commitment,
+            encoding: "json",
+            maxSupportedTransactionVersion: 0,
+          })
+          .send(),
+      );
+      return response === null ? null : transactionRecordFromRpc(response);
     },
 
     async getRecentTransactions(address: Address, limit: number) {
