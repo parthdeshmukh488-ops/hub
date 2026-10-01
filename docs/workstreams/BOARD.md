@@ -25,14 +25,14 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | --- | --- | --- | --- | --- |
 | 1 | **WS1** Leash program | your laptop (Solana toolchain) | Done, live on devnet. Rebuild and upgrade on the laptop after any program change. | the devnet demo |
 | 2 | **WS2** SDK | anywhere | Steps 1–6 done. Step 7: API feedback from WS3, WS6, WS7, then 1.0. | almost everyone |
-| 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet + pairing) and step 3 writes need the IDL. | the demo UI |
+| 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet, pairing, approve, freeze): **cloud session 1, next**. | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Done: keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Steps 1–2 done. Next: step 3 (stats on chain data) and 4 (reconciliation); a real-chain run on the laptop. | WS5, WS6 live data |
 | 6 | **WS8** merchants and lab | anywhere | Steps 1–2 done (paid routes on through `leashMerchant`). | WS7 demo |
 | 7 | **WS7** tools, MCP, agent | anywhere | Steps 1–4 done. Step 5: pitch polish with WS9. | the demo |
-| 8 | **WS5** Sentinel | anywhere | Step 1: rules engine on the storyline fixture | alerts |
+| 8 | **WS5** Sentinel | anywhere | **Second Claude account** (`deshmukhparth921-commits`), branch `ws5/sentinel`: steps 1–3 and 5 ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | alerts |
 | 9 | **WS3** x402 + facilitator | anywhere | Steps 1–5 done. Next: a real run on localnet/devnet (laptop). | WS7, WS8 paid routes |
-| 10 | **WS9** integration and story | anywhere | Step 1: README v1 + deck narrative | the pitch |
+| 10 | **WS9** integration and story | anywhere | **Second Claude account**, branch `ws9/story`: README v1, `docs/pitch/` ([tasks](messages/20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md)) | the pitch |
 
 Fewer terminals? Combine sessions in this order:
 
