@@ -106,6 +106,15 @@ describe("the screen", () => {
       recorded: false,
       retryable: false,
     });
+    // A frozen agent's block carries the window's strikes, but is not a strike itself.
+    ui.result("leash_pay", {
+      ok: false,
+      code: "AGENT_FROZEN",
+      message: "m",
+      recorded: true,
+      strikes: 3,
+      retryable: false,
+    });
     ui.result("mystery", { ok: true });
     expect(lines).toEqual([
       "  → leash_fetch GET http://m.test/api/research?q=x · “Research”",
@@ -121,6 +130,7 @@ describe("the screen", () => {
       "    ✓ frozen (tripwire) · 4.93 USDC left · strikes 3/3",
       "    ✗ NOT_PAIRED",
       "    ✗ BLOCKED: too many payments too fast",
+      "    ✗ BLOCKED: this agent is paused · recorded on-chain",
       "    ✓",
     ]);
   });

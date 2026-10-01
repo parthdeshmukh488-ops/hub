@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import Anthropic from "@anthropic-ai/sdk";
 import {
   buildPairingUrl,
@@ -5,7 +6,7 @@ import {
   explorerTxUrl,
   resolveClusterConfig,
 } from "@leash/contracts";
-import { connectLeash, loadAgentKey, waitForPairing } from "@leash/tools/node";
+import { connectLeash, loadAgentKey, resolveKeypairPath, waitForPairing } from "@leash/tools/node";
 import { parseArgs, USAGE } from "./cli.ts";
 import { runDemo, SCENES_DIR } from "./demo.ts";
 import { loadEnv } from "./env.ts";
@@ -17,6 +18,7 @@ import { createUi } from "./ui.ts";
 // The demo agent (WS7): `pnpm --filter agent-demo demo [scene…] [--scripted] [--record]`. Wires
 // the configured cluster, the agent key and Claude around `runDemo`.
 
+const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const WEB_URL = `http://localhost:${DEFAULT_PORTS.web}`;
 const LABEL = "Research Assistant";
 
@@ -35,7 +37,11 @@ async function main(): Promise<void> {
     explorer: (signature) => explorerTxUrl(cluster, signature),
   });
 
-  const key = await loadAgentKey(env.AGENT_KEYPAIR, { create: true });
+  // Relative paths are the repo root's, like the other services' key files: `pnpm --filter` runs
+  // this from apps/agent-demo, where `.keys/agent.json` would silently mean a new key.
+  const key = await loadAgentKey(resolveKeypairPath(env.AGENT_KEYPAIR, REPO_ROOT), {
+    create: true,
+  });
   if (key.created) ui.notice(`Created a new agent key at ${key.path}.`);
   const link = buildPairingUrl(WEB_URL, {
     agentKey: key.signer.address,

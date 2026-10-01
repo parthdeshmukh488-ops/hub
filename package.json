@@ -24,6 +24,7 @@
     "devnet:setup": "pnpm --filter @leash/sdk devnet:setup",
     "devnet:smoke": "pnpm --filter @leash/sdk devnet:smoke",
     "owner:approve": "pnpm --filter @leash/sdk owner:approve",
+    "owner:unfreeze": "pnpm --filter @leash/sdk owner:unfreeze",
     "localnet": "bash scripts/localnet.sh",
     "artifact:subscriptions": "bash scripts/subscriptions-artifact.sh"
   },

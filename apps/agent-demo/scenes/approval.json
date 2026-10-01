@@ -51,7 +51,8 @@
           "expect": "ok"
         }
       ],
-      "stop": "tool_use"
+      "stop": "tool_use",
+      "afterApproval": true
     },
     {
       "steps": [

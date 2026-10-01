@@ -27,12 +27,18 @@ export type ModelTurn = { steps: Step[]; stop: StopKind };
 /** A tool's result as the model sees it: the tool's JSON output. */
 export type ToolResult = { id: string; content: string; isError: boolean };
 
+/** What the harness knows when it adds a note: whether the owner approved what was asked. */
+export type NoteContext = { ownerApproved?: boolean };
+
 /** One conversation. */
 export interface ModelSession {
   /** The first turn, for the user's task. */
   start(task: string): Promise<ModelTurn>;
-  /** The next turn, after the tools of the last one ran; `note` adds a message (e.g. the owner decided). */
-  next(results: readonly ToolResult[], note?: string): Promise<ModelTurn>;
+  /**
+   * The next turn, after the tools of the last one ran. `note` adds a message (e.g. the owner
+   * decided); `context` says what it means, for a replay to check (a model reads the note).
+   */
+  next(results: readonly ToolResult[], note?: string, context?: NoteContext): Promise<ModelTurn>;
 }
 
 export interface Model {

@@ -36,8 +36,11 @@ function noteFor(request: RequestView, decision: Decision | undefined): string {
   return `The owner has not answered ${what} yet. Continue without it.`;
 }
 
-/** Waits for the owner's decision on the agent's pending requests; the note for the model, or null if none is pending. */
-export function ownerDecisions(options: OwnerWaitOptions): () => Promise<string | null> {
+/** What the model is told after the wait, and whether the owner approved everything asked. */
+export type OwnerUpdate = { note: string; approved: boolean };
+
+/** Waits for the owner's decision on the agent's pending requests; null if none is pending. */
+export function ownerDecisions(options: OwnerWaitOptions): () => Promise<OwnerUpdate | null> {
   const sleep = options.sleep ?? ((ms: number) => new Promise((r) => setTimeout(r, ms)));
   const clock = options.clock ?? Date.now;
   return async () => {
@@ -78,6 +81,9 @@ export function ownerDecisions(options: OwnerWaitOptions): () => Promise<string 
             : `No answer from the owner for ${describe(request)}.`,
       );
     }
-    return `Update from Leash: ${pending.map((r) => noteFor(r, decided.get(r.address))).join(" ")}`;
+    return {
+      note: `Update from Leash: ${pending.map((r) => noteFor(r, decided.get(r.address))).join(" ")}`,
+      approved: pending.every((r) => decided.get(r.address) === "approved"),
+    };
   };
 }

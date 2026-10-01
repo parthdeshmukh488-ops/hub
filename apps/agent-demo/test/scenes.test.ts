@@ -69,6 +69,10 @@ describe("scene scripts", () => {
     const screen = demo.screen();
     expect(screen).toContain("The owner declined 1.50 USDC");
     expect(screen).toContain("A live result differs from the script, so the replay stops here.");
+    // It stops before the turn written for an approval: no "approved" thinking, no second request.
+    expect(screen).not.toContain("The owner approved the request");
+    expect(await demo.owner.pending()).toEqual([]);
+    expect(result.approvals).toBe(1);
     expect(screen).not.toContain("Top three picks");
   });
 

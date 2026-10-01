@@ -19,6 +19,8 @@ export type UiOptions = {
 export type Ui = ReturnType<typeof createUi>;
 
 const OWNER_COPY = new Map<string, string>(DENIAL_REASONS.map((d) => [d.toolCode, d.ownerCopy]));
+/** Denials that count as strikes; the others carry the window's count but are not one. */
+const STRIKE_CODES = new Set<string>(DENIAL_REASONS.filter((d) => d.strike).map((d) => d.toolCode));
 
 const record = (value: unknown): Record<string, unknown> =>
   typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
@@ -76,7 +78,7 @@ export function createUi(options: UiOptions) {
     const copy = OWNER_COPY.get(code);
     if (!copy) return paint("red", `✗ ${code}`);
     const parts = [`✗ BLOCKED: ${copy.toLowerCase()}`];
-    if (typeof output.strikes === "number" && output.strikes > 0) {
+    if (STRIKE_CODES.has(code) && typeof output.strikes === "number" && output.strikes > 0) {
       parts.push(
         maxStrikes ? `strike ${output.strikes}/${maxStrikes}` : `strike ${output.strikes}`,
       );

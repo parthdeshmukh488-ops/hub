@@ -70,10 +70,21 @@ AGENT_KEYPAIR=.keys/agent.json AGENT_OWNER=<.keys/owner-demo.json address> \
 
 In the approval scene, the demo waits up to 3 minutes for the owner's decision on-chain. Approving in the web app (WS6) and from Telegram (WS5) are still to come. Meanwhile, approve from another terminal with `pnpm owner:approve --cluster localnet` (`--reject` to decline).
 
+### Before each take
+
+Learned on the laptop's real-validator runs:
+
+1. **Start clean.**
+   - `pnpm owner:unfreeze --cluster <cluster>` unfreezes the agent after the last take's tripwire.
+   - It also clears leftover strikes, e.g. the one `x402:smoke` leaves: strikes last 10 minutes, and with one left over the tripwire fires on the second try instead of the third.
+   - Order on a fresh setup: `x402:smoke`, `devnet:smoke`, then the storyline.
+2. **Two full takes a day.** A take pays the Research API 1.57 USDC, and the preset allows that payee 3 USDC a day. The approved 1.50 is allowed above the payee's per-payment limit, but it counts toward the day's total. For a third take, the owner raises the payee's limit, or pairs a fresh agent.
+3. **`runaway` needs 30 payments inside a minute.** That's easy on localnet (0.5 s each). On devnet it depends on the RPC; if the limit isn't reached, the replay stops honestly.
+
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `AGENT_OWNER` | none | The owner wallet whose principal holds this agent |
-| `AGENT_KEYPAIR` | `~/.config/leash/agent.json` | The agent key; created on first run if missing. Without pairing, the demo prints the pairing link and waits. |
+| `AGENT_KEYPAIR` | `~/.config/leash/agent.json` | The agent key; created on first run if missing. Relative paths are the repo root's (like `.keys/agent.json`). Without pairing, the demo prints the pairing link and waits. |
 | `AGENT_MODE` | `llm` | `llm` or `scripted` |
 | `AGENT_MODEL` | `claude-opus-5-5` | Any current Claude model ID |
 | `ANTHROPIC_API_KEY` | none | LLM mode only; never printed |
@@ -92,4 +103,8 @@ No network and no API key:
   - The storyline runs as one demo.
   - A recorded run is promoted to a script and replayed.
 - **Claude adapter:** checked against a stubbed stream: the request settings, tool results and the owner's note, retries of unparseable tool input, and no retry of API errors.
-- **Everything else:** `browse` (it never pays), escape stripping and the screen's lines, the loop's stops (refusal, `max_tokens`, divergence, the turn limit, failing tools), recording placeholders, waiting for the owner (timeout, a failed read), the CLI and the configuration.
+- **Everything else:**
+  - `browse` (it never pays), escape stripping and the screen's lines;
+  - the loop's stops: refusal, `max_tokens`, divergence, the turn limit, failing tools;
+  - recording placeholders, and turns that answer an approval (played only after one);
+  - waiting for the owner (timeout, a failed read), the CLI and the configuration.

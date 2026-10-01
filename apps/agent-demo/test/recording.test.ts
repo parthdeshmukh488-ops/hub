@@ -107,6 +107,43 @@ describe("recording and replay", () => {
     ).toBe("replay of a model (undated)");
   });
 
+  it("plays a turn written for the owner's approval only after an approval", async () => {
+    const recording: Recording = {
+      version: 1,
+      scene: "approval",
+      source: "script",
+      model: null,
+      recordedAt: null,
+      disclosure: "Scripted.",
+      turns: [
+        { steps: [{ kind: "text", text: "Asked the owner." }], stop: "end_turn" },
+        {
+          steps: [{ kind: "text", text: "Approved, buying." }],
+          stop: "end_turn",
+          afterApproval: true,
+        },
+      ],
+    };
+    const declined = replayModel(recording, { merchant: "x" }).session();
+    await declined.start("t");
+    expect(await declined.next([], "declined", { ownerApproved: false })).toEqual({
+      steps: [],
+      stop: "diverged",
+    });
+    const approved = replayModel(recording, { merchant: "x" }).session();
+    await approved.start("t");
+    expect((await approved.next([], "approved", { ownerApproved: true })).steps).toEqual([
+      { kind: "text", text: "Approved, buying." },
+    ]);
+    // Recording marks the turn that answered an approval.
+    const recorder = recordingModel(fakeModel(), { merchant: "http://localhost:4300" });
+    const session = recorder.model.session();
+    await session.start("t");
+    await session.next([], "The owner approved.", { ownerApproved: true });
+    expect(recorder.turns[1]?.afterApproval).toBe(true);
+    expect(recorder.turns[0]?.afterApproval).toBeUndefined();
+  });
+
   it("reads a tool's outcome from its JSON", () => {
     expect(outcomeOf('{"ok":true}')).toBe("ok");
     expect(outcomeOf('{"ok":false,"code":"AGENT_FROZEN"}')).toBe("AGENT_FROZEN");

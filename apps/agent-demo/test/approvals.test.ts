@@ -38,7 +38,9 @@ describe("waiting for the owner", () => {
         now += ms;
       },
     });
-    expect(await wait()).toMatch(
+    const update = await wait();
+    expect(update?.approved).toBe(false);
+    expect(update?.note).toMatch(
       /^Update from Leash: The owner has not answered your payment request for 1\.50 USDC to \w{4}…\w{4} yet\. Continue without it\.$/,
     );
     expect(demo.screen()).toContain("No answer from the owner for 1.50 USDC");
@@ -67,7 +69,9 @@ describe("waiting for the owner", () => {
         }
       },
     });
-    expect(await wait()).toContain("The owner approved your payment request for 1.50 USDC");
+    const update = await wait();
+    expect(update?.approved).toBe(true);
+    expect(update?.note).toContain("The owner approved your payment request for 1.50 USDC");
     expect(reads).toBeGreaterThanOrEqual(3);
   });
 });

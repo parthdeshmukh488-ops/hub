@@ -144,7 +144,7 @@ describe("the agent loop", () => {
     expect(result).toMatchObject({ stop: "end_turn", approvals: 1 });
     expect(sent).toHaveLength(1);
     // Without an approval request, the owner is never waited for.
-    const quiet = vi.fn(async () => "news");
+    const quiet = vi.fn(async () => ({ note: "news", approved: true }));
     await runAgent({
       session: scripted({ steps: [], stop: "end_turn" }).session,
       task: "t",

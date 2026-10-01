@@ -237,6 +237,27 @@ describe("admin builders", () => {
     expect((await fetchAgentView(bed.chain, agent))?.status).toBe("active");
   });
 
+  it("clear an active agent's leftover strikes with a freeze and an unfreeze in one transaction", async () => {
+    const bed = await createTestbed();
+    const { owner } = bed.keys;
+    const { agent: leash } = agentOf(bed);
+    const agent = bed.accounts.agent;
+    await leash
+      .pay({ to: bed.keys.attacker.address, amount: 1n, purpose: "x" })
+      .catch(() => undefined);
+    expect((await fetchAgentView(bed.chain, agent))?.stats.strikes).toBe(1);
+    // unfreeze_agent alone leaves an active agent's strikes alone (01 §6)...
+    await bed.send(owner, [await buildUnfreezeAgent({ owner, agent })]);
+    expect((await fetchAgentView(bed.chain, agent))?.stats.strikes).toBe(1);
+    // ...so `pnpm owner:unfreeze` freezes and unfreezes in one transaction.
+    await bed.send(owner, [
+      await buildFreezeAgent({ authority: owner, owner: owner.address, agent }),
+      await buildUnfreezeAgent({ owner, agent }),
+    ]);
+    const view = await fetchAgentView(bed.chain, agent);
+    expect(view).toMatchObject({ status: "active", stats: { strikes: 0 } });
+  });
+
   it("change the guardian", async () => {
     const bed = await createTestbed();
     const { owner, stranger } = bed.keys;

@@ -1,3 +1,4 @@
+import type { OwnerUpdate } from "./approvals.ts";
 import type { ModelSession, ModelTurn, ToolResult } from "./model.ts";
 import { emptyOutcome, type Outcome, tally } from "./outcome.ts";
 import type { Ui } from "./ui.ts";
@@ -16,10 +17,10 @@ export type RunOptions = {
   /** Model turns at most. Default 24. */
   maxTurns?: number;
   /**
-   * Called when the model ends its turn while an approval request it caused is open. Returns a
-   * message for the model (the owner's decision), or null to end the scene.
+   * Called when the model ends its turn while an approval request it caused is open. Returns the
+   * owner's decision, told to the model, or null to end the scene.
    */
-  awaitOwner?: () => Promise<string | null>;
+  awaitOwner?: () => Promise<OwnerUpdate | null>;
 };
 
 export type RunResult = Outcome & { stop: ModelTurn["stop"] | "max_turns" };
@@ -71,9 +72,9 @@ export async function runAgent(options: RunOptions): Promise<RunResult> {
     }
     if (turn.stop === "end_turn" && awaitingOwner && options.awaitOwner) {
       awaitingOwner = false;
-      const note = await options.awaitOwner();
-      if (note) {
-        turn = await session.next([], note);
+      const update = await options.awaitOwner();
+      if (update) {
+        turn = await session.next([], update.note, { ownerApproved: update.approved });
         continue;
       }
     }

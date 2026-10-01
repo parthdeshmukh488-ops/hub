@@ -22,6 +22,8 @@ const StepSchema = z.discriminatedUnion("kind", [
 const TurnSchema = z.object({
   steps: z.array(StepSchema),
   stop: z.enum(["tool_use", "end_turn", "max_tokens", "refusal", "diverged", "other"]),
+  /** The turn answers the owner's approval: a replay plays it only if the owner approved. */
+  afterApproval: z.boolean().optional(),
 });
 
 export const RecordingSchema = z.object({
@@ -79,7 +81,10 @@ export function replayModel(recording: Recording, options: { merchant: string })
         turns[index++] ?? { steps: [], stop: "end_turn" };
       return {
         start: play,
-        async next(results) {
+        async next(results, _note, context) {
+          if (turns[index]?.afterApproval && context?.ownerApproved !== true) {
+            return { steps: [], stop: "diverged" };
+          }
           const previous = turns[index - 1]?.steps ?? [];
           for (const result of results) {
             const step = previous.find((s) => s.kind === "tool" && s.id === result.id);
@@ -99,11 +104,12 @@ export function replayModel(recording: Recording, options: { merchant: string })
 export function recordingModel(
   model: Model,
   options: { merchant: string },
-): { model: Model; turns: ModelTurn[] } {
-  const turns: ModelTurn[] = [];
-  const keep = async (turn: Promise<ModelTurn>) => {
+): { model: Model; turns: Recording["turns"] } {
+  const turns: Recording["turns"] = [];
+  const keep = async (turn: Promise<ModelTurn>, afterApproval = false) => {
     const value = await turn;
-    turns.push(replaceStrings(value, options.merchant, MERCHANT_PLACEHOLDER));
+    const kept = replaceStrings(value, options.merchant, MERCHANT_PLACEHOLDER);
+    turns.push(afterApproval ? { ...kept, afterApproval: true } : kept);
     return value;
   };
   return {
@@ -114,13 +120,13 @@ export function recordingModel(
         const inner = model.session();
         return {
           start: (task) => keep(inner.start(task)),
-          next: (results, note) => {
+          next: (results, note, context) => {
             // The results of the last turn's calls become what a replay expects of them.
             for (const step of turns.at(-1)?.steps ?? []) {
               const result = step.kind === "tool" && results.find((r) => r.id === step.id);
               if (result && step.kind === "tool") step.expect = outcomeOf(result.content);
             }
-            return keep(inner.next(results, note));
+            return keep(inner.next(results, note, context), context?.ownerApproved === true);
           },
         };
       },

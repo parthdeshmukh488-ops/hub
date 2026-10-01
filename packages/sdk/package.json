@@ -15,7 +15,8 @@
     "test": "vitest run --coverage",
     "devnet:setup": "tsx scripts/devnet-setup.ts",
     "devnet:smoke": "tsx scripts/devnet-smoke.ts",
-    "owner:approve": "tsx scripts/owner-approve.ts"
+    "owner:approve": "tsx scripts/owner-approve.ts",
+    "owner:unfreeze": "tsx scripts/owner-unfreeze.ts"
   },
   "dependencies": {
     "@leash/contracts": "workspace:*",
