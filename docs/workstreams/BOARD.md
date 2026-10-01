@@ -25,7 +25,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | --- | --- | --- | --- | --- |
 | 1 | **WS1** Leash program | your laptop (Solana toolchain) | Done, live on devnet. Rebuild and upgrade on the laptop after any program change. | the devnet demo |
 | 2 | **WS2** SDK | anywhere | Steps 1–6 done. Step 7: API feedback from WS3, WS6, WS7, then 1.0. | almost everyone |
-| 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet, pairing, approve, freeze): **cloud session 1, next**. | the demo UI |
+| 3 | **WS6** web app | anywhere | Steps 1 and 3 (read side) done. Step 2 (wallet, pairing, approve, freeze): **cloud session 1, next**. Solana Actions (`src/app/api/actions/**`): **second account**, Task C of the [work queue](messages/20261001-1200-from-architect-to-second-account-work-queue.md). | the demo UI |
 | 4 | **WS0** step 4 | your laptop (Solana toolchain) | Done: keys, `subscriptions.so`, localnet, devnet check | WS1 program tests, every end-to-end run |
 | 5 | **WS4** indexer | anywhere | Steps 1–2 done. Next: step 3 (stats on chain data) and 4 (reconciliation); a real-chain run on the laptop. | WS5, WS6 live data |
 | 6 | **WS8** merchants and lab | anywhere | Steps 1–2 done (paid routes on through `leashMerchant`). | WS7 demo |
