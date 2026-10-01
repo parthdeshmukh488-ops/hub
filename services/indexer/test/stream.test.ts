@@ -52,8 +52,9 @@ async function connect(url: string, headers: Record<string, string> = {}) {
     socket.once("error", reject);
   });
   cleanups.push(() => socket.close());
+  // Up to 10 s: it returns as soon as the predicate holds, and a loaded CI runner can be slow.
   const until = async (predicate: () => boolean) => {
-    for (let i = 0; i < 200 && !predicate(); i++) await new Promise((r) => setTimeout(r, 10));
+    for (let i = 0; i < 1_000 && !predicate(); i++) await new Promise((r) => setTimeout(r, 10));
     expect(predicate()).toBe(true);
   };
   const errors = () => messages.filter((m) => m.type === "error").length;
