@@ -6,9 +6,18 @@ import {
   ActionGetResponseSchema,
   ActionPostResponseSchema,
 } from "@leash/contracts";
-import { buildFreezeAgent, fetchAgentView, fetchPrincipalView } from "@leash/sdk";
-import { createTestbed, type Testbed } from "@leash/sdk/testing";
 import {
+  buildApproveRequest,
+  buildFreezeAgent,
+  buildRejectRequest,
+  fetchAgentView,
+  fetchPrincipalView,
+  fetchRequestView,
+  LeashAgent,
+} from "@leash/sdk";
+import { createTestbed, type Testbed, USDC } from "@leash/sdk/testing";
+import {
+  type Address,
   getBase64Encoder,
   getTransactionDecoder,
   type KeyPairSigner,
@@ -21,9 +30,11 @@ import {
   OPTIONS as actionsJsonOptions,
 } from "../src/app/actions.json/route.ts";
 import { GET as iconGet } from "../src/app/api/actions/icon/route.ts";
+import { approveAction } from "../src/server/actions/approve.ts";
 import { freezeAction } from "../src/server/actions/freeze.ts";
 import { freezeAllAction } from "../src/server/actions/freeze-all.ts";
 import { ACTION_VERSION } from "../src/server/actions/http.ts";
+import { rejectAction } from "../src/server/actions/reject.ts";
 import {
   type ActionDefinition,
   type ActionName,
@@ -242,5 +253,168 @@ describe("freeze-all?owner=", () => {
   it("sends a browser to the app", async () => {
     const response = await getAction(h(), PATH, query(), "text/html");
     expect(response.headers.get("location")).toBe(`${APP}/app`);
+  });
+});
+
+/** The agent asks the owner to approve 2 USDC to the merchant (above its 1 USDC instant limit). */
+async function pendingRequest(purpose = "premium e-bike comparison report"): Promise<string> {
+  const agent = new LeashAgent({
+    chain: bed.chain,
+    signer: bed.keys.agentKey,
+    owner: bed.keys.owner.address,
+    logger: { warn: () => undefined },
+  });
+  const pending = await agent.requestApproval({
+    to: bed.keys.merchant.address,
+    amount: 2n * USDC,
+    purpose,
+  });
+  return pending.address;
+}
+
+describe("approve?request=", () => {
+  const PATH = "/api/actions/approve";
+  const h = () => handlers(approveAction);
+
+  it("describes the request from the chain: amount, payee, agent and memo", async () => {
+    const request = await pendingRequest();
+    const body = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(body.title).toMatch(/^Approve 2\.00 USDC to \S/);
+    expect(body.label).toBe("Approve");
+    expect(body.description).toMatch(
+      /asks to pay 2\.00 USDC to .* for “premium e-bike comparison report”\./,
+    );
+    expect(body.disabled).toBeUndefined();
+  });
+
+  it("builds a transaction the owner signs, and it approves the request on-chain", async () => {
+    const request = await pendingRequest();
+    await signAndSend(
+      await transactionOf(
+        await postAction(h(), PATH, { request }, { account: bed.keys.owner.address }),
+      ),
+      bed.keys.owner,
+    );
+    expect(await fetchRequestView(bed.chain, request as Address)).toMatchObject({
+      status: "approved",
+    });
+    const after = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(after).toMatchObject({
+      disabled: true,
+      description: expect.stringMatching(/already approved/),
+    });
+    await errorOf(
+      await postAction(h(), PATH, { request }, { account: bed.keys.owner.address }),
+      409,
+    );
+  });
+
+  it("lets only the owner approve: the guardian and a stranger get 403, and the program agrees", async () => {
+    const request = await pendingRequest();
+    for (const who of ["guardian", "stranger"] as const) {
+      const message = await errorOf(
+        await postAction(h(), PATH, { request }, { account: bed.keys[who].address }),
+        403,
+      );
+      expect(message).toMatch(/Only the owner/);
+    }
+    const direct = await buildApproveRequest({
+      owner: bed.keys.guardian,
+      agent: bed.accounts.agent,
+      request: request as Address,
+    });
+    await expect(bed.send(bed.keys.guardian, [direct])).rejects.toThrow();
+    expect(await fetchRequestView(bed.chain, request as Address)).toMatchObject({
+      status: "pending",
+    });
+  });
+
+  it("is disabled once the request expired", async () => {
+    const request = await pendingRequest();
+    bed.advance(3_601n);
+    const body = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(body).toMatchObject({ disabled: true, description: expect.stringMatching(/expired/) });
+    await errorOf(
+      await postAction(h(), PATH, { request }, { account: bed.keys.owner.address }),
+      409,
+    );
+  });
+
+  it("strips control and bidi characters from the memo", async () => {
+    const request = await pendingRequest("pay\u202Emoc.live\u0007 now");
+    const body = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(body.description).not.toMatch(/[\p{Cc}\p{Cf}]/u);
+    expect(body.description).toContain("“pay moc.live now”");
+  });
+
+  it("answers 404 for a missing request, and sends a browser to the approvals inbox", async () => {
+    const message = await errorOf(
+      await getAction(h(), PATH, { request: bed.keys.stranger.address }),
+      404,
+    );
+    expect(message).toMatch(/executed, rejected or expired/);
+    const response = await getAction(
+      h(),
+      PATH,
+      { request: bed.keys.stranger.address },
+      "text/html",
+    );
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe(`${APP}/app/approvals`);
+  });
+});
+
+describe("reject?request=", () => {
+  const PATH = "/api/actions/reject";
+  const h = () => handlers(rejectAction);
+
+  it("describes the request with Reject", async () => {
+    const request = await pendingRequest();
+    const body = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(body.title).toMatch(/^Reject 2\.00 USDC to \S/);
+    expect(body.label).toBe("Reject");
+  });
+
+  for (const who of ["owner", "guardian"] as const) {
+    it(`builds a transaction the ${who} signs, and it closes the request on-chain`, async () => {
+      const request = await pendingRequest();
+      await signAndSend(
+        await transactionOf(
+          await postAction(h(), PATH, { request }, { account: bed.keys[who].address }),
+        ),
+        bed.keys[who],
+      );
+      expect(await fetchRequestView(bed.chain, request as Address)).toBeNull();
+      await errorOf(await getAction(h(), PATH, { request }), 404);
+    });
+  }
+
+  it("refuses a stranger with 403, and the program refuses one too", async () => {
+    const request = await pendingRequest();
+    await errorOf(
+      await postAction(h(), PATH, { request }, { account: bed.keys.stranger.address }),
+      403,
+    );
+    const view = await fetchRequestView(bed.chain, request as Address);
+    if (!view) throw new Error("request missing");
+    const direct = await buildRejectRequest({
+      authority: bed.keys.stranger,
+      owner: bed.keys.owner.address,
+      agent: bed.accounts.agent,
+      request: request as Address,
+      rentReceiver: view.rentPayer as Address,
+    });
+    await expect(bed.send(bed.keys.stranger, [direct])).rejects.toThrow();
+    expect(await fetchRequestView(bed.chain, request as Address)).not.toBeNull();
   });
 });
