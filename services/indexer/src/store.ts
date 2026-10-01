@@ -52,11 +52,25 @@ type Statement = BatchItem<"sqlite">;
  * The indexer's only writer and its read model. Ingestion is sequential (the pipeline queues
  * it); each event is inserted together with its projection changes in one atomic batch.
  */
+export type StoreOptions = {
+  /**
+   * Apply each `PaymentExecuted` to the stored delegation. Fixture mode needs it (the storyline
+   * has no later account states). Chain mode turns it off: delegations come from the accounts,
+   * which already include every payment, so applying events too would count them twice.
+   */
+  delegationsFromEvents?: boolean;
+};
+
 export class Store {
+  private readonly delegationsFromEvents: boolean;
+
   constructor(
     private readonly db: Db,
     private readonly log: Logger,
-  ) {}
+    options: StoreOptions = {},
+  ) {
+    this.delegationsFromEvents = options.delegationsFromEvents ?? true;
+  }
 
   // ── Ownership and resets ──────────────────────────────────────────────────
 
@@ -96,6 +110,43 @@ export class Store {
       this.db.delete(t.allowances),
       this.db.delete(t.payeeEntries),
     ] as const;
+  }
+
+  /** Where `source` stopped, or null before its first transaction. */
+  async cursor(source: SourceKind): Promise<{ signature: string; slot: number } | null> {
+    const [row] = await this.db.select().from(t.cursors).where(eq(t.cursors.source, source));
+    return row?.lastSignature != null && row.lastSlot != null
+      ? { signature: row.lastSignature, slot: row.lastSlot }
+      : null;
+  }
+
+  async saveCursor(source: SourceKind, cursor: { signature: string; slot: number }): Promise<void> {
+    await this.db
+      .insert(t.cursors)
+      .values({ source, lastSignature: cursor.signature, lastSlot: cursor.slot })
+      .onConflictDoUpdate({
+        target: t.cursors.source,
+        set: { lastSignature: cursor.signature, lastSlot: cursor.slot },
+      });
+  }
+
+  /** Every stored agent with its principal and the delegation it was last paid from. */
+  async knownAgents(): Promise<
+    Array<{ agent: string; principal: string | null; delegation: string | null }>
+  > {
+    const rows = await this.db
+      .select({
+        address: t.agents.address,
+        view: t.agents.view,
+        delegation: t.allowances.delegation,
+      })
+      .from(t.agents)
+      .leftJoin(t.allowances, eq(t.allowances.agent, t.agents.address));
+    return rows.map((row) => ({
+      agent: row.address,
+      principal: row.view.principal,
+      delegation: row.delegation,
+    }));
   }
 
   /** Empties the projections and account facts but keeps the event history (replay loops). */
@@ -241,11 +292,13 @@ export class Store {
           .where(and(eq(t.requests.agent, agent), eq(t.requests.nonce, event.requestNonce)));
         ctx.request = row?.view ?? null;
       }
-      const [row] = await this.db
-        .select()
-        .from(t.allowances)
-        .where(eq(t.allowances.delegation, event.delegation));
-      ctx.delegation = row?.state ?? null;
+      if (this.delegationsFromEvents) {
+        const [row] = await this.db
+          .select()
+          .from(t.allowances)
+          .where(eq(t.allowances.delegation, event.delegation));
+        ctx.delegation = row?.state ?? null;
+      }
     }
     return ctx;
   }

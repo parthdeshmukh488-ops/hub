@@ -6,10 +6,10 @@ import { z } from "zod";
 const EnvSchema = z.object({
   LEASH_CLUSTER: ClusterSchema.default("localnet"),
   LEASH_PROGRAM_ID: AddressSchema.optional(),
+  LEASH_RPC_URL: z.url().optional(),
   INDEXER_PORT: z.coerce.number().int().min(1).max(65_535).default(4100),
   INDEXER_DB_URL: z.string().min(1).default("file:./data/indexer.db"),
-  // Chain mode arrives in build step 2; until then fixture replay is the default.
-  INDEXER_SOURCE: z.enum(["chain", "fixtures"]).default("fixtures"),
+  INDEXER_SOURCE: z.enum(["chain", "fixtures"]).default("chain"),
   INDEXER_BACKFILL_LIMIT: z.coerce.number().int().positive().default(1000),
   INDEXER_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(15_000),
   INDEXER_REPLAY_SPEED: z.coerce.number().min(0).max(1000).default(1),

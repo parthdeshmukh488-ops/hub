@@ -7,7 +7,7 @@ import { openDatabase } from "../src/db/client.ts";
 import { createPipeline } from "../src/pipeline.ts";
 import { createApp } from "../src/server.ts";
 import { createFixtureSource } from "../src/sources/fixtures.ts";
-import { Store } from "../src/store.ts";
+import { Store, type StoreOptions } from "../src/store.ts";
 import { loadStoryline } from "../src/storyline.ts";
 import type { StreamHub } from "../src/stream.ts";
 
@@ -24,10 +24,11 @@ export function key(name: string): string {
 }
 
 /** A fresh database in a temporary file. */
-export async function testStore() {
+export async function testStore(options: StoreOptions = {}) {
   const dir = mkdtempSync(join(tmpdir(), "leash-indexer-"));
-  const database = await openDatabase(`file:${join(dir, "test.db")}`);
-  return { store: new Store(database.db, log), close: database.close };
+  const url = `file:${join(dir, "test.db")}`;
+  const database = await openDatabase(url);
+  return { store: new Store(database.db, log, options), close: database.close, url };
 }
 
 /** A store holding the whole storyline with its original times, and the API on top of it. */
