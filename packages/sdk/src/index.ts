@@ -31,6 +31,8 @@ export {
   clockUnixTimestamp,
   type LeashChain,
   readChainTime,
+  type SignatureInfo,
+  type SignaturePage,
   type SimulationResult,
   SYSVAR_CLOCK_ADDRESS,
 } from "./chain.ts";

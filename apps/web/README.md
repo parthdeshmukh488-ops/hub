@@ -28,9 +28,12 @@ Freezing, approving and editing are visible but disabled. They need the wallet c
 ```bash
 pnpm --filter @leash/web dev                                      # sample data, http://localhost:3000
 
-# live, against the indexer's replay (two terminals)
-INDEXER_REPLAY_SPEED=10 pnpm --filter @leash/indexer start
+# live, against the indexer's replay of the storyline (two terminals)
+INDEXER_SOURCE=fixtures INDEXER_REPLAY_SPEED=10 pnpm --filter @leash/indexer start
 NEXT_PUBLIC_DATA_SOURCE=indexer pnpm --filter @leash/web dev
+
+# live, against a real chain: the indexer in chain mode (the default)
+LEASH_CLUSTER=devnet INDEXER_POLL_INTERVAL_MS=2000 pnpm --filter @leash/indexer start
 
 pnpm --filter @leash/web build                                    # production build (NEXT_PUBLIC_* are baked in)
 ```

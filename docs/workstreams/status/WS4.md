@@ -1,9 +1,9 @@
 # WS4 status: Indexer and read API
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
-- Last updated: 2026-09-30
-- Current build step: 1 (API skeleton and fixture mode) done
-- Messages handled: through `20260929-1900-from-ws6-to-ws0-biome-tailwind.md`
+- Last updated: 2026-10-01
+- Current build step: 2 (chain ingestion) done; next: 3 (allowances and stats from chain data) and 4 (reconciliation)
+- Messages handled: through `20261001-0030-from-ws7-to-all-mcp-server-and-demo-agent-ready.md`
 
 ## Plan for build step 1 (as executed)
 
@@ -13,7 +13,23 @@
 4. Fixture source: paced, loopable replay of the storyline on the replay clock.
 5. Every REST route and `/v1/stream`, with schema-validated tests.
 
+## Plan for build step 2 (as executed)
+
+1. **SDK (WS2 lane):** the chain port pages a program's transactions (`getSignatures` with `before` and `until`, plus `getTransactionRecord`), for both `rpcChain` and the LiteSVM chain. The indexer reaches Solana only through the SDK.
+2. **`src/sources/chain.ts`:** poll after a stored cursor; decode with `decodeLeashEvents`; report allowlist entry PDAs before `PayeeAdded`; store; move the cursor per transaction; read the delegations of the agents touched.
+3. **Store:** cursors, the known agents (principal and delegation) for restarts, and `delegationsFromEvents` off in chain mode.
+4. **`main.ts`:** `INDEXER_SOURCE` picks the source, defaulting to `chain` as 02 §13 says; `LEASH_RPC_URL` is read.
+5. **Tests on LiteSVM** with the real program.
+
 ## Done
+
+- **Build step 2, complete (2026-10-01).** 47 tests (5 new):
+  - Every view equals the SDK's account reads: principal, agents with allowance, allowlist, open requests.
+  - The owner's feed holds every event in chain order, agent-level ones included.
+  - A crash between storing a transaction and saving its cursor loses and duplicates nothing, on a reopened database.
+  - Paging and the backfill limit; failed and not-yet-retrievable transactions; the background loop.
+  - **Design choice:** in chain mode, allowances come only from the delegation accounts. Replaying payments on top of a delegation read later would count them twice while catching up.
+  - **Polling instead of `logsSubscribe`:** public devnet WebSockets drop silently (brief), and one `getSignaturesForAddress` per poll is cheap. With `INDEXER_POLL_INTERVAL_MS=2000`, the web feed is about 2 seconds behind. `poke()` is ready for a push trigger if we add one.
 
 - **Build step 1, complete (2026-09-30).** 42 tests: fixture parity (the API reproduces the four view fixtures exactly), paging and errors, replay timing and loops, projection edge cases, idempotent ingestion, the database guard, and the stream against a real server (subscriptions, heartbeat, slow clients, origin check).
 - **Additive contract change** [ADR 20260930-ws4-fixture-replay](../../adr/20260930-ws4-fixture-replay.md), contracts 1.1.0:
@@ -26,11 +42,14 @@
 
 ## Next
 
-- Step 2, chain ingestion. Needs WS1's IDL and WS2's `decodeLeashEvents`, and a machine that can reach Solana RPC (not this cloud).
+- **Laptop (queue item 3, now ready):** run chain mode against localnet, then devnet, with `INDEXER_POLL_INTERVAL_MS=2000`; check `devnet:smoke`'s events on `/v1/owners/<owner>/events`.
+- **Step 3:** stats over chain data (the SQL is shared with fixture mode; to verify on a real run).
+- **Step 4:** reconciliation of all accounts (a snapshot per owner with `getProgramAccounts`), reconnect handling, graceful shutdown review.
 
 ## Open items
 
-- `INDEXER_SOURCE` defaults to `fixtures` while chain mode does not exist; the contract's documented default is `chain`. Flip it in step 2.
+- A first start that reads fewer transactions than the program's history (`INDEXER_BACKFILL_LIMIT`) misses the accounts created before its window. Their events are stored without an owner until step 4's snapshot. At demo scale, the default 1 000 covers the whole history.
+- Only the agents' delegations are re-read from the accounts so far. Principals, agents, allowlist entries and requests follow the events, and the parity test shows they match.
 - Fixture mode assumes a request's rent payer is the agent key (true for the SDK and the storyline). Chain mode will read it from the account.
 - A replay faster than real time computes velocity and strike windows on the compressed timeline (documented in the ADR).
 - `byAgent` in stats lists the owner's current agents only; payments by a closed agent still count in the totals.
