@@ -1,0 +1,18 @@
+{
+  "cooldownSecs": 600,
+  "actionLinks": false,
+  "rules": {
+    "tripwireFired": { "enabled": true },
+    "approvalRequested": { "enabled": true },
+    "burstDenials": { "enabled": true, "minDenials": 3, "windowSecs": 300 },
+    "spendSpike": {
+      "enabled": true,
+      "windowSecs": 600,
+      "baselineSecs": 3600,
+      "multiplier": 3,
+      "minAmount": "1000000"
+    },
+    "newPayeeSpend": { "enabled": true, "windowSecs": 600, "capPercent": 50 },
+    "allowanceLow": { "enabled": true, "remainingPercent": 10 }
+  }
+}
