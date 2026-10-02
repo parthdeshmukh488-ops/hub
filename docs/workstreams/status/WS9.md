@@ -59,6 +59,17 @@ Plan approved by the architect session. Task D of the [work queue](../messages/2
   - **Checked locally**, with each filter selecting what it names:
     - Rust: invariants 7, report 10, substitution 9, admin 3 (of 13), vectors 2, vectors on-chain 1;
     - TypeScript: SDK vectors 60, SDK agent 2 (of 46), indexer 1 (of 7), x402 6 (of 11), web Actions 28.
+- **Item 3 done: `e2e/test/storyline.test.ts`.** The whole storyline in process on LiteSVM, no network, about 5 s. Five tests, sharing one world in order:
+  - the start;
+  - scene 1, normal work: five payments;
+  - scene 2, approval: Sentinel alerts, then the test approves as the owner;
+  - scene 3, injection: strikes 1–3, the third tripped, `AgentFrozen` by the tripwire in the same transaction;
+  - the demo screen shows every scene.
+  - **Asserted per scene:** the balances (attacker 0; merchant 1.57 USDC in total), the indexer's overview and events feed, and Sentinel's alerts (`approval_requested`, `tripwire_fired`, no `burst_denials`). Stable over three runs.
+  - **A bridge between test utilities** (`e2e/test/facilitator-svm.ts`): the x402 facilitator's LiteSVM signer sends straight to LiteSVM, and the testbed chain lists only what goes through it, so the indexer would miss every x402 settlement. The bridge runs each settlement once and records its result in the chain's history. The merchant's exact final balance shows nothing ran twice.
+  - **`exports` added to another package:** `apps/agent-demo/package.json` → `./demo`, `./scenes`, `./ui`.
+  - `e2e/README.md` replaces the skeleton.
+- **`@leash/indexer/testing`:** reached this branch by merging the architect's branch (`41a9e85`, exactly `main` plus that commit), as Parth said; GitHub's `main` did not have it yet.
   - **One partial point:** I6's "guardian and fee-payer keys are the only server keys" is checked as "no owner-key variable" (`check:env`), not as a list of allowed key variables. That's WS0's script; noted, not changed.
 
 ## Done
@@ -121,9 +132,11 @@ Plan approved by the architect session. Task D of the [work queue](../messages/2
 4. **The final pass, Oct 3–4** (the architect's review):
    - Once WS7 announces its fix, rewrite the demo script's 0:10–0:30 fallback: a paid step that comes back unpaid then stops the replay, so switch to the video.
    - Re-count the tests on the final commit, and update the README, slide 9 and `deck.md`.
-5. Task D of the work queue (the whole storyline in one LiteSVM test in `e2e/`, and the security CI job) is also WS9's lane. The queue plans it as its own session.
+5. Task D is done (see its section above); its PR is open.
 
 ## Open items
+
+- **For WS3 (or WS2), optional:** let `litesvmFacilitatorSigner` record its sends in a testbed chain's history (a `chain` option), so `e2e/test/facilitator-svm.ts` can go. Until then the bridge stays in `e2e/`.
 
 - **From Parth:** team names and roles (README "Team", slides 1 and 13); any conversations with agent builders (slide 10 says "none yet" until then); the demo video link.
 - The README's pitch link points at the PDF in the repo; add the Google Slides link next to it once Parth shares it.
