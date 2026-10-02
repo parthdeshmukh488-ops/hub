@@ -36,6 +36,26 @@ Plan approved by the architect session. Task D of the [work queue](../messages/2
   - Approve's expiry is now `now >= expiresAt`, the program's `PaymentRequest::is_expired`. A new test pins that second: the GET is disabled, the POST answers 409, and a transaction built a second earlier is refused on-chain. The test fails with `>`.
   - Reject works on an approved request ("approved but not paid yet: rejecting withdraws the approval"), tested on-chain with the guardian signing.
   - `apps/web`: 68 tests, 28 of them Actions.
+- **Item 2: the `security` job** in `.github/workflows/ci.yml` (the only change there). It runs these tests by name on every commit:
+
+  | 03-security §3 row | Tests (file → test) |
+  | --- | --- |
+  | I1 Hard ceiling | `programs/leash/tests/invariants.rs` → `i1_random_payments_never_exceed_a_recurring_allowance`, `i1_random_payments_never_exceed_a_fixed_allowance` (seeded random sequences) |
+  | I2 Firewall: non-allowlisted destination | `invariants.rs` → `i2_a_payee_off_the_allowlist_never_receives_funds_whatever_accounts_are_passed`; `substitution.rs` → every test (swapped signer, principal, agent, entry, request, delegation, authority, source, destination, mint, programs) |
+  | I2 Firewall: reports never move money | `invariants.rs` → `i2_reports_never_move_money`; `report.rs` → `reports_never_move_money` (plus the rest of `report.rs`) |
+  | I3 Off switch | `invariants.rs` → `i3_after_a_freeze_every_payment_fails_and_only_the_owner_unfreezes`; `admin.rs` → `the_owner_and_the_guardian_freeze_an_agent_and_nobody_else_can`, `only_the_owner_unfreezes_an_agent_which_clears_its_strikes`, `the_global_switch_is_owner_or_guardian_to_pull_and_owner_to_release`; `packages/sdk/test/agent.test.ts` → "stops every agent while the principal is frozen, and resumes after the owner unfreezes" |
+  | I4 Tripwire | `invariants.rs` → `i4_strikes_within_the_window_freeze_and_other_denials_never_do`; `report.rs` → `three_strikes_freeze_the_agent_on_chain`, `other_denials_are_recorded_but_never_trip_the_wire`, `strikes_expire_with_their_window`; `agent.test.ts` → "…and the third strike freezes the agent"; the vectors' strike cases |
+  | I5 Audit (program) | `invariants.rs` → `i5_one_event_per_payment_and_per_report` |
+  | I5 Audit (indexer stores both) | `services/indexer/test/chain.test.ts` → "ingests the program's transactions: every view equals what the SDK reads from the accounts" (its events include `PaymentExecuted` and `PaymentDenied`) |
+  | I6 Non-custodial | `pnpm check:secrets` (no keypair, `.keys/` or PEM key tracked) and `pnpm check:env` (no owner-key variable in any service's env); `apps/web/test/actions.test.ts` (every Action returns an unsigned transaction; a wrong signer fails on-chain) |
+  | Parity | `programs/leash/tests/vectors.rs` → `every_policy_vector_matches_the_program`, `every_denial_reason_and_error_in_the_vectors_is_reachable`; `vectors_onchain.rs` → `every_policy_vector_holds_on_the_real_program`; `packages/sdk/test/vectors.test.ts` → all 60 cases |
+  | x402 | `packages/x402/test/client.test.ts` → "Path 2: a Leash payment through the official facilitator": it verifies and settles, is rejected without Leash on the allowlist, and fails verification when the program would deny (6 tests) |
+
+  - **Gaps:** none: every row has at least one named test.
+  - **Checked locally**, with each filter selecting what it names:
+    - Rust: invariants 7, report 10, substitution 9, admin 3 (of 13), vectors 2, vectors on-chain 1;
+    - TypeScript: SDK vectors 60, SDK agent 2 (of 46), indexer 1 (of 7), x402 6 (of 11), web Actions 28.
+  - **One partial point:** I6's "guardian and fee-payer keys are the only server keys" is checked as "no owner-key variable" (`check:env`), not as a list of allowed key variables. That's WS0's script; noted, not changed.
 
 ## Done
 
