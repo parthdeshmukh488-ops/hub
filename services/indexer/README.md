@@ -6,12 +6,12 @@ Owned by **WS4**. Brief: [docs/workstreams/WS4-indexer.md](../../docs/workstream
 
 ## Status
 
-Build steps 1–2 are done:
+Build steps 1–4 are done:
 - every route and the stream;
 - **chain mode**, which follows the Leash program on localnet or devnet;
+- the **account snapshot**, which makes the projections equal the chain at start and after a start-over;
+- stats checked on chain data, and a `/v1/health` that says when the source cannot make progress;
 - **fixture mode**, which replays the demo storyline from `@leash/contracts` with no chain at all.
-
-Next: build step 3 (stats from chain data), then reconciliation (step 4).
 
 ## Run it
 
@@ -99,8 +99,18 @@ pipeline ── one delivery at a time ──► store (Drizzle + libSQL)
   - Delegations are read from the accounts after payments ("accounts give truth"), never derived from events, so nothing counts twice while catching up.
   - Agent-level events get their principal from the `AgentCreated` the source saw, or, after a restart, from the agents in the database.
   - At start, the delegations of the known agents are re-read.
-  - `lagSeconds` is the time since the source last knew it had every transaction.
-  - **A cursor the RPC does not know** means the database belonged to another chain, such as a restarted localnet; Agave then fails every page that names the cursor. When a poll fails and `getTransaction` for the cursor returns nothing, the indexer logs a warning, empties its database and backfills. A plain RPC failure only retries.
+  - **The account snapshot ("accounts give truth")** runs after the first poll of a start, and after a start-over:
+    - It reads every principal (`fetchPrincipalViews`), each owner's agents, each agent's allowlist, open requests and delegation, through the SDK.
+    - It overwrites the projections, and deletes agents, allowlist entries and requests the chain no longer has.
+    - Events stored before their owner was known (a first start whose `INDEXER_BACKFILL_LIMIT` missed the onboarding) get their owner.
+    - The history itself is not recovered: events older than the backfill stay unread.
+  - **Nothing counts twice:** after applying a snapshot it polls again. If that poll found new transactions (their events were projected on top of accounts that may already include them), it takes the snapshot again, up to five rounds. The log says `account snapshot: the projections equal the chain`.
+  - `lagSeconds` is the time since the source last knew it had every transaction. It keeps growing while polls fail.
+  - **A cursor the RPC does not know** means the database belonged to another chain, such as a restarted localnet; Agave then fails every page that names the cursor.
+    - **When:** a poll fails and `getTransaction` for the cursor returns nothing, **three polls in a row**. One miss is often a lagging devnet node.
+    - **Then** the indexer logs a warning, empties its database, backfills and takes a snapshot.
+    - A plain RPC failure only retries.
+- **Health:** `/v1/health` answers HTTP 200 with `ok: false` while the source cannot make progress, and `ok: true` again after the next successful poll. That means three chain polls in a row failed, or the fixture replay failed. An unreachable database still answers 503.
 - **Fixture replay** ([ADR 20260930-ws4-fixture-replay](../../docs/adr/20260930-ws4-fixture-replay.md)):
   - Times follow the replay clock; deadlines keep their duration.
   - Every loop gets fresh signatures and ids and starts from empty projections.
@@ -126,6 +136,7 @@ const followed = await startTestIndexer({
 });
 await agent.pay({ to: merchant, amount, purpose: "Research" });
 await followed.sync(); // the payment is now in the API and on the stream
+await followed.snapshot(); // projections := the chain's accounts (the first sync() does this too)
 await fetch(`${followed.url}/v1/owners/${owner}/events`);
 
 await indexer.close(); // stops everything and deletes the database
@@ -134,7 +145,7 @@ await indexer.close(); // stops everything and deletes the database
 ## Develop
 
 ```bash
-pnpm --filter @leash/indexer test          # 51 tests: fixture parity, chain mode on LiteSVM, a real WebSocket
+pnpm --filter @leash/indexer test          # 57 tests: fixture parity, chain mode on LiteSVM, a real WebSocket
 pnpm --filter @leash/indexer typecheck
 pnpm --filter @leash/indexer lint
 pnpm --filter @leash/indexer db:generate   # after changing src/db/schema.ts; commit drizzle/
@@ -144,4 +155,9 @@ pnpm --filter @leash/indexer db:generate   # after changing src/db/schema.ts; co
 - **Chain mode** ([`test/chain.test.ts`](test/chain.test.ts)) runs on the real `leash.so` in LiteSVM, through the SDK's chain port:
   - Every view equals what the SDK reads from the accounts.
   - A crash between storing and saving the cursor loses and duplicates nothing.
-  - Paging and the backfill limit; failed and not-yet-retrievable transactions; a cursor from another chain; the background loop (start, `poke`, failures, stop).
+  - Paging and the backfill limit; failed and not-yet-retrievable transactions; a cursor from another chain (three misses start over, two then a hit keep the database); the background loop (start, `poke`, failures, stop).
+- **Robustness** ([`test/robustness.test.ts`](test/robustness.test.ts)), also on LiteSVM:
+  - A first start whose backfill misses the onboarding, after the snapshot, equals the SDK's reads (owner, agents, allowlist, open requests). Later events then project on top of it.
+  - The snapshot deletes what the chain no longer has, and keeps the event history.
+  - `/v1/owners/:owner/stats` on chain data matches the testbed's payments, denials and spend, per window.
+  - `/v1/health`: `ok: false` after three failed polls (still HTTP 200, `lagSeconds` honest), `ok: true` after a success; and after a failed fixture replay.

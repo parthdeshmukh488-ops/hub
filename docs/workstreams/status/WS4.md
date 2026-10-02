@@ -2,7 +2,7 @@
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-10-02
-- Current build step: 3–4 (Task E of the second account's work queue), in progress on `claude/compassionate-keller-5rmytv`
+- Current build step: 1–4 done (steps 3–4 by Task E, branch `claude/compassionate-keller-5rmytv`)
 - Messages handled: through `20261001-0150-from-ws1-to-ws4-ci-fix-remembered-poke.md`
 
 ## Plan for build step 1 (as executed)
@@ -37,6 +37,23 @@
 
 ## Done
 
+- **Build steps 3–4 (Task E, 2026-10-02):**
+  - **The account snapshot** (`src/sources/chain.ts`, `Store.applySnapshot`):
+    - It runs after the first poll of a start and after a start-over.
+    - It overwrites principals, agents, allowlist entries, open requests and delegations with the chain's accounts, and deletes what the chain no longer has. Events stored without an owner get one.
+    - It then polls, and re-snapshots while new transactions arrived (at most 5 rounds), so nothing counts twice.
+    - `snapshot()` is on the chain source and in `@leash/indexer/testing`; that package's first `sync()` takes the snapshot too.
+  - **Start-over after three misses in a row** (`FOREIGN_CURSOR_MISSES`). A miss resets on any poll whose pages succeed or whose cursor the RPC knows.
+  - **Health:** `EventSource.healthy()`. Chain mode: false after `UNHEALTHY_AFTER_FAILURES` (3) failed polls in a row, true after a success. Fixture mode: false once the replay failed. `/v1/health` keeps HTTP 200 and reports it as `ok`.
+  - **Tests:** 57 (6 new):
+    - the snapshot after a backfill that missed the onboarding equals the SDK's reads;
+    - stale rows are removed;
+    - two misses then a hit keep the database, three start over;
+    - stats on chain data per window;
+    - health both ways, plus the fixture failure.
+  - **Two existing tests adjusted:** the start-over test now needs three misses, and the poke test counts the snapshot's settle poll.
+  - **`e2e/`:** scene 3 waits for `tripwire_fired` (PR #3 review).
+
 - **Build step 2, complete (2026-10-01).** 47 tests (5 new):
   - Every view equals the SDK's account reads: principal, agents with allowance, allowlist, open requests.
   - The owner's feed holds every event in chain order, agent-level ones included.
@@ -64,14 +81,13 @@
 ## Next
 
 - **Laptop (queue item 3, now ready):** run chain mode against localnet, then devnet, with `INDEXER_POLL_INTERVAL_MS=2000`; check `devnet:smoke`'s events on `/v1/owners/<owner>/events`.
-- **Step 3:** stats over chain data (the SQL is shared with fixture mode; to verify on a real run).
-- **Step 4:** reconciliation of all accounts (a snapshot per owner with `getProgramAccounts`), reconnect handling, graceful shutdown review.
+- **Laptop, devnet:** watch for `account snapshot: the projections equal the chain` at start, and for start-overs (now only after three misses in a row).
+- Graceful shutdown review (not part of Task E).
 
 ## Open items
 
-- A first start that reads fewer transactions than the program's history (`INDEXER_BACKFILL_LIMIT`) misses the accounts created before its window. Their events are stored without an owner until step 4's snapshot. At demo scale, the default 1 000 covers the whole history.
-- Only the agents' delegations are re-read from the accounts so far. Principals, agents, allowlist entries and requests follow the events, and the parity test shows they match.
-- Fixture mode assumes a request's rent payer is the agent key (true for the SDK and the storyline). Chain mode will read it from the account.
+- A first start that reads fewer transactions than the program's history (`INDEXER_BACKFILL_LIMIT`) still lists every account (the snapshot), but the events before its window are not in the history.
+- Fixture mode assumes a request's rent payer is the agent key (true for the SDK and the storyline). Chain mode's snapshot reads it from the account.
 - A replay faster than real time computes velocity and strike windows on the compressed timeline (documented in the ADR).
 - `byAgent` in stats lists the owner's current agents only; payments by a closed agent still count in the totals.
 
@@ -82,3 +98,4 @@
 ## Contract changes proposed
 
 - [20260930-ws4-fixture-replay](../../adr/20260930-ws4-fixture-replay.md) (additive, status Proposed).
+
