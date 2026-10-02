@@ -107,10 +107,34 @@ pipeline ── one delivery at a time ──► store (Drizzle + libSQL)
   - Fixture mode resets its database at startup and refuses a database holding chain data.
 - **Ordering:** by slot, then ingestion order; cursors are event ids. Indexes: `events(owner, slot, seq)`, `events(agent, slot, seq)`, `events(owner, timestamp)` for stats.
 
+## In another package's tests: `@leash/indexer/testing`
+
+`startTestIndexer()` runs the real indexer in process: the same store, REST API and `/v1/stream`, on a random local port, with a throwaway database. Sentinel and the e2e suite use it instead of reaching into `src/`. Add `"@leash/indexer": "workspace:*"` to the package's devDependencies.
+
+```ts
+import { startTestIndexer } from "@leash/indexer/testing";
+
+// The demo storyline, delivered once a client has subscribed:
+const indexer = await startTestIndexer({ startNow: false });
+// ... connect to indexer.streamUrl, subscribe, then:
+await indexer.start();
+
+// Chain mode over the LiteSVM testbed, read only when the test says so (no timers):
+const followed = await startTestIndexer({
+  source: { kind: "chain", chain: bed.chain, programId: LEASH_PROGRAM_ADDRESS },
+  now: () => Number(bed.now()),
+});
+await agent.pay({ to: merchant, amount, purpose: "Research" });
+await followed.sync(); // the payment is now in the API and on the stream
+await fetch(`${followed.url}/v1/owners/${owner}/events`);
+
+await indexer.close(); // stops everything and deletes the database
+```
+
 ## Develop
 
 ```bash
-pnpm --filter @leash/indexer test          # 49 tests: fixture parity, chain mode on LiteSVM, a real WebSocket
+pnpm --filter @leash/indexer test          # 51 tests: fixture parity, chain mode on LiteSVM, a real WebSocket
 pnpm --filter @leash/indexer typecheck
 pnpm --filter @leash/indexer lint
 pnpm --filter @leash/indexer db:generate   # after changing src/db/schema.ts; commit drizzle/

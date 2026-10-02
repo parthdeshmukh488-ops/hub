@@ -20,7 +20,8 @@ Leash's owner actions as [Solana Actions](https://solana.com/docs/advanced/actio
 - reject: the same, with "Reject".
 - freeze: "Freeze Research Assistant"; freeze-all: "Freeze all agents".
 - Labels and memos are untrusted (a manipulated agent writes the memo): control and format characters such as bidi overrides are stripped, and the text is clipped.
-- **Disabled**, with the reason as the description: an agent or principal already frozen, a request already approved, or (approve) an expired request.
+- **Disabled**, with the reason as the description: an agent or principal already frozen; for approve, a request already approved or expired (from its `expiresAt` second on, as the program counts).
+- **Reject also works on an approved request** that is not paid yet: it withdraws the approval, and the description says so.
 
 **GET from a browser** (`Accept: text/html`) is redirected (302) to the web app:
 - approve and reject → `/app/approvals`;
@@ -40,7 +41,7 @@ A tap on a Sentinel link in Telegram therefore opens the app, not raw JSON.
 | 400 | Bad query (`?agent=` etc. is not an address) or body |
 | 403 | `account` may not sign this (the message says who may) |
 | 404 | No such agent or principal; a request that was executed, rejected or expired |
-| 409 | Already frozen, already approved, or expired |
+| 409 | Already frozen; for approve, already approved or expired |
 | 502 | The Solana RPC is not reachable |
 
 ## Code

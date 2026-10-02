@@ -153,7 +153,41 @@ importers:
         specifier: 4.3.3
         version: 4.3.3
 
-  e2e: {}
+  e2e:
+    devDependencies:
+      '@leash/agent-demo':
+        specifier: workspace:*
+        version: link:../apps/agent-demo
+      '@leash/contracts':
+        specifier: workspace:*
+        version: link:../packages/contracts
+      '@leash/indexer':
+        specifier: workspace:*
+        version: link:../services/indexer
+      '@leash/merchant-demo':
+        specifier: workspace:*
+        version: link:../apps/merchant-demo
+      '@leash/sdk':
+        specifier: workspace:*
+        version: link:../packages/sdk
+      '@leash/sentinel':
+        specifier: workspace:*
+        version: link:../services/sentinel
+      '@leash/tools':
+        specifier: workspace:*
+        version: link:../packages/tools
+      '@leash/x402':
+        specifier: workspace:*
+        version: link:../packages/x402
+      '@solana/kit':
+        specifier: 8.4.0
+        version: 8.4.0(typescript@6.0.3)
+      litesvm:
+        specifier: 1.5.0
+        version: 1.5.0(typescript@6.0.3)
+      pino:
+        specifier: 10.3.1
+        version: 10.3.1
 
   packages/contracts:
     dependencies:

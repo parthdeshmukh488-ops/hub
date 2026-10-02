@@ -10,7 +10,7 @@ export const approveAction: ActionDefinition<"approve"> = {
   name: "approve",
   page: () => "/app/approvals",
   async describe({ request }, { chain }) {
-    const context = await loadRequestContext(chain, request, { checkExpiry: true });
+    const context = await loadRequestContext(chain, request, "approve");
     return {
       title: `Approve ${context.what}`,
       label: "Approve",
@@ -20,7 +20,7 @@ export const approveAction: ActionDefinition<"approve"> = {
     };
   },
   async build({ request }, account, { chain }) {
-    const context = await loadRequestContext(chain, request, { checkExpiry: true });
+    const context = await loadRequestContext(chain, request, "approve");
     if (account !== context.principal.owner) {
       throw new ActionHttpError(403, "Only the owner can approve a payment request.");
     }

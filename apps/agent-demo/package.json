@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "description": "Claude-powered demo agent with a deterministic scenario runner.",
+  "exports": {
+    "./demo": "./src/demo.ts",
+    "./scenes": "./src/scenes.ts",
+    "./ui": "./src/ui.ts"
+  },
   "scripts": {
     "demo": "tsx src/main.ts",
     "demo:all": "tsx src/main.ts all",
