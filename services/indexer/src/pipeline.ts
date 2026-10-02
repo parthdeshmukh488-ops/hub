@@ -44,5 +44,9 @@ export function createPipeline(
         if (inserted.length > 0) log.debug({ events: inserted.length }, "ingested");
       }),
     resetProjections: () => serial(() => store.resetProjections()),
+    snapshot: (snapshot) =>
+      serial(async () => {
+        await publishAgents(await store.applySnapshot(snapshot));
+      }),
   };
 }

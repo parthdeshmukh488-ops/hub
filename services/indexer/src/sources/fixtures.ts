@@ -181,11 +181,15 @@ export function createFixtureSource(
     }
   }
 
+  /** The replay failed: it will not deliver anything more. */
+  let failed = false;
+
   return {
     kind: "fixtures",
     async start(sink) {
       running = run(sink).catch((error: unknown) => {
         if (controller.signal.aborted) return;
+        failed = true;
         if (!options.onError) throw error;
         options.onError(error);
       });
@@ -201,5 +205,6 @@ export function createFixtureSource(
     },
     // A replay has no upstream to lag behind.
     lagSeconds: () => 0,
+    healthy: () => !failed,
   };
 }
