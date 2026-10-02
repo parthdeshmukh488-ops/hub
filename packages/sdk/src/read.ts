@@ -168,6 +168,19 @@ export async function fetchPrincipalView(
 }
 
 /**
+ * Every principal of the Leash program, oldest first: the owners an indexer snapshots at start,
+ * including those whose history its backfill no longer reaches.
+ */
+export async function fetchPrincipalViews(chain: LeashChain): Promise<PrincipalView[]> {
+  const accounts = await chain.getProgramAccounts(LEASH_PROGRAM_ADDRESS, [
+    { memcmp: { offset: 0, bytes: PRINCIPAL_DISCRIMINATOR } },
+  ]);
+  return accounts
+    .map((account) => principalToView(account.address, getPrincipalDecoder().decode(account.data)))
+    .sort((a, b) => a.createdAt - b.createdAt || a.owner.localeCompare(b.owner));
+}
+
+/**
  * The agent's view, with its allowance computed at `now` (default: the cluster's time). The
  * allowance comes from `delegation`, by default the nonce-0 delegation onboarding creates; it is
  * null when that account is missing or not a delegation to this agent.

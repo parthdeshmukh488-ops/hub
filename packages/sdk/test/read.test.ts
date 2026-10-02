@@ -19,6 +19,7 @@ import {
   fetchOpenRequests,
   fetchPayees,
   fetchPrincipalView,
+  fetchPrincipalViews,
   fetchRequestView,
   readAgentStatus,
   sendPlan,
@@ -44,6 +45,10 @@ describe("fetch*View", () => {
       agentCount: 1,
       createdAt: T,
     });
+    // Every principal of the program (an indexer's snapshot): only principals, not agents.
+    expect(await fetchPrincipalViews(bed.chain)).toEqual([
+      await fetchPrincipalView(bed.chain, owner.address),
+    ]);
     const agent = await fetchAgentView(bed.chain, bed.accounts.agent);
     expect(agent).toEqual({
       address: bed.accounts.agent,

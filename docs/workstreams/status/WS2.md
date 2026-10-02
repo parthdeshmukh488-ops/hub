@@ -1,7 +1,7 @@
 # WS2 status: TypeScript SDK
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
-- Last updated: 2026-10-01
+- Last updated: 2026-10-02
 - Current build step: 1–6 done; 7 (API feedback, 1.0) next
 - Messages handled: through `20260930-1713-from-ws1-to-ws2-rpcchain-first-real-run.md`
 
@@ -61,6 +61,7 @@
   4. **`requestApproval` takes an optional `reference`**, so x402 can bind a request to its memo hash (02 §3); `buildPayInstruction` attaches an approved request only if the reference matches.
   5. **Scripts read flags only** (`--cluster`, `--rpc`), never the environment. Root `package.json` has two new aliases, `devnet:setup` and `devnet:smoke`, a WS0 file: the laptop queue named these commands.
 - **`fetchRequestView(chain, request)`** (2026-10-01, for the Solana Actions of Task C): one payment request by its address, or null when it is missing, foreign or another type. Approve and reject Actions get only the request's address. Tested on the testbed.
+- **`fetchPrincipalViews(chain)`** (2026-10-02, for the indexer's account snapshot in Task E): every principal of the program, oldest first, through one `getProgramAccounts`. An indexer whose backfill misses older history still finds every owner. Tested on the testbed.
 - Found for WS3: `@solana-program/memo` 0.15 defaults to the new Memo program `Memo4c2p…`, not the SPL Memo `MemoSq4g…` of the x402 profile (02 §9). Pass `{ programAddress }` explicitly.
 
 ## Next

@@ -142,6 +142,7 @@ export {
   fetchOpenRequests,
   fetchPayees,
   fetchPrincipalView,
+  fetchPrincipalViews,
   fetchRequestView,
   payeeToView,
   principalToView,
