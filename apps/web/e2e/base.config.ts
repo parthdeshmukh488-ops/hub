@@ -8,6 +8,8 @@ export const base = defineConfig({
   timeout: 60_000,
   expect: { timeout: 15_000 },
   reporter: [["list"]],
+  // Traces and screenshots of failures; under node_modules so no ignore rule is needed.
+  outputDir: "node_modules/.cache/playwright",
   use: { trace: "retain-on-failure", viewport: { width: 1280, height: 900 } },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

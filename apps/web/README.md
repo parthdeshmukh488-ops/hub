@@ -1,42 +1,90 @@
 # @leash/web
 
-The owner's control panel: see every agent, what it spent, what was blocked and why, and freeze it. Later also the pairing wizard, Solana Actions and the landing page.
+The owner's control panel: see every agent, what it spent, what was blocked and why, and act with your wallet: approve or reject requests, freeze and unfreeze, pair new agents, set the guardian. Also the Solana Actions (Blinks); the landing page comes later.
 
 Owned by **WS6**. Brief: [docs/workstreams/WS6-web.md](../../docs/workstreams/WS6-web.md). Status: [docs/workstreams/status/WS6.md](../../docs/workstreams/status/WS6.md).
 
-## What exists today (build steps 1 and 3, read side)
+## What exists today
 
 | Route | What it shows |
 | --- | --- |
 | `/` | Redirects to `/app` (the landing page comes in build step 5) |
-| `/app` | Overview: agents running / blocked / waiting, the global freeze switch, one card per agent (status, allowance left, last payment, blocked attempts, strikes), recent blocked attempts |
-| `/app/agents/[agent]` | Agent detail: status and freeze reason, freeze switch, allowance gauge, tripwire strikes, approvals waiting, the rules in plain language, allowed payees with their spend, a **"what would happen if…" tester**, the activity feed |
-| `/app/activity` | Every event, filtered by agent and kind (blocked, payments, approvals, freezes and rule changes), older pages on demand, **CSV export** |
-| `/app/approvals` | Payment requests waiting for the owner |
+| `/app` | Overview: agents running / blocked / waiting, the **global freeze switch**, one card per agent (status, allowance left, last payment, blocked attempts, strikes), recent blocked attempts |
+| `/app/agents/[agent]` | Agent detail: the **big freeze toggle**, allowance gauge, tripwire strikes (with **Clear strikes**), approvals waiting (**Approve** / **Reject**), the rules in plain language, allowed payees with their spend, a "what would happen if…" tester, the activity feed |
+| `/app/agents/new`, `/pair` | The **pairing wizard** (below) |
+| `/app/activity` | Every event, filtered by agent and kind, older pages on demand, CSV export |
+| `/app/approvals` | Payment requests waiting for the owner, with **Approve** and **Reject** |
+| `/app/settings` | The **guardian** (set, change, remove), Telegram alert setup, cluster and program |
 
 **Two data sources** (`NEXT_PUBLIC_DATA_SOURCE`):
 
-- `fixtures` (default): the demo storyline, read-only, no backend.
-- `indexer`: live data from `@leash/indexer`. REST loads the screens. The `/v1/stream` WebSocket then keeps them current: events are merged into the query cache and deduplicated by id, and agent updates replace the agent everywhere it is shown. On reconnect the app backfills with `?after=`, and it reloads everything if the indexer's history was reset. The header shows Live / Reconnecting.
+- `fixtures` (default): the demo storyline, **read-only**, no backend. A wallet connects, but nothing can be signed.
+- `indexer`: live data from `@leash/indexer`. REST loads the screens; the `/v1/stream` WebSocket keeps them current (events deduplicated by id, agent updates applied everywhere, `?after=` backfill on reconnect). The screens show the **connected wallet's** agents; before a wallet connects, the demo storyline's owner (whom the indexer's replay serves).
 
-**The what-if tester** runs the SDK's `evaluatePayment`, the same rules the program enforces, on the agent's current state. It answers "Goes through", "Needs your approval" or "Blocked", with the reason and whether the attempt would be a strike. It assumes your wallet holds enough USDC.
+**The what-if tester** runs the SDK's `evaluatePayment` on the agent's current state.
 
-Freezing, approving and editing are visible but disabled. They need the wallet connection (step 2) and the program's transaction builders (WS2 step 4, which needs WS1's IDL).
+## How the owner acts
+
+1. **Connect a wallet** with the header's button. Any Wallet Standard wallet that signs Solana transactions works (Phantom, Solflare, Backpack). The header shows the address with a copy button, and **"Wallet not on devnet"** when the wallet does not list the app's cluster. Wallets don't tell apps which cluster they currently use, only which ones they support, so on devnet switch the wallet to devnet yourself. The wallet only **signs**: the app sends every transaction to its own cluster (`NEXT_PUBLIC_RPC_URL`), which is why localnet works with any wallet.
+2. **Click** Approve, Reject, a freeze switch, Clear strikes, Set guardian or Sign and pair. Every one runs the same flow (`src/lib/owner/`):
+   - **plan**: the accounts are re-read from the RPC, never from the indexer (T13); the app checks that your wallet may do this and that it still makes sense (an agent already frozen, a request expired), then builds the instructions with the SDK's owner builders;
+   - **summary**: a dialog says in plain words what will happen ("Approve 1.50 USDC to Research API for “weekly market report”."), before the wallet opens;
+   - **wallet**: you sign each transaction (pairing a new owner can take two);
+   - **pending** with the signature, then **confirmed** with a Solana Explorer link;
+   - the screens update from the indexer's stream (and reload once as a fallback).
+   - A failure reads as a sentence that says whether anything changed. Denials use the copy table of 02-contracts §4; the program's other errors, a declined signature, missing SOL and an unreachable RPC have their own sentences (`src/lib/owner/errors.ts`).
+3. **The UI is never the security boundary.** Its checks only spare you a failed transaction; the Leash program enforces every rule. A wallet that is neither owner nor guardian is refused by the app *and* by the program (both are tested).
+
+**What each wallet may do** (01 §6.1): the owner everything; the guardian only freeze (one agent or all) and reject. Unfreezing an agent clears its strikes. An active agent with leftover strikes gets **Clear strikes**: freeze and unfreeze in one transaction, so it never stays frozen.
+
+**Pairing** (`/pair?agentKey=…&label=…&preset=…&cluster=…`, 02-contracts §11, or `/app/agents/new` by hand):
+
+- the agent key's **fingerprint** (the whole key in groups of four) to compare with what the agent's terminal printed (T11);
+- the preset filled in, **every limit editable**: allowance per period and how long it lasts, the instant limit, the approval limit, rate limit, tripwire, the allowlist with per-payee limits;
+- the preset's demo merchant and the token mint are pre-filled from your existing agents (or the cluster's USDC on devnet); otherwise you enter them;
+- the **plain-language review** ("This agent can spend up to 5.00 USDC per day, only with Research API, at most 1.00 USDC per payment."), then **Sign and pair**;
+- on success the app opens the new agent's page. A link for another cluster than the app's is refused.
 
 ## Run it
 
 ```bash
-pnpm --filter @leash/web dev                                      # sample data, http://localhost:3000
+pnpm --filter @leash/web dev                                      # sample data, read-only, http://localhost:3000
 
-# live, against the indexer's replay of the storyline (two terminals)
+# live, against the indexer's replay of the storyline (two terminals; read-only in practice:
+# the replay's accounts are not on any chain)
 INDEXER_SOURCE=fixtures INDEXER_REPLAY_SPEED=10 pnpm --filter @leash/indexer start
 NEXT_PUBLIC_DATA_SOURCE=indexer pnpm --filter @leash/web dev
 
-# live, against a real chain: the indexer in chain mode (the default)
-LEASH_CLUSTER=devnet INDEXER_POLL_INTERVAL_MS=2000 pnpm --filter @leash/indexer start
-
 pnpm --filter @leash/web build                                    # production build (NEXT_PUBLIC_* are baked in)
 ```
+
+### The owner on localnet (laptop, Solana toolchain)
+
+```bash
+bash scripts/localnet.sh                                          # 1: validator with leash.so and subscriptions.so
+pnpm devnet:setup --cluster localnet                              # 2: the demo world (owner-demo, agent, allowlist)
+INDEXER_POLL_INTERVAL_MS=2000 pnpm --filter @leash/indexer start  # 3: indexer in chain mode (localnet is the default)
+NEXT_PUBLIC_DATA_SOURCE=indexer pnpm --filter @leash/web dev      # 4: the app (localnet, http://127.0.0.1:8899)
+```
+
+Import `.keys/owner-demo.json` into a browser wallet (most wallets have "Import private key"; it is a demo key, never a real one), connect it, and act. The wallet may warn that it does not know localnet: it only signs; the app sends to the local validator.
+
+### The owner on devnet
+
+```bash
+LEASH_CLUSTER=devnet INDEXER_POLL_INTERVAL_MS=2000 pnpm --filter @leash/indexer start
+NEXT_PUBLIC_DATA_SOURCE=indexer NEXT_PUBLIC_LEASH_CLUSTER=devnet pnpm --filter @leash/web dev
+```
+
+Set `NEXT_PUBLIC_RPC_URL` (for example a Helius devnet URL) if the public devnet RPC rate-limits you. The connected wallet pays the network fees, so it needs a little devnet SOL. To act on the demo world of `pnpm devnet:setup`, connect the `owner-demo` key; to start fresh, connect any wallet and pair an agent.
+
+### The whole owner side without a validator (cloud)
+
+```bash
+pnpm --filter @leash/web e2e:stack    # LiteSVM testbed + JSON-RPC endpoint + indexer (chain mode) + the app on :3102
+```
+
+This is what the live browser tests run: the real `leash.so` and `subscriptions.so` on LiteSVM behind a small JSON-RPC endpoint (`e2e/litesvm-rpc.ts`), the real indexer in chain mode on it, and the app in live mode. Its owner is the deterministic test key `owner`, so only the test wallet can sign there.
 
 ## Environment
 
@@ -47,19 +95,24 @@ Read only in [`src/env.ts`](src/env.ts), validated with zod.
 | `NEXT_PUBLIC_DATA_SOURCE` | `fixtures` | `fixtures` (sample data, no backend) or `indexer` (live) |
 | `NEXT_PUBLIC_INDEXER_URL` | `http://localhost:4100` | Indexer REST API |
 | `NEXT_PUBLIC_INDEXER_WS_URL` | `ws://localhost:4100/v1/stream` | Indexer stream |
-| `NEXT_PUBLIC_LEASH_CLUSTER` | `localnet` | With `devnet` and live data, events link to Solana Explorer (replays and localnet have no public transactions) |
-| `NEXT_PUBLIC_RPC_URL`, `NEXT_PUBLIC_APP_URL` | unset | Used from step 2 on |
+| `NEXT_PUBLIC_LEASH_CLUSTER` | `localnet` | The cluster the owner's transactions go to, and the chain the wallet is asked for (`solana:localnet` / `solana:devnet`). With `devnet` and live data, events link to Solana Explorer |
+| `NEXT_PUBLIC_RPC_URL` | the cluster's | The RPC the owner's writes read from (T13) and send to |
+| `NEXT_PUBLIC_APP_URL` | the request's origin | Absolute links in Solana Actions |
 
 ## Structure
 
 | Path | Contents |
 | --- | --- |
 | `src/app/` | Routes (thin server components) and `globals.css` (design tokens: light by default, dark from the header toggle, remembered per browser) |
-| `src/screens/` | The client screens: overview, agent, activity, approvals |
+| `src/screens/` | The client screens: overview, agent, activity, approvals, pairing, settings |
+| `src/wallet/` | Wallet Standard through `@solana/react` (Kit's hooks): the provider (selected account, silent reconnect, the Kit signer) and the header's connect button |
+| `src/lib/owner/` | The owner's write path: `plans.ts` (re-read, check, build, summarize), `send.ts` (sign and send), `errors.ts` (the copy), `use-owner-action.ts` (the flow), `chain.ts` (the browser's RPC) |
+| `src/lib/pairing.ts` | The pairing link, preset → form, validation, the plain-language review, the fingerprint |
 | `src/live/` | Live updates: `merge.ts` (pure rules), `apply.ts` (query cache), `stream.ts` (WebSocket client with reconnect and backfill), `live-provider.tsx` |
-| `src/components/` | `AgentCard`, `StatusBadge` + `ToneIcon`, `AmountText`, `AllowanceGauge`, `EventRow`, `FreezeSwitch` (Radix), `StrikeMeter`, `PayeeList`, `Address` (short, full on hover, copy), `RelativeTime`, `Card` |
+| `src/components/` | `OwnerActionDialog` (summary → wallet → pending → confirmed), `AgentCard`, `StatusBadge` + `ToneIcon`, `AmountText`, `AllowanceGauge`, `EventRow`, `FreezeSwitch` (Radix), `StrikeMeter`, `PayeeList`, `Address` (short, full on hover, copy), `RelativeTime`, `Card` |
 | `src/lib/` | Pure logic: formatting, agent status, event descriptions, plain-language policy lines, allowlist rows, what-if, CSV |
-| `src/data/` | `LeashDataSource` with fixture and indexer implementations, and the query hooks screens use |
+| `src/data/` | `LeashDataSource` with fixture and indexer implementations, the query hooks screens use, and `viewer.ts` (whose agents, and whether the wallet can act) |
+| `e2e/` | Browser tests: the fake Wallet Standard wallet, the LiteSVM JSON-RPC endpoint, the live stack |
 
 ## Design rules applied
 
@@ -73,13 +126,17 @@ Read only in [`src/env.ts`](src/env.ts), validated with zod.
 ## Test
 
 ```bash
-pnpm --filter @leash/web test       # 40 tests: logic, both data sources, live merge, reconnect, what-if, CSV
+pnpm --filter @leash/web test       # 117 tests: logic, data sources, live merge, what-if, CSV, Actions,
+                                    # every owner action on the LiteSVM testbed, summaries and error copy, pairing
+pnpm --filter @leash/web test:e2e   # Chromium: 6 on sample data, 8 live on LiteSVM (not part of pnpm check)
 pnpm --filter @leash/web typecheck
 pnpm --filter @leash/web lint
 ```
 
+- **`test/owner.test.ts`** runs every function of `src/lib/owner` on the real programs (LiteSVM): the wallet's signature makes the change, and a wrong signer (a stranger, the guardian where only the owner may act) is refused by the plan and, sent anyway, by the program.
+- **The browser tests** inject a Wallet Standard wallet that signs with a deterministic test key (`e2e/fake-wallet.ts`). On sample data: connect, copy, reconnect after reload, the cluster warning, read-only buttons, the pairing wizard up to its review, broken and wrong-cluster links. Live (`e2e/live-stack.ts`): approve, reject, freeze and unfreeze an agent, freeze and resume all, a declined signature, another wallet, the guardian, and a full pairing that ends on the new agent's page. They use the Chromium Playwright finds (pre-installed in the cloud; `pnpm exec playwright install chromium` elsewhere).
+
 ## Next
 
-- **Step 2:** wallet connection and the pairing wizard (reusing `policyLines` for the plain-language review). The owner then comes from the wallet instead of the demo storyline.
-- **Step 3, write side:** freeze and unfreeze, approve and reject, policy and allowlist editing, all through the SDK's owner builders (they need WS1's IDL).
-- **Steps 4–5:** Solana Actions, PWA, landing page, accessibility pass, Playwright smoke tests.
+- Policy and allowlist editing on the agent page (`buildUpdatePolicy`, `buildAddPayee`…), with the what-if tester as the preview; "hard stop: revoke allowance".
+- Steps 4–5: PWA, landing page, accessibility pass.

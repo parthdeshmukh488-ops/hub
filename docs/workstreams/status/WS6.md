@@ -2,10 +2,10 @@
 
 - Session branch: `ws6/owner-web-app-72mvts` (cloud session, 2026-10-02)
 - Last updated: 2026-10-02
-- Current build step: 2 and 3, write side (the owner acts in the app): in progress
+- Current build step: 2 and 3, write side (the owner acts in the app): done, PR into `main` open
 - Messages handled: through `20261001-2310-from-architect-to-ws5-ws1-sentinel-merged.md` (none needed WS6 action)
 
-## Plan for the owner's side (Parth's brief of 2026-10-02, in his order)
+## Plan for the owner's side (Parth's brief of 2026-10-02, in his order; executed)
 
 1. **Wallet.** `@solana/connector` 0.3.0 does not fit: it pulls `@wallet-ui/core`, whose peer is `@solana/kit` ^6 || ^7 (we pin 8.4.0), plus React Native through the mobile adapter (~280 MB). So, as the brief allows: **Wallet Standard with `@solana/react` 8.4.0** (Kit's own hooks, same version as our Kit; `@wallet-standard/react` for the wallet list). No web3.js v1 anywhere. Header: Connect button (wallet picker), the connected address with copy, disconnect, and a warning when the wallet does not list the app's chain (`solana:devnet` / `solana:localnet`). The wallet only **signs**; the app sends through its own RPC (`rpcChain`), so localnet works with any wallet and errors come back typed.
 2. **One write path**, `src/lib/owner/`:
@@ -35,7 +35,13 @@ Owner identity: in indexer mode the app shows the connected wallet's agents (the
 
 ## Done
 
-- **Build step 1, complete (2026-09-29).** Everything above. 19 tests pass; `next build` passes; screenshots checked with no console errors.
+- **The owner acts in the app (2026-10-02), as planned above.**
+  - Wallet: Wallet Standard + `@solana/react` 8.4.0 (`src/wallet/`): connect picker, address with copy, disconnect, silent reconnect after a reload, "Wallet not on <cluster>" warning. New dependencies: `@solana/react`, `@wallet-standard/react`; dev: `@playwright/test` 1.56.1 (matches the pre-installed Chromium), `@leash/indexer` (its `/testing` for the live stack). No web3.js v1 (`pnpm why @solana/web3.js` is empty).
+  - One write path, `src/lib/owner/`: plans (RPC re-read, signer and state checks, SDK builders, plain-language summary), `sendOwnerPlan`, error copy, `useOwnerAction` + `OwnerActionDialog`.
+  - Approve/Reject (inbox and agent page), the agent toggle, Clear strikes (freeze + unfreeze in one transaction), the global switch, the pairing wizard (`/pair`, `/app/agents/new`) ending on the new agent's page, guardian settings (`/app/settings`).
+  - Screens show the connected wallet's agents in indexer mode; fixture mode stays read-only.
+  - **Tests: 117 unit/integration** (`pnpm --filter @leash/web test`; was 68): 27 for `lib/owner` on the LiteSVM testbed (each action changes the real program; wrong signers refused by the plan and by the program), 12 for summaries and error copy (all 12 denials use the 02 §4 copy), 10 for the pairing logic. **14 in Chromium** (`pnpm --filter @leash/web test:e2e`): 6 on sample data, 8 live on LiteSVM through a JSON-RPC endpoint and the test indexer in chain mode, including a full pairing.
+- **Build step 1, complete (2026-09-29).** Next.js 16.3 App Router + Tailwind 4.3, design tokens, core components, fixture data layer, read-only overview and agent detail.
 - Plain-language policy lines (`src/lib/policy.ts`) are ready for the pairing review in step 2. Switched-off protections (allowlist off, no rate limit, tripwire off) are flagged as warnings.
 - Allowlist rows for agents without a detail fixture are rebuilt from events, using the program's payee-window rule. A test proves the rebuild equals `agent-detail.json` for the research agent.
 
@@ -59,16 +65,19 @@ Owner identity: in indexer mode the app shows the connected wallet's agents (the
 
 ## Next
 
-- Step 2: wallet connection (Kit-native connector) and the pairing wizard. It needs WS2's owner builders, which need WS1's IDL, so only the UI part can start before that. The owner then comes from the wallet (today: the demo storyline's owner, `src/data/owner.ts`).
-- Step 3, write side: freeze and unfreeze, approve and reject, policy and allowlist editing with the what-if tester as the preview.
+- Review and merge the PR.
+- **Laptop:** the owner on localnet and devnet as in `apps/web/README.md` ("The owner on localnet", "The owner on devnet"), with `owner-demo` imported into a browser wallet.
+- Step 3's rest: policy and allowlist editing with the what-if preview; "revoke allowance" in a danger zone.
 
 ## Open items
 
-- Explorer links show only for live data on devnet: the indexer's replay and the fixtures use made-up signatures, and nothing in `/v1/health` says the indexer is replaying. An optional `source` field there (additive) would let the app decide exactly.
-- After a replay loop resets, the overview briefly shows "0 of 0 running" until the storyline re-creates the agents. That is the replay's story, not a bug; at speed 1 it lasts 20 s.
-
-- Changed root `biome.json` (`css.parser.tailwindDirectives: true`) so Biome parses Tailwind v4's `@theme`. That file belongs to WS0; see the message to WS0.
-- Only one agent has a detail fixture. Fixture mode derives the other agent's allowlist from events, which is fine for the demo. A second detail fixture from WS0 would remove that derivation.
+- **Fingerprint format (contract gap, asked Parth).** 02 §11 and T11 ask the owner to compare a fingerprint with the agent's terminal, but no format is specified and the agent runtime prints only the pairing link. Default used: the whole base58 key in groups of four; the agent can print the same with no new code. An ADR could fix the format and have WS7 print it.
+- **Owner copy for non-denial program errors** (Unauthorized, InvalidPolicy, RequestExpired, …) lives in `apps/web/src/lib/owner/errors.ts`: 02 §4 only covers the twelve denials. Worth moving to `@leash/contracts` if another app needs it.
+- **Presets' "merchant-demo" payee and the localnet mint** have no web env variable; the wizard pre-fills them from the owner's existing agents and the cluster's USDC (devnet), else the owner types them.
+- Wallets report the chains they support, not the cluster they are on: the warning catches a wallet without the app's chain, not a wallet switched to mainnet.
+- Explorer links show only for live data on devnet in the feeds; the owner's own confirmed transactions always link (localnet: a custom-RPC Explorer link).
+- After a replay loop resets, the overview briefly shows "0 of 0 running"; the replay's story, not a bug.
+- Changed root `biome.json` earlier (`css.parser.tailwindDirectives`); see the message to WS0.
 
 ## Questions for other workstreams
 
