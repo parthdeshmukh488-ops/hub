@@ -52,6 +52,10 @@ Plan approved by the architect session. Task D of the [work queue](../messages/2
   | x402 | `packages/x402/test/client.test.ts` → "Path 2: a Leash payment through the official facilitator": it verifies and settles, is rejected without Leash on the allowlist, and fails verification when the program would deny (6 tests) |
 
   - **Gaps:** none: every row has at least one named test.
+  - **No silent drop-outs** (architect's review): a name filter matching nothing passes in both Vitest and cargo. Every step therefore runs through two inline helpers, which fail the step when no test ran:
+    - `vitest_ran` needs at least one passed test in the summary;
+    - `cargo_ran` needs every test target to report `ok. N passed` with N ≥ 1.
+    The helpers were checked locally, as extracted from the YAML: a filter matching nothing fails; matching filters pass; two targets where only one matches fail.
   - **Checked locally**, with each filter selecting what it names:
     - Rust: invariants 7, report 10, substitution 9, admin 3 (of 13), vectors 2, vectors on-chain 1;
     - TypeScript: SDK vectors 60, SDK agent 2 (of 46), indexer 1 (of 7), x402 6 (of 11), web Actions 28.

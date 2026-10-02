@@ -57,6 +57,8 @@ jobs:
   # The invariant tests of 03-security §3, by name, in one job: "these run on every commit".
   # The full suites run in the jobs above too; this one says which tests carry which invariant.
   # The map from each invariant to its tests is in docs/workstreams/status/WS9.md (Task D).
+  # A name filter that matches nothing passes silently in Vitest and cargo, so every step goes
+  # through vitest_ran / cargo_ran: a renamed test fails the job instead of dropping out of it.
   security:
     name: Security invariants (I1–I6, parity, x402)
     runs-on: ubuntu-latest
@@ -72,23 +74,54 @@ jobs:
         with:
           toolchain: 1.98.1
       - uses: Swatinem/rust-cache@v2
+      - name: "Guards: fail a step that ran no test"
+        run: |
+          cat > "$RUNNER_TEMP/guard.sh" <<'GUARD'
+          set -o pipefail
+          # Vitest: at least one test passed (a -t filter matching nothing exits 0, all skipped).
+          vitest_ran() {
+            local out; out="$(mktemp)"
+            NO_COLOR=1 "$@" 2>&1 | tee "$out"
+            grep -Eq '^ +Tests +([0-9]+ failed \| )?[1-9][0-9]* passed' "$out" \
+              || { echo "::error::no test ran: $*"; return 1; }
+          }
+          # cargo: every test target it ran passed at least one test ("ok. 0 passed" exits 0).
+          cargo_ran() {
+            local out; out="$(mktemp)"
+            cargo test "$@" 2>&1 | tee "$out"
+            grep -q '^test result: ok\. [1-9][0-9]* passed' "$out" \
+              || { echo "::error::no test ran: cargo test $*"; return 1; }
+            if grep -q '^test result: ok\. 0 passed' "$out"; then
+              echo "::error::a test target ran no test: cargo test $*"; return 1
+            fi
+          }
+          GUARD
       - name: "I6 non-custodial: no key in the repo, no owner key in any service config"
         run: pnpm check:secrets && pnpm check:env
       - name: "I1–I5 on the program: allowance ceiling, allowlist, freeze, tripwire, one event each"
-        run: cargo test -p leash --test invariants
+        run: source "$RUNNER_TEMP/guard.sh" && cargo_ran -p leash --test invariants
       - name: "I2 firewall: substituted accounts are refused; reports never move money"
-        run: cargo test -p leash --test substitution --test report
+        run: source "$RUNNER_TEMP/guard.sh" && cargo_ran -p leash --test substitution --test report
       - name: "I3 off switch: owner or guardian freezes, only the owner unfreezes"
-        run: cargo test -p leash --test admin -- freeze global_switch
+        run: source "$RUNNER_TEMP/guard.sh" && cargo_ran -p leash --test admin -- freeze global_switch
       - name: "Parity: the program and the TypeScript evaluator agree on every policy vector"
         run: |
-          cargo test -p leash --test vectors --test vectors_onchain
-          pnpm --filter @leash/sdk exec vitest run test/vectors.test.ts
+          source "$RUNNER_TEMP/guard.sh"
+          cargo_ran -p leash --test vectors --test vectors_onchain
+          vitest_ran pnpm --filter @leash/sdk exec vitest run test/vectors.test.ts
       - name: "I3–I4 through the SDK: the third strike freezes; a frozen principal stops every agent"
-        run: pnpm --filter @leash/sdk exec vitest run test/agent.test.ts -t "the third strike freezes the agent|stops every agent while the principal is frozen"
+        run: |
+          source "$RUNNER_TEMP/guard.sh"
+          vitest_ran pnpm --filter @leash/sdk exec vitest run test/agent.test.ts -t "the third strike freezes the agent|stops every agent while the principal is frozen"
       - name: "I5 audit: the indexer stores every payment and denial event"
-        run: pnpm --filter @leash/indexer exec vitest run test/chain.test.ts -t "ingests the program"
+        run: |
+          source "$RUNNER_TEMP/guard.sh"
+          vitest_ran pnpm --filter @leash/indexer exec vitest run test/chain.test.ts -t "ingests the program"
       - name: "x402: the official facilitator settles a Leash payment and rejects a denied one"
-        run: pnpm --filter @leash/x402 exec vitest run test/client.test.ts -t "Path 2"
+        run: |
+          source "$RUNNER_TEMP/guard.sh"
+          vitest_ran pnpm --filter @leash/x402 exec vitest run test/client.test.ts -t "Path 2"
       - name: "I6 in the web app: Solana Actions return unsigned transactions; the program checks signers"
-        run: pnpm --filter @leash/web exec vitest run test/actions.test.ts
+        run: |
+          source "$RUNNER_TEMP/guard.sh"
+          vitest_ran pnpm --filter @leash/web exec vitest run test/actions.test.ts
