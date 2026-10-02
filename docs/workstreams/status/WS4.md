@@ -2,7 +2,7 @@
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-10-02
-- Current build step: 2 (chain ingestion) done; next: 3 (allowances and stats from chain data) and 4 (reconciliation)
+- Current build step: 3–4 (Task E of the second account's work queue), in progress on `claude/compassionate-keller-5rmytv`
 - Messages handled: through `20261001-0150-from-ws1-to-ws4-ci-fix-remembered-poke.md`
 
 ## Plan for build step 1 (as executed)
@@ -20,6 +20,20 @@
 3. **Store:** cursors, the known agents (principal and delegation) for restarts, and `delegationsFromEvents` off in chain mode.
 4. **`main.ts`:** `INDEXER_SOURCE` picks the source, defaulting to `chain` as 02 §13 says; `LEASH_RPC_URL` is read.
 5. **Tests on LiteSVM** with the real program.
+
+## Plan for build steps 3–4 (Task E, approved by the architect session, 2026-10-02)
+
+0. **From the PR #3 review** (`e2e/`): scene 3 waits for `tripwire_fired` with `waitFor` before checking alerts, as scene 2 does, instead of a fixed 50 ms.
+1. **Account snapshot ("accounts give truth")** in chain mode, at start and right after a start-over:
+   - every principal (`fetchPrincipalViews`); per owner its agents (`fetchAgentViews`); per agent its allowlist (`fetchPayees`), open requests (`fetchOpenRequests`) and delegation;
+   - overwrites the projections, and removes allowlist entries, requests and agents that no longer exist on-chain.
+   - **No double counting:** events after the cursor would be applied on top of a snapshot that already includes them. So the snapshot runs after a catch-up poll, then polls again, and takes a fresh snapshot whenever that poll found new transactions.
+   - **Events stored before their owner was known** get their owner.
+   - `snapshot()` on the chain source and in `@leash/indexer/testing`.
+   - **Test:** a first start whose backfill limit misses the onboarding still lists the owner with its agents, allowlist and open requests, equal to the SDK's reads.
+2. **Devnet RPC lag:** start over only after the cursor lookup misses on three polls in a row (one miss is often a lagging node). Tested both ways: two misses then a hit keep the database; three misses start over.
+3. **Stats on chain data:** a chain-mode test that `/v1/owners/:owner/stats` matches the testbed's payments, denials and spend.
+4. **Health:** `/v1/health` answers `ok: false` once three polls in a row failed (or the fixture replay failed), and `ok: true` again after a successful poll. HTTP 200, the contract's fields; `lagSeconds` stays honest.
 
 ## Done
 
