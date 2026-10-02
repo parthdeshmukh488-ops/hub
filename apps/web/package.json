@@ -10,7 +10,9 @@
     "start": "next start --port 3000",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "playwright test -c playwright.fixtures.config.ts && playwright test -c playwright.live.config.ts",
+    "e2e:stack": "tsx e2e/live-stack.ts"
   },
   "dependencies": {
     "@leash/contracts": "workspace:*",

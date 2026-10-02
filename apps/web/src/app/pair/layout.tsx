@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { AppShell } from "../../components/app-shell.tsx";
 
-export default function AppLayout({ children }: { children: ReactNode }) {
+export default function PairLayout({ children }: { children: ReactNode }) {
   return <AppShell>{children}</AppShell>;
 }

@@ -1,11 +1,13 @@
 "use client";
 
 import { Card } from "../components/card.tsx";
+import { OwnerActionDialog } from "../components/owner-action-dialog.tsx";
 import { RequestList } from "../components/request-list.tsx";
 import { ScreenState } from "../components/screen-state.tsx";
 import { useOverview, useRequests } from "../data/hooks.ts";
-import { getDataSource } from "../data/index.ts";
-import { readOnlyReason } from "../lib/copy.ts";
+import { useViewerOwner, useWriteBlocker } from "../data/viewer.ts";
+import { planApprove, planReject } from "../lib/owner/plans.ts";
+import { useOwnerAction } from "../lib/owner/use-owner-action.ts";
 import { useLive } from "../live/live-provider.tsx";
 
 export function ApprovalsScreen() {
@@ -13,6 +15,8 @@ export function ApprovalsScreen() {
   const overview = useOverview();
   const { now } = useLive();
   const names = overview.data?.names ?? new Map<string, string>();
+  const action = useOwnerAction({ owner: useViewerOwner() });
+  const disabledReason = useWriteBlocker();
 
   return (
     <div className="space-y-6">
@@ -34,12 +38,23 @@ export function ApprovalsScreen() {
                 names={names}
                 now={now}
                 showAgent
-                disabledReason={readOnlyReason(getDataSource().kind)}
+                actions={{
+                  disabledReason,
+                  onApprove: (request) =>
+                    action.start(({ chain, signer }) =>
+                      planApprove(chain, { signer, request: request.address }),
+                    ),
+                  onReject: (request) =>
+                    action.start(({ chain, signer }) =>
+                      planReject(chain, { signer, request: request.address }),
+                    ),
+                }}
               />
             )}
           </Card>
         )}
       </ScreenState>
+      <OwnerActionDialog action={action} />
     </div>
   );
 }

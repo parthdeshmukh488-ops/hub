@@ -1,6 +1,5 @@
 import type { AgentView, PrincipalView, RequestView } from "@leash/contracts";
 import {
-  type AllowanceInput,
   buildApproveRequest,
   buildFreezeAgent,
   buildFreezePrincipal,
@@ -449,7 +448,13 @@ export type OnboardingRequest = {
   label: string;
   mint: string;
   policy: PolicyState;
-  allowance: AllowanceInput;
+  /** A recurring allowance: `amountPerPeriod` every `periodLengthSecs`, from now. */
+  allowance: {
+    amountPerPeriod: bigint;
+    periodLengthSecs: bigint;
+    /** It expires this long after the cluster's current time; 0n = never. */
+    durationSecs: bigint;
+  };
   payees: readonly PayeeInput[];
   /** Only used when the owner's Leash account is created now. */
   guardian: string | null;
@@ -485,7 +490,14 @@ export async function planOnboarding(
       mint: input.mint as Address,
       label: input.label,
       policy: input.policy,
-      allowance: input.allowance,
+      allowance: {
+        kind: "recurring",
+        amountPerPeriod: input.allowance.amountPerPeriod,
+        periodLengthSecs: input.allowance.periodLengthSecs,
+        ...(input.allowance.durationSecs > 0n
+          ? { expiryTs: (await readChainTime(chain)) + input.allowance.durationSecs }
+          : {}),
+      },
       payees: input.payees,
       guardian: (input.guardian as Address | null) ?? null,
     });

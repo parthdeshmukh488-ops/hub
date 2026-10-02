@@ -1,25 +1,32 @@
 import type { RequestView } from "@leash/contracts";
 import type { NameBook } from "../lib/events.ts";
-import { absoluteTime, relativeTime, shortAddress } from "../lib/format.ts";
+import { absoluteTime, relativeTime, shortAddress, usdc } from "../lib/format.ts";
 import { AmountText } from "./amount-text.tsx";
 import { StatusBadge } from "./tone.tsx";
 
+export type RequestActions = {
+  /** Why the buttons are disabled (no wallet, sample data), or null. */
+  disabledReason: string | null;
+  onApprove: (request: RequestView) => void;
+  onReject: (request: RequestView) => void;
+};
+
 /**
  * Payment requests waiting for the owner. The memo is the agent's own words: untrusted, shown as
- * text only (T18). Approving and rejecting need a connected wallet; until then the buttons say why.
+ * text only (T18). Approve and Reject open the summary first; the wallet only opens from there.
  */
 export function RequestList({
   requests,
   names,
   now,
   showAgent = false,
-  disabledReason,
+  actions,
 }: {
   requests: readonly RequestView[];
   names: NameBook;
   now: number;
   showAgent?: boolean;
-  disabledReason?: string;
+  actions?: RequestActions;
 }) {
   const name = (address: string) => names.get(address) ?? shortAddress(address);
   return (
@@ -57,24 +64,30 @@ export function RequestList({
                 }
                 title={absoluteTime(request.expiresAt)}
               />
-              {disabledReason !== undefined && request.status === "pending" && !expired && (
+              {actions && !expired && (
                 <>
                   <button
                     type="button"
-                    disabled
-                    title={disabledReason}
-                    className="rounded-lg border border-line px-3 py-1.5 text-sm disabled:opacity-50"
+                    disabled={actions.disabledReason !== null}
+                    title={actions.disabledReason ?? undefined}
+                    onClick={() => actions.onReject(request)}
+                    aria-label={`Reject ${usdc(request.amount)} USDC to ${name(request.payee)}`}
+                    className="rounded-lg border border-line px-3 py-1.5 text-sm hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Reject
                   </button>
-                  <button
-                    type="button"
-                    disabled
-                    title={disabledReason}
-                    className="rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-canvas disabled:opacity-50"
-                  >
-                    Approve
-                  </button>
+                  {request.status === "pending" && (
+                    <button
+                      type="button"
+                      disabled={actions.disabledReason !== null}
+                      title={actions.disabledReason ?? undefined}
+                      onClick={() => actions.onApprove(request)}
+                      aria-label={`Approve ${usdc(request.amount)} USDC to ${name(request.payee)}`}
+                      className="rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-canvas hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Approve
+                    </button>
+                  )}
                 </>
               )}
             </div>

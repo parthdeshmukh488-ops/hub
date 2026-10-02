@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { getDataSource } from "../data/index.ts";
-import { DEMO_OWNER } from "../data/owner.ts";
+import { useViewerOwner } from "../data/viewer.ts";
 import { env } from "../env.ts";
 import { applyMessage, reload, resync } from "./apply.ts";
 import { type LiveStatus, LiveStream } from "./stream.ts";
@@ -41,6 +41,7 @@ export function Providers({ children }: { children: ReactNode }) {
 function LiveUpdates({ children }: { children: ReactNode }) {
   const source = getDataSource();
   const client = useQueryClient();
+  const owner = useViewerOwner();
   const [status, setStatus] = useState<Live["status"]>(
     source.kind === "fixtures" ? "sample" : "connecting",
   );
@@ -51,14 +52,14 @@ function LiveUpdates({ children }: { children: ReactNode }) {
     const tick = setInterval(() => setNow(source.now()), 15_000);
     const stream = new LiveStream({
       url: env.NEXT_PUBLIC_INDEXER_WS_URL,
-      owner: DEMO_OWNER,
+      owner: owner,
       source,
       onMessage: (message) => {
-        applyMessage(client, DEMO_OWNER, message);
+        applyMessage(client, owner, message);
         if (message.type === "event") setNow(source.now());
       },
-      onResync: () => resync(client, DEMO_OWNER),
-      onReset: () => reload(client, DEMO_OWNER),
+      onResync: () => resync(client, owner),
+      onReset: () => reload(client, owner),
       onStatus: setStatus,
     });
     stream.start();
@@ -66,7 +67,7 @@ function LiveUpdates({ children }: { children: ReactNode }) {
       clearInterval(tick);
       stream.stop();
     };
-  }, [client, source]);
+  }, [client, source, owner]);
 
   return <LiveContext.Provider value={{ status, now }}>{children}</LiveContext.Provider>;
 }

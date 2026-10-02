@@ -359,9 +359,9 @@ describe("pairing", () => {
     mint: bed.mint,
     policy: DEMO_POLICY,
     allowance: {
-      kind: "recurring" as const,
       amountPerPeriod: 3n * USDC,
       periodLengthSecs: 86_400n,
+      durationSecs: 30n * 86_400n,
     },
     payees: [
       {
@@ -386,6 +386,7 @@ describe("pairing", () => {
     expect(view?.agentKey).toBe(agentKey);
     expect(policyStateFromView(view?.policy ?? (await agentView()).policy)).toEqual(DEMO_POLICY);
     expect(view?.allowance?.amountPerPeriod).toBe(String(3n * USDC));
+    expect(view?.allowance?.expiresAt).toBe(Number(bed.now() + 30n * 86_400n));
     const payees = await fetchPayees(bed.chain, plan.agent as Address);
     expect(payees.map((p) => p.label)).toEqual(["Research API"]);
     // Pairing it again is refused: it exists.
