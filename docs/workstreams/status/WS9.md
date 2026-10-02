@@ -1,9 +1,35 @@
 # WS9 status: Integration, end-to-end tests and story
 
 - Session branch: `claude/determined-faraday-9rk16e` (Parth's second Claude account, cloud)
-- Last updated: 2026-10-01
+- Task D session branch: `claude/compassionate-keller-5rmytv` (second account, cloud)
+- Last updated: 2026-10-02
 - Current build step: Task B's writing is done (README v1, the deck and its PDF, demo script, judge Q&A, video storyboard); next: Parth's placeholders, then keeping it all true as parts ship
 - Messages handled: through `20261001-1715-from-architect-to-ws9-pr1-review.md` (on the architect's branch until its next merge; it reviews PR #1). That includes the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md); this session is its Task B.
+
+## Task D: the whole system in one test, and the security CI job (2026-10-02)
+
+Plan approved by the architect session. Task D of the [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md).
+
+1. **Two fixes from the architect's review of PR #2, first** (Task C lane: `apps/web/src/server/actions/**`, `apps/web/test/actions*.test.ts`):
+   - **Expiry:** `request.ts` treats a request as expired only when `now > expiresAt`, but the program's `is_expired` is `now >= expires_at`. Use `>=`, and test at that exact second.
+   - **Reject:** let it work on an approved request (the program's `reject_request` accepts one: it withdraws the approval before the agent pays). Its description says so. Approve stays pending-only. Tested on-chain.
+2. **The "security" CI job** (03-security §3), in `.github/workflows/ci.yml`:
+   - one job that runs the named invariant tests, selected by file or test name (Vitest `-t` or file paths; `cargo test` filters for the program, with the Rust job's setup);
+   - plus `pnpm check:secrets` and `check:env` for I6.
+   - Every row of §3 is mapped to existing tests below. A row with no test is a gap; program tests stay in WS1's lane.
+3. **The whole demo story in one suite in `e2e/`**, in process on LiteSVM, with no network:
+   - the SDK testbed;
+   - merchant-demo with payments on, through the official facilitator (`litesvmFacilitatorClient`);
+   - the agent's tools (`connectLeash`);
+   - the demo agent's `runDemo` in scripted mode, with the test approving as the owner;
+   - the indexer through `startTestIndexer` (chain mode over `bed.chain`, `sync()` after each scene);
+   - Sentinel live, watching the testbed's guardian, with a collecting notifier.
+   - **Per scene, it asserts:**
+     - balances (the attacker's unchanged);
+     - the indexer's owner overview and events feed (payments, the request and its approval, three `PaymentDenied` with strikes 1–3 and the third tripped, `AgentFrozen` by the tripwire);
+     - Sentinel's alerts: `approval_requested` and `tripwire_fired`, and no `burst_denials`.
+   - `e2e/README.md` replaces the skeleton.
+4. **Order:** 1 and 2 first. Item 3 needs `@leash/indexer/testing` on `main`.
 
 ## Done
 
