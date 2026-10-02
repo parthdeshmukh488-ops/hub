@@ -17,12 +17,18 @@ export interface RequestContext {
   story: string;
   /** Why it cannot be acted on, or null. */
   blocked: string | null;
+  /** Approved but not paid yet (reject then withdraws the approval). */
+  approved: boolean;
 }
 
 export async function loadRequestContext(
   chain: LeashChain,
   address: string,
-  options: { checkExpiry: boolean },
+  /**
+   * approve: pending and not expired (01 §6.1). reject: any open request, approved ones
+   * included (rejecting withdraws the approval before the agent pays).
+   */
+  action: "approve" | "reject",
 ): Promise<RequestContext> {
   const request = await fetchRequestView(chain, address as Address);
   if (!request) {
@@ -39,11 +45,15 @@ export async function loadRequestContext(
   const memo = safeText(request.memo, 64);
   const story = `${nameOf(agent.label, agent.address)} asks to pay ${what}${memo ? ` for “${memo}”` : ""}.`;
 
+  const approved = request.status === "approved";
   let blocked: string | null = null;
-  if (request.status !== "pending") {
-    blocked = "This request is already approved: the agent can now make the payment.";
-  } else if (options.checkExpiry && (await readChainTime(chain)) > BigInt(request.expiresAt)) {
-    blocked = "This request has expired. The agent has to ask again.";
+  if (action === "approve") {
+    if (approved) {
+      blocked = "This request is already approved: the agent can now make the payment.";
+    } else if ((await readChainTime(chain)) >= BigInt(request.expiresAt)) {
+      // The program's is_expired is `now >= expires_at`: at that second it refuses approval.
+      blocked = "This request has expired. The agent has to ask again.";
+    }
   }
-  return { request, agent, principal, what, story, blocked };
+  return { request, agent, principal, what, story, blocked, approved };
 }

@@ -333,6 +333,32 @@ describe("approve?request=", () => {
     });
   });
 
+  it("expires at its expiresAt second, as the program counts (now >= expiresAt)", async () => {
+    const request = await pendingRequest();
+    const view = await fetchRequestView(bed.chain, request as Address);
+    if (!view) throw new Error("request missing");
+    bed.setTime(BigInt(view.expiresAt) - 1n);
+    const before = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(before.disabled).toBeUndefined();
+    const transaction = await transactionOf(
+      await postAction(h(), PATH, { request }, { account: bed.keys.owner.address }),
+    );
+
+    bed.setTime(BigInt(view.expiresAt));
+    const at = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(at).toMatchObject({ disabled: true, description: expect.stringMatching(/expired/) });
+    await errorOf(
+      await postAction(h(), PATH, { request }, { account: bed.keys.owner.address }),
+      409,
+    );
+    // The transaction built a second earlier is refused by the program at this second, too.
+    await expect(signAndSend(transaction, bed.keys.owner)).rejects.toThrow();
+  });
+
   it("is disabled once the request expired", async () => {
     const request = await pendingRequest();
     bed.advance(3_601n);
@@ -398,6 +424,38 @@ describe("reject?request=", () => {
       await errorOf(await getAction(h(), PATH, { request }), 404);
     });
   }
+
+  it("withdraws an approval that is not paid yet, on-chain", async () => {
+    const request = await pendingRequest();
+    await signAndSend(
+      await transactionOf(
+        await postAction(
+          handlers(approveAction),
+          "/api/actions/approve",
+          { request },
+          {
+            account: bed.keys.owner.address,
+          },
+        ),
+      ),
+      bed.keys.owner,
+    );
+    const body = ActionGetResponseSchema.parse(
+      await (await getAction(h(), PATH, { request })).json(),
+    );
+    expect(body.disabled).toBeUndefined();
+    expect(body.description).toMatch(/approved but not paid yet: rejecting withdraws the approval/);
+    const response = await postAction(
+      h(),
+      PATH,
+      { request },
+      { account: bed.keys.guardian.address },
+    );
+    const answer = ActionPostResponseSchema.parse(await response.clone().json());
+    expect(answer.message).toMatch(/^Withdraws the approval/);
+    await signAndSend(await transactionOf(response), bed.keys.guardian);
+    expect(await fetchRequestView(bed.chain, request as Address)).toBeNull();
+  });
 
   it("refuses a stranger with 403, and the program refuses one too", async () => {
     const request = await pendingRequest();

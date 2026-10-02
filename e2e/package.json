@@ -7,6 +7,19 @@
   "scripts": {
     "lint": "biome check .",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@leash/agent-demo": "workspace:*",
+    "@leash/contracts": "workspace:*",
+    "@leash/indexer": "workspace:*",
+    "@leash/merchant-demo": "workspace:*",
+    "@leash/sdk": "workspace:*",
+    "@leash/sentinel": "workspace:*",
+    "@leash/tools": "workspace:*",
+    "@leash/x402": "workspace:*",
+    "@solana/kit": "8.4.0",
+    "litesvm": "1.5.0",
+    "pino": "10.3.1"
   }
 }

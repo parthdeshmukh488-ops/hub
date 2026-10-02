@@ -11,23 +11,23 @@ export const rejectAction: ActionDefinition<"reject"> = {
   name: "reject",
   page: () => "/app/approvals",
   async describe({ request }, { chain }) {
-    const context = await loadRequestContext(chain, request, { checkExpiry: false });
+    const context = await loadRequestContext(chain, request, "reject");
     return {
       title: `Reject ${context.what}`,
       label: "Reject",
-      description: context.blocked ?? `${context.story} The owner or the guardian can reject it.`,
-      ...(context.blocked ? { disabled: true } : {}),
+      description: context.approved
+        ? `${context.story} It is approved but not paid yet: rejecting withdraws the approval. The owner or the guardian can reject it.`
+        : `${context.story} The owner or the guardian can reject it.`,
     };
   },
   async build({ request }, account, { chain }) {
-    const context = await loadRequestContext(chain, request, { checkExpiry: false });
+    const context = await loadRequestContext(chain, request, "reject");
     if (!isOwnerOrGuardian(context.principal, account)) {
       throw new ActionHttpError(
         403,
         "Only the owner or the guardian can reject a payment request.",
       );
     }
-    if (context.blocked) throw new ActionHttpError(409, context.blocked);
     return {
       instructions: [
         await buildRejectRequest({
@@ -39,7 +39,9 @@ export const rejectAction: ActionDefinition<"reject"> = {
           rentReceiver: context.request.rentPayer as Address,
         }),
       ],
-      message: `Rejects ${context.what}. The agent is told no.`,
+      message: context.approved
+        ? `Withdraws the approval of ${context.what}. The agent can no longer make this payment.`
+        : `Rejects ${context.what}. The agent is told no.`,
     };
   },
 };
