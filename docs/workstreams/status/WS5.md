@@ -112,11 +112,14 @@ New dependencies (to be added to `services/sentinel/package.json`): `ws`, `hono`
 - New dependency: `@leash/sdk` (workspace).
 - Telegram set up on the laptop by Parth (2026-10-01).
 
+- **Reviewed the architect's start-up fixes (`c66e5f1`, message 20261001-2310):** correct; 101 tests pass. Messages handled: through `20261001-2310-from-architect-to-ws5-ws1-sentinel-merged.md`.
+
 ## Next
 - Parth merges `claude/compassionate-keller-5rmytv` into `main` (open a PR if wanted).
 - **Laptop, on devnet:** run Sentinel with `SENTINEL_GUARDIAN_KEYPAIR=.keys/guardian.json SENTINEL_AUTOFREEZE=true` beside the indexer in chain mode during the demo run.
 
 ## Open items
+- `--config <relative path>` still resolves from `services/sentinel`, unlike the keypair path (repo root). Unused in the demo; align it if anyone passes `--config`.
 - **Known risk, accepted by Parth:** the token of @LeashmvpBot was shown in a chat screenshot on 2026-10-01 and was not revoked. If the bot ever misbehaves, `/revoke` it in BotFather and update the laptop's `.env`.
 - The service tests move to `@leash/indexer/testing` once it is on `main` (the fake indexer goes then).
 - An event that happened while Sentinel was down and is older than the newest 200 at start is learned silently, not alerted (documented in the README).

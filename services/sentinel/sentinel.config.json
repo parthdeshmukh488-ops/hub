@@ -1,6 +1,6 @@
 {
   "cooldownSecs": 600,
-  "actionLinks": false,
+  "actionLinks": true,
   "rules": {
     "tripwireFired": { "enabled": true },
     "approvalRequested": { "enabled": true },

@@ -11,8 +11,8 @@ describe("sentinel.config.json", () => {
     expect(file).toEqual(DEFAULT_CONFIG);
   });
 
-  it("keeps the brief's thresholds and leaves Action links off", () => {
-    expect(DEFAULT_CONFIG.actionLinks).toBe(false);
+  it("keeps the brief's thresholds and turns Action links on", () => {
+    expect(DEFAULT_CONFIG.actionLinks).toBe(true);
     expect(DEFAULT_CONFIG.rules.burstDenials).toMatchObject({ minDenials: 3, windowSecs: 300 });
     expect(DEFAULT_CONFIG.rules.spendSpike).toMatchObject({
       windowSecs: 600,
@@ -25,8 +25,8 @@ describe("sentinel.config.json", () => {
   });
 
   it("fills in what a partial file leaves out", () => {
-    const config = parseConfig({ actionLinks: true, rules: { burstDenials: { minDenials: 5 } } });
-    expect(config.actionLinks).toBe(true);
+    const config = parseConfig({ actionLinks: false, rules: { burstDenials: { minDenials: 5 } } });
+    expect(config.actionLinks).toBe(false);
     expect(config.rules.burstDenials).toEqual({ enabled: true, minDenials: 5, windowSecs: 300 });
     expect(config.rules.spendSpike).toEqual(DEFAULT_CONFIG.rules.spendSpike);
   });

@@ -8,6 +8,14 @@ exports[`the demo storyline > yields exactly the expected alerts 1`] = `
         "label": "Review request",
         "url": "http://localhost:3000/app/approvals",
       },
+      {
+        "label": "Approve",
+        "url": "http://localhost:3000/api/actions/approve?request=EWTv1oLL4Si5PuWUyPVWzHFtV8waGoXTDheGgMn47toZ",
+      },
+      {
+        "label": "Reject",
+        "url": "http://localhost:3000/api/actions/reject?request=EWTv1oLL4Si5PuWUyPVWzHFtV8waGoXTDheGgMn47toZ",
+      },
     ],
     "agent": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
     "body": "Research Assistant wants to pay 1.50 USDC to Research API for “premium e-bike comparison report”. It cannot pay until you approve; the request expires in 1 hour.",
@@ -26,6 +34,10 @@ exports[`the demo storyline > yields exactly the expected alerts 1`] = `
       {
         "label": "Open agent",
         "url": "http://localhost:3000/app/agents/EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
+      },
+      {
+        "label": "Freeze all agents",
+        "url": "http://localhost:3000/api/actions/freeze-all?owner=H1Gk6MBearXpAg4aMH4oNJ3suHrseqYkgBu7iuxmJe3N",
       },
     ],
     "agent": "EGj9J72oCLK1nhAMoAdWQoBisLF6usjd8u8essiAM7ch",
@@ -48,6 +60,14 @@ exports[`the demo storyline > yields exactly the expected alerts 1`] = `
       {
         "label": "Review request",
         "url": "http://localhost:3000/app/approvals",
+      },
+      {
+        "label": "Approve",
+        "url": "http://localhost:3000/api/actions/approve?request=HEkRQMJUtJ79eLD2wQmgyxYpNCXn2jUsLZi3wZXvEHcP",
+      },
+      {
+        "label": "Reject",
+        "url": "http://localhost:3000/api/actions/reject?request=HEkRQMJUtJ79eLD2wQmgyxYpNCXn2jUsLZi3wZXvEHcP",
       },
     ],
     "agent": "FpGkpKHmiLHhgSnSbd9AmZwoK1GvnXWyx2WWcVctuGYo",
