@@ -1,7 +1,7 @@
 # WS4 status: Indexer and read API
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
-- Last updated: 2026-10-01
+- Last updated: 2026-10-02
 - Current build step: 2 (chain ingestion) done; next: 3 (allowances and stats from chain data) and 4 (reconciliation)
 - Messages handled: through `20261001-0150-from-ws1-to-ws4-ci-fix-remembered-poke.md`
 
@@ -44,6 +44,8 @@
   - It passed: backfill, live following and a restart, with views equal to the chain.
   - It found a stall: Agave fails `getSignaturesForAddress` when `until` names a transaction it doesn't know, which is what happens after a localnet restart with an old database. The indexer now starts over in that case (logged; `Store.startOver`, tested).
   - Its fix for a lost `poke` (`fea2387`) is kept.
+
+- **2026-10-02, `@leash/indexer/testing`:** `startTestIndexer()` runs the real store, REST API and stream in process on a random port, fed by the storyline (optionally started after a client subscribed) or by a chain such as the LiteSVM testbed's, polled only on `sync()`. For Sentinel's end-to-end test and the e2e suite (Task D), so neither reaches into `src/`. 2 tests; 51 in total.
 
 ## Next
 

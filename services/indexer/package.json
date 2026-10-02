@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Indexer and read API: on-chain events to REST and WebSocket.",
+  "exports": {
+    "./testing": "./src/testing.ts"
+  },
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "tsx src/main.ts",
