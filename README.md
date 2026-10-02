@@ -33,7 +33,9 @@ The story the demo tells, with a research agent on a budget:
 
 **What is scripted.** In the attack scene the agent's decisions are scripted to follow the hidden instruction, as a fooled model would. The screen says so: "Simulating a successful injection". Every payment, block and strike is real and on-chain. The demo agent can also be driven by a live Claude model; those runs and their recordings are in progress.
 
-**Where it runs today.** The whole scripted story has run end to end on a local Solana validator, and in our tests on the real program binaries. The devnet run and its recording are in progress. Pairing, approving, freezing and unfreezing in the web app are being built now; until they ship, the owner's side runs from the terminal (`pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze`).
+**Where it runs today.** The whole scripted story has run end to end on a local Solana validator. On every commit it also runs as one test through the whole system: agent, x402 merchant, official facilitator, the real program binaries, indexer and Sentinel. The devnet run and its recording are in progress.
+
+Pairing, approving, freezing and unfreezing in the web app are being built now. Until they ship, the owner approves or freezes from a Solana Action (a Blink, signed in the owner's wallet), or from the terminal (`pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze`).
 
 ## How it works
 
@@ -65,7 +67,7 @@ Full design: [architecture overview](docs/architecture/00-overview.md) and [prog
 
 ## What works today
 
-As of October 1, 2026. 767 automated tests (639 TypeScript, 128 Rust) run on every commit.
+As of October 2, 2026. 911 automated tests (783 TypeScript, 128 Rust) run on every commit, and a separate security job runs the security model's invariant tests by name.
 
 | Part | State | How we know |
 | --- | --- | --- |
@@ -75,13 +77,16 @@ As of October 1, 2026. 767 automated tests (639 TypeScript, 128 Rust) run on eve
 | TypeScript SDK | Done | Owner and agent operations, the same policy evaluator, event decoding. |
 | MCP server | Done | Claude Code connects to it and gets the four Leash tools. |
 | Demo agent and demo merchants | Done | The scripted story ran end to end on a local validator, attack lab included. |
-| Indexer | Done | Follows the program on a local validator; its views equal what the SDK reads from the chain. |
+| Indexer | Done | Follows the program on a local validator; its views equal what the SDK reads from the chain. At start it takes a snapshot of every account, so its views are right even when it missed older history. |
 | Control panel: overview, agent page, activity log with CSV export, approvals inbox, "what would happen if" tester | Done | Updates live from the indexer's stream. Tested with the storyline replay and with the indexer following a local validator. |
-| Control panel: pairing, approve, freeze, unfreeze | In progress | Until then: `pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze` |
-| Telegram alerts | In progress | |
+| Sentinel: alerts and the guardian's autofreeze | Done | Seven alert rules, tested on the demo story. The Telegram messages are tested against a fake Bot API: plain text, and labels and memos can't inject links or markup. The guardian freezes only when allowed and when the on-chain guardian is its key: tested on the real program in LiteSVM. |
+| Solana Actions (Blinks): approve, reject, freeze, freeze all | Done | The server returns an unsigned transaction; the owner's wallet signs it. Each is tested on the real program: the right signer succeeds, a wrong one is refused on-chain. Sentinel's alerts link to them. |
+| The whole story in one test | Done | Agent → x402 merchant → official facilitator → program → indexer → Sentinel, in process on LiteSVM, on every commit ([e2e/](e2e/README.md)). |
+| Security CI job | Done | Runs the invariant tests of the [security model](docs/architecture/03-security.md#3-invariant-tests) by name, I1 to I6, policy parity and x402. It fails if a renamed test drops out. |
+| Control panel: pairing, approve, freeze, unfreeze | In progress | Until then: Solana Actions, or `pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze` |
+| Telegram alerts on a real phone | In progress | Set up on the laptop; delivery is being checked. |
 | The full demo on devnet, and its recording | In progress | |
 | Demo agent with a live Claude model, recorded | In progress | |
-| Solana Action links (freeze or approve from any link) | Next | |
 
 ## Security model
 
@@ -115,8 +120,9 @@ You need Node 22.12 or newer and pnpm 10, on Linux, macOS or WSL (the `litesvm` 
 
 ```bash
 pnpm install
-pnpm test        # 639 TypeScript tests
+pnpm test        # 783 TypeScript tests
 cargo test       # 128 Rust tests (Rust 1.98.1, pinned in rust-toolchain.toml)
+pnpm --filter @leash/e2e test   # the whole demo story through the whole system, about 5 s
 ```
 
 **Open the control panel with sample data** at http://localhost:3000:
