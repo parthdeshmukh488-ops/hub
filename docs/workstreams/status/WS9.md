@@ -31,6 +31,12 @@ Plan approved by the architect session. Task D of the [work queue](../messages/2
    - `e2e/README.md` replaces the skeleton.
 4. **Order:** 1 and 2 first. Item 3 needs `@leash/indexer/testing` on `main`.
 
+### Task D progress
+- **Item 1 done:**
+  - Approve's expiry is now `now >= expiresAt`, the program's `PaymentRequest::is_expired`. A new test pins that second: the GET is disabled, the POST answers 409, and a transaction built a second earlier is refused on-chain. The test fails with `>`.
+  - Reject works on an approved request ("approved but not paid yet: rejecting withdraws the approval"), tested on-chain with the guardian signing.
+  - `apps/web`: 68 tests, 28 of them Actions.
+
 ## Done
 
 - **Build step 1 (2026-10-01), approved by Parth with wording fixes:**
