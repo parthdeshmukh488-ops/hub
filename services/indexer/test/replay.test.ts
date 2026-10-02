@@ -21,6 +21,7 @@ function harness(startMs = 1_800_000_000_000) {
     accounts: async (facts) => void calls.push({ kind: "accounts", facts }),
     events: async (events) => void calls.push({ kind: "events", events, at: now }),
     resetProjections: async () => void calls.push({ kind: "reset" }),
+    snapshot: async () => {},
   };
   const clock = () => now;
   const sleep = async (ms: number, signal: AbortSignal) => {

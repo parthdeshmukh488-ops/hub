@@ -55,6 +55,12 @@ export interface TestIndexer {
    * stored and streamed. Storyline mode: nothing to do.
    */
   sync(): Promise<{ processed: number }>;
+  /**
+   * Chain mode: overwrites the projections with every account on-chain, as a start does after its
+   * first poll ("accounts give truth"), then polls until nothing new arrived. Storyline mode:
+   * nothing to do.
+   */
+  snapshot(): Promise<void>;
   /** Stops the source, the stream and the server, and deletes the database. */
   close(): Promise<void>;
 }
@@ -107,7 +113,12 @@ export async function startTestIndexer(options: TestIndexerOptions = {}): Promis
   const sync = (): Promise<{ processed: number }> => {
     if (failure) return Promise.reject(failure);
     if (!("pollOnce" in events)) return Promise.resolve({ processed: 0 });
-    const poll = polls.then(() => events.pollOnce(sink));
+    const poll = polls.then(async () => {
+      const result = await events.pollOnce(sink);
+      // The first poll of a start (or a start-over) is followed by the account snapshot.
+      if (events.needsSnapshot()) await events.snapshot(sink);
+      return result;
+    });
     polls = poll.catch(() => {});
     return poll;
   };
@@ -128,6 +139,12 @@ export async function startTestIndexer(options: TestIndexerOptions = {}): Promis
     store,
     start,
     sync,
+    snapshot() {
+      if (!("snapshot" in events)) return Promise.resolve();
+      const run = polls.then(() => events.snapshot(sink));
+      polls = run.catch(() => {});
+      return run;
+    },
     async close() {
       await polls;
       if (!chainMode) await events.stop();

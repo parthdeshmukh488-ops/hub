@@ -17,7 +17,11 @@ import { address } from "@solana/kit";
 import { describe, expect, it, vi } from "vitest";
 import { openDatabase } from "../src/db/client.ts";
 import { createPipeline } from "../src/pipeline.ts";
-import { type ChainSourceOptions, createChainSource } from "../src/sources/chain.ts";
+import {
+  type ChainSourceOptions,
+  createChainSource,
+  FOREIGN_CURSOR_MISSES,
+} from "../src/sources/chain.ts";
 import { Store } from "../src/store.ts";
 import { log, testStore } from "./helpers.ts";
 
@@ -267,6 +271,11 @@ describe("chain mode", () => {
     };
     const onForeignCursor = vi.fn((_cursor: { signature: string }) => old.store.startOver("chain"));
     const source = sourceFor(bed, old.store, { chain, onForeignCursor });
+    // One miss is often a lagging RPC node: only the third poll in a row starts over.
+    for (let miss = 1; miss < FOREIGN_CURSOR_MISSES; miss++) {
+      await expect(source.pollOnce(sinkOf(bed, old.store))).rejects.toThrow(/not found/);
+      expect(onForeignCursor).not.toHaveBeenCalled();
+    }
     expect(await source.pollOnce(sinkOf(bed, old.store))).toEqual({ processed: 0 });
     expect(onForeignCursor).toHaveBeenCalledWith(stale);
     expect(await old.store.cursor("chain")).toBeNull();
@@ -289,6 +298,37 @@ describe("chain mode", () => {
     await expect(source.pollOnce(sinkOf(bed, old.store))).rejects.toThrow("rpc down");
     expect(onForeignCursor).toHaveBeenCalledOnce();
     expect(await old.store.cursor("chain")).not.toBeNull();
+  });
+
+  it("keeps its database when the cursor lookup misses twice, then hits (a lagging RPC node)", async () => {
+    const { bed, agent, store } = await world();
+    await pay(agent, bed, 10_000n);
+    await sourceFor(bed, store).pollOnce(sinkOf(bed, store));
+    const cursor = await store.cursor("chain");
+    let lagging = 2;
+    const chain: LeashChain = {
+      ...bed.chain,
+      // A node that has not seen the cursor's transaction yet: its pages fail, and it answers
+      // that it does not have the transaction.
+      getSignatures: async (address, page) => {
+        if (lagging > 0) throw new Error(`Transaction ${page.until} not found`);
+        return bed.chain.getSignatures(address, page);
+      },
+      getTransactionRecord: async (signature) =>
+        lagging > 0 ? null : bed.chain.getTransactionRecord(signature),
+    };
+    const onForeignCursor = vi.fn(async () => {});
+    const source = sourceFor(bed, store, { chain, onForeignCursor });
+    for (; lagging > 0; lagging--) {
+      await expect(source.pollOnce(sinkOf(bed, store))).rejects.toThrow(/not found/);
+    }
+    await pay(agent, bed, 20_000n);
+    expect(await source.pollOnce(sinkOf(bed, store))).toEqual({ processed: 1 });
+    expect(onForeignCursor).not.toHaveBeenCalled();
+    expect((await feed(store, bed.keys.owner.address)).map((e) => e.type)).toContain(
+      "PaymentExecuted",
+    );
+    expect(await store.cursor("chain")).not.toEqual(cursor);
   });
 
   it("polls in the background: at start, on poke, after failures, until stopped", async () => {
@@ -335,6 +375,8 @@ describe("chain mode", () => {
         if (calls === 1) await gate;
         return [];
       },
+      // The snapshot finds no Leash accounts.
+      getProgramAccounts: async () => [],
     } as unknown as LeashChain;
     const source = createChainSource({
       chain,
@@ -347,12 +389,14 @@ describe("chain mode", () => {
       accounts: async () => {},
       events: async () => {},
       resetProjections: async () => {},
+      snapshot: async () => {},
     });
     await eventually(() => expect(calls).toBe(1));
     source.poke();
     release();
-    // Without the remembered poke, the next poll would come 60 s later.
-    await eventually(() => expect(calls).toBe(2));
+    // The first poll is followed by the account snapshot, which polls once (call 2). Without the
+    // remembered poke, the next poll would then come 60 s later.
+    await eventually(() => expect(calls).toBe(3));
     await source.stop();
   });
 });

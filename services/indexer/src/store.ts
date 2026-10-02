@@ -9,7 +9,23 @@ import type {
   StatsView,
   StatsWindow,
 } from "@leash/contracts";
-import { and, asc, desc, eq, gt, gte, inArray, lt, lte, max, or, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  lte,
+  max,
+  notInArray,
+  or,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import type { Db } from "./db/client.ts";
 import * as t from "./db/schema.ts";
@@ -21,7 +37,7 @@ import {
   ProjectionError,
   project,
 } from "./projection/project.ts";
-import type { AccountFacts, AgentRecord } from "./projection/records.ts";
+import type { AccountFacts, AccountSnapshot, AgentRecord } from "./projection/records.ts";
 
 export type SourceKind = "chain" | "fixtures";
 
@@ -189,6 +205,98 @@ export class Store {
     }
     await this.runBatch(statements);
     return [...new Set(facts.delegations.map((d) => d.agent))];
+  }
+
+  /**
+   * Overwrites the projections with the chain's accounts, in one atomic batch: every principal,
+   * agent, allowlist entry, open request and delegation is replaced by the snapshot's, and rows the
+   * snapshot lacks (closed agents, removed payees, closed requests) are deleted. Events stored
+   * before their owner was known get it. Returns the agents to republish.
+   */
+  async applySnapshot(snapshot: AccountSnapshot): Promise<string[]> {
+    const ownerOf = new Map(snapshot.principals.map((p) => [p.address, p.owner]));
+    const agentOwner = new Map(snapshot.agents.map((a) => [a.address, a.owner]));
+    const keep = <T>(values: T[]) => (values.length > 0 ? values : ["-"]);
+    const statements: Statement[] = [
+      this.db
+        .delete(t.principals)
+        .where(notInArray(t.principals.address, keep(snapshot.principals.map((p) => p.address)))),
+      this.db
+        .delete(t.agents)
+        .where(notInArray(t.agents.address, keep(snapshot.agents.map((a) => a.address)))),
+      this.db
+        .delete(t.payees)
+        .where(notInArray(t.payees.address, keep(snapshot.payees.map((p) => p.address)))),
+      this.db
+        .delete(t.requests)
+        .where(notInArray(t.requests.address, keep(snapshot.requests.map((r) => r.address)))),
+    ];
+    for (const view of snapshot.principals) {
+      statements.push(
+        this.db
+          .insert(t.principals)
+          .values({ address: view.address, owner: view.owner, guardian: view.guardian, view })
+          .onConflictDoUpdate({
+            target: t.principals.address,
+            set: { owner: view.owner, guardian: view.guardian, view },
+          }),
+        this.db
+          .update(t.events)
+          .set({ owner: view.owner })
+          .where(and(eq(t.events.principal, view.address), isNull(t.events.owner))),
+      );
+    }
+    for (const { allowance: _allowance, ...record } of snapshot.agents) {
+      statements.push(
+        this.db
+          .insert(t.agents)
+          .values({ address: record.address, owner: record.owner, view: record })
+          .onConflictDoUpdate({
+            target: t.agents.address,
+            set: { owner: record.owner, view: record },
+          }),
+        this.db
+          .update(t.events)
+          .set({ owner: record.owner, principal: record.principal })
+          .where(and(eq(t.events.agent, record.address), isNull(t.events.owner))),
+      );
+    }
+    for (const view of snapshot.payees) {
+      const entry = { address: view.address, agent: view.agent, payee: view.payee };
+      statements.push(
+        this.db
+          .insert(t.payees)
+          .values({ ...entry, view })
+          .onConflictDoUpdate({ target: t.payees.address, set: { ...entry, view } }),
+        this.db
+          .insert(t.payeeEntries)
+          .values(entry)
+          .onConflictDoUpdate({ target: t.payeeEntries.address, set: entry }),
+      );
+    }
+    for (const view of snapshot.requests) {
+      const owner = agentOwner.get(view.agent);
+      if (!owner) continue;
+      const row = { agent: view.agent, owner, nonce: view.nonce, status: view.status, view };
+      statements.push(
+        this.db
+          .insert(t.requests)
+          .values({ address: view.address, ...row })
+          .onConflictDoUpdate({ target: t.requests.address, set: row }),
+      );
+    }
+    await this.runBatch(statements);
+    await this.applyAccounts({ delegations: snapshot.delegations, payeeEntries: [] });
+    this.log.info(
+      {
+        principals: ownerOf.size,
+        agents: snapshot.agents.length,
+        payees: snapshot.payees.length,
+        requests: snapshot.requests.length,
+      },
+      "account snapshot applied",
+    );
+    return snapshot.agents.map((a) => a.address);
   }
 
   /** Inserts new events and applies them to the projections, one atomic batch per event. */

@@ -31,9 +31,10 @@ The Leash program is deployed on devnet, byte for byte the binary our tests run.
 **How do you know the program does what the spec says?**
 - 60 shared policy test cases give the same result in TypeScript, in Rust, and in LiteSVM on the exact program binary deployed on devnet.
 - Further tests cover the invariants, random payment sequences that never exceed the allowance, and every account in `pay` swapped for a plausible wrong one.
-- 767 automated tests run on every commit.
+- 911 automated tests run on every commit (783 TypeScript, 128 Rust). A separate security job runs the invariant tests by name, and fails if one drops out.
+- One test runs the whole demo story through the whole system: agent, x402, the official facilitator, the program, the indexer and Sentinel.
 
-*([WS1 status](../workstreams/status/WS1.md), [security §3](../architecture/03-security.md#3-invariant-tests))*
+*([WS1 status](../workstreams/status/WS1.md), [security §3](../architecture/03-security.md#3-invariant-tests), [WS9 status](../workstreams/status/WS9.md), [e2e](../../e2e/README.md))*
 
 **Does it work with any x402 merchant?**
 Merchants keep their x402 setup. The facilitator they use turns on two settings in the official `@x402/svm` package: smart-wallet verification, and Leash on its program allowlist. Our tests run the unmodified official facilitator. *([packages/x402/README.md](../../packages/x402/README.md#for-facilitator-operators-accept-leash-payments))*
@@ -42,12 +43,16 @@ Merchants keep their x402 setup. The facilitator they use turns on two settings 
 `pay` uses about 32k compute units: an ordinary Solana transaction fee, which the x402 facilitator pays. Recording a blocked attempt costs the agent's key a normal fee. *([CU.md](../../programs/leash/CU.md))*
 
 **What if the owner isn't around to approve?**
-The request expires (after an hour, in the demo's preset) and the payment doesn't happen. Today the owner approves with `pnpm owner:approve`. Approving in the web app, from Telegram and from Solana Action links is in progress.
+The request expires (after an hour, in the demo's preset) and the payment doesn't happen.
+- **Getting told:** Sentinel alerts the owner when a request arrives (Telegram, tested against a fake Bot API; the check on a real phone is in progress).
+- **Approving:** from a Solana Action (a Blink) signed in the owner's wallet, or with `pnpm owner:approve`. Approving in the web app is in progress.
+
+*([WS5 status](../workstreams/status/WS5.md), [WS6 Actions status](../workstreams/status/WS6-actions.md))*
 
 ## Security
 
 **What if the agent's key is stolen?**
-The key holds no funds. It can only pay allowlisted payees within the limits, and those are legitimate businesses, not the thief. The owner freezes the agent or revokes the allowance. *([threat T3](../architecture/03-security.md#2-threats-and-mitigations))*
+The key holds no funds. It can only pay allowlisted payees within the limits, and those are legitimate businesses, not the thief. The owner, or the guardian, freezes the agent from a Solana Action in one signature, or the owner revokes the allowance. If Sentinel is the guardian and autofreeze is on, it freezes by itself on a spending spike, or on a burst of blocked attempts across agents. *([threat T3](../architecture/03-security.md#2-threats-and-mitigations), [services/sentinel](../../services/sentinel/README.md))*
 
 **What if the fooled agent buys things it is allowed to buy but doesn't need?**
 That can happen, within its limits: the per-payment, per-payee and rate limits bound it, and larger payments need approval. Leash stops payments to the wrong party; it doesn't judge whether an allowed purchase was wise. *(T1, T2)*
@@ -82,8 +87,9 @@ Open core:
 - **Later:** a fee per payment through a hosted facilitator, which needs no program change.
 
 **What's next?**
-- **This week:** the devnet demo, pairing and approvals in the web app, and Telegram alerts.
-- **By Nov 2, at Colosseum:** Solana Action links, a guardian that freezes by itself, recorded runs with a live model, and the first user conversations.
+- **This week:** the devnet demo and its recording, pairing and approvals in the web app, and Telegram alerts checked on a real phone.
+- **By Nov 2, at Colosseum:** Telegram buttons that open the owner's wallet directly, recorded runs with a live model, and the first user conversations.
+- **Already done:** Solana Actions (Blinks) to approve or freeze from a link, and a guardian (Sentinel) that freezes by itself.
 - **Then:** an audit, the upgrade authority moved to a multisig or revoked, and mainnet.
 
 ## The team
