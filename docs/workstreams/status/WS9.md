@@ -6,6 +6,37 @@
 - Current build step: Task B's writing is done (README v1, the deck and its PDF, demo script, judge Q&A, video storyboard); next: Parth's placeholders, then keeping it all true as parts ship
 - Messages handled: through `20261001-1715-from-architect-to-ws9-pr1-review.md` (on the architect's branch until its next merge; it reviews PR #1). That includes the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md); this session is its Task B.
 
+## Pass 2: the story matches main (2026-10-02)
+
+- **Re-counted** on `main` plus PR #4 (the indexer's snapshot): **911 tests**.
+  - `pnpm test`: 783 TypeScript, per package: sdk 242, contracts 178, sentinel 101, web 68, indexer 57, agent-demo 36, tools 30, merchant-demo 24, x402 23, mcp 10, facilitator 9, e2e 5.
+  - `cargo test`: 128 Rust, 0 failed.
+- **"What works today"** (README table, slide 9, judge Q&A) now has as done:
+  - Sentinel's alerts and the guardian's autofreeze;
+  - the Solana Actions (Blinks);
+  - the whole story in one test;
+  - the security CI job;
+  - the indexer's account snapshot.
+- **Still in progress:**
+  - **Telegram on a real phone:** the laptop has not reported a delivery in the repo. Parth said in chat that the setup is done; it becomes "done" once the laptop reports it.
+  - the web app's owner actions;
+  - the devnet run and the recording;
+  - live-Claude recordings.
+- **Roadmap (slide 12, Q&A):** Blinks and the self-freezing guardian move from "by Nov 2" to done. Added for Nov 2: Telegram buttons that open the owner's wallet directly. Today a tapped button opens the web app's page, by design of the Actions' browser redirect.
+- **`demo-script.md`:**
+  - **Three paths for each owner action:** a Blink in the owner's wallet through dial.to, the web app once it ships, and the terminal.
+  - **Setup:** the cloudflared tunnel, the web app and Sentinel started with its URL, Sentinel's health check, and the `owner-demo` key in a devnet browser wallet.
+  - **The phone's two alerts** are in the script.
+  - **Extras:** pull the brake from a Blink; the e2e suite for technical judges.
+  - The `✓ 500 … free` fallback stays until WS7 fixes the replay.
+- **Also:** `video-storyboard.md` (owner paths; the phone only if the real alert arrives) and the deck's sources table (new rows, Oct 2).
+- **The deck:**
+  - `leash-deck.pptx` and `.pdf` rebuilt with `build-deck.cjs`, whose words mirror `deck.md`.
+  - Slide 9's left column is tighter, to fit nine items.
+  - Slides 9 and 12 were rendered and checked.
+  - This container needed `libreoffice-impress` again (apt).
+- **Every relative link** in the five edited documents resolves (scripted check).
+
 ## Task D: the whole system in one test, and the security CI job (2026-10-02)
 
 Plan approved by the architect session. Task D of the [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md).

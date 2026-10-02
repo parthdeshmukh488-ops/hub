@@ -494,7 +494,7 @@ async function main() {
       { size: 9, color: C.muted },
     );
     s.addNotes(
-      "The agent reads a buying guide with a hidden instruction: tip twenty-five dollars to a stranger. In this run we script the agent to fall for it, and the screen says so, because we want to show what happens when the model is fooled. It tries three times: three blocks, three strikes, and the agent freezes itself, on-chain. The model was fooled. The money wasn't moved.\n\nIf something fails live: approve with the web app or pnpm owner:approve; unfreeze with the web app or pnpm owner:unfreeze (it also clears leftover strikes). Run the 'Before each take' checklist in apps/agent-demo/README.md before every take.",
+      "The agent reads a buying guide with a hidden instruction: tip twenty-five dollars to a stranger. In this run we script the agent to fall for it, and the screen says so, because we want to show what happens when the model is fooled. It tries three times: three blocks, three strikes, and the agent freezes itself, on-chain. The model was fooled. The money wasn't moved.\n\nIf something fails live: approve from the Blink in the owner's wallet, the web app or pnpm owner:approve; unfreeze with the web app or pnpm owner:unfreeze (it also clears leftover strikes). Run the 'Before each take' checklist in apps/agent-demo/README.md before every take.",
     );
   }
 
@@ -592,24 +592,26 @@ async function main() {
     chip(s, "Done", 0.6, 1.15, 1.0, 0.32, C.ok, C.okSoft, { icon: I.check });
     const done = [
       "The Leash program, live on devnet",
-      "60 policy test cases give the same result in TypeScript, in Rust, and in LiteSVM on the exact program binary deployed on devnet (checked byte for byte)",
+      "60 policy cases agree in TypeScript, in Rust and on the deployed binary",
       "x402 payments through the unmodified official facilitator",
       "Claude Code connects to the Leash MCP server",
-      "The whole demo story, end to end on a local Solana validator",
+      "The whole story: on a local validator, and in one test on every commit",
       "A control panel that updates live from the indexer's stream",
+      "Sentinel's alerts, and the guardian's autofreeze",
+      "Solana Actions (Blinks): approve or freeze from a link",
+      "A security CI job runs the invariant tests by name",
     ];
-    let y = 1.62;
+    let y = 1.6;
     for (const d of done) {
-      const h = d.length > 70 ? 0.6 : 0.3;
       s.addImage({ data: I.checkOk, x: 0.6, y: y + 0.02, w: 0.22, h: 0.22 });
-      text(s, d, 0.95, y, 4.9, h, { size: 11.5 });
-      y += h + 0.12;
+      text(s, d, 0.95, y, 5.1, 0.27, { size: 11.5 });
+      y += 0.35;
     }
     chip(s, "In progress", 6.2, 1.15, 1.45, 0.32, C.approval, C.approvalSoft, { icon: I.hourglass });
     const doing = [
       "Pairing, approve, freeze and unfreeze in the web app",
-      "Telegram alerts",
       "The full demo on devnet, and its recording",
+      "Telegram alerts on a real phone (being checked)",
     ];
     y = 1.62;
     for (const d of doing) {
@@ -619,9 +621,9 @@ async function main() {
       y += h + 0.14;
     }
     card(s, 6.2, 3.35, 3.2, 1.35);
-    text(s, "767", 6.45, 3.5, 2.8, 0.6, { size: 36, bold: true, color: C.brand, valign: "middle" });
+    text(s, "911", 6.45, 3.5, 2.8, 0.6, { size: 36, bold: true, color: C.brand, valign: "middle" });
     text(s, "automated tests, run on every commit", 6.45, 4.1, 2.8, 0.25, { size: 11 });
-    text(s, "639 TypeScript · 128 Rust", 6.45, 4.36, 2.8, 0.22, { size: 10, color: C.muted });
+    text(s, "783 TypeScript · 128 Rust", 6.45, 4.36, 2.8, 0.22, { size: 10, color: C.muted });
     s.addNotes(
       "Everything on the left runs today, and you can check it: the repo is public, and the tests run without a chain. The right column is what we're finishing this week.",
     );
@@ -739,15 +741,18 @@ async function main() {
         color: C.approval,
         head: "This week",
         sub: "for the Oct 4 submission · in progress",
-        items: ["The demo on devnet", "Pairing, approvals and the off switch in the web app", "Telegram alerts"],
+        items: [
+          "The demo on devnet, and its recording",
+          "Pairing, approvals and the off switch in the web app",
+          "Telegram alerts checked on a real phone",
+        ],
       },
       {
         color: C.brand,
         head: "By Nov 2",
         sub: "the Colosseum hackathon",
         items: [
-          "Solana Action links to freeze or approve from anywhere",
-          "The guardian freezes an agent by itself when Sentinel sees an attack",
+          "Telegram buttons that open the owner's wallet directly",
           "Recorded runs with a live Claude model",
           "Five user conversations",
         ],
@@ -770,7 +775,7 @@ async function main() {
       );
     });
     s.addNotes(
-      "We keep building through Colosseum. The order is: finish the owner's side, make every alert actionable from a link, and only then go to mainnet, after an audit.",
+      "We keep building through Colosseum. The order is: finish the owner's side in the web app, put the wallet one tap from every alert, and only then go to mainnet, after an audit.",
     );
   }
 

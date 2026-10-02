@@ -4,12 +4,17 @@ import {
   decodeLeashEvents,
   fetchAgentDelegation,
   fetchAgentView,
+  fetchAgentViews,
+  fetchOpenRequests,
+  fetchPayees,
+  fetchPrincipalViews,
   findPayeePda,
   type LeashChain,
+  readChainTime,
   type SignatureInfo,
 } from "@leash/sdk";
 import { address } from "@solana/kit";
-import type { DelegationRecord, PayeeEntryFact } from "../projection/records.ts";
+import type { AccountSnapshot, DelegationRecord, PayeeEntryFact } from "../projection/records.ts";
 import type { EventSink, EventSource } from "./source.ts";
 
 // Chain mode (WS4 build step 2): follows the Leash program's transactions after a stored cursor,
@@ -43,13 +48,28 @@ export type ChainSourceOptions = {
   /** Signatures per page; default 1 000, `getSignaturesForAddress`'s maximum. */
   pageSize?: number;
   /**
-   * The RPC does not know the cursor's transaction: the database belongs to another chain (a
-   * restarted localnet) or the node no longer has it. The RPC then fails every page that names the
-   * cursor (Agave: "Transaction … not found"). The handler resets the database; the source then
-   * starts over with a backfill. Without it, polls keep failing.
+   * The RPC does not know the cursor's transaction on `FOREIGN_CURSOR_MISSES` polls in a row: the
+   * database belongs to another chain (a restarted localnet) or the node no longer has it. The RPC
+   * then fails every page that names the cursor (Agave: "Transaction … not found"). The handler
+   * resets the database; the source then starts over with a backfill and a snapshot. Without it,
+   * polls keep failing.
    */
   onForeignCursor?: (cursor: ChainCursor) => Promise<void>;
+  /** An account snapshot was applied (logs, tests). */
+  onSnapshot?: (counts: { principals: number; agents: number; rounds: number }) => void;
 };
+
+/**
+ * One miss is often a lagging RPC node that has not seen the cursor's transaction yet (devnet);
+ * only this many polls in a row that fail and miss the cursor mean another chain.
+ */
+export const FOREIGN_CURSOR_MISSES = 3;
+
+/** Failed polls in a row after which the source reports itself unhealthy (`/v1/health`). */
+export const UNHEALTHY_AFTER_FAILURES = 3;
+
+/** Snapshot rounds at most: each round re-reads the accounts if new transactions arrived. */
+const SNAPSHOT_ROUNDS = 5;
 
 /** A delegation account as the store keeps it. */
 export function delegationRecord(delegation: DecodedDelegation, agent: string): DelegationRecord {
@@ -78,6 +98,14 @@ export function delegationRecord(delegation: DecodedDelegation, agent: string): 
 export type ChainSource = EventSource & {
   /** One poll: reads, stores and advances the cursor. Exposed for tests and tools. */
   pollOnce(sink: EventSink): Promise<{ processed: number }>;
+  /**
+   * Overwrites the projections with every account on-chain ("accounts give truth"), then polls;
+   * if that poll found new transactions (their events were applied on top of accounts that may
+   * already include them), it takes the snapshot again. Runs at start and after a start-over.
+   */
+  snapshot(sink: EventSink): Promise<void>;
+  /** True until the first snapshot after a start or a start-over has been applied. */
+  needsSnapshot(): boolean;
   /** Polls now instead of at the next interval. During a poll: once more, right after it. */
   poke(): void;
 };
@@ -94,6 +122,11 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
   /** A poke that came while a poll was running: the next nap is skipped. */
   let poked = false;
   let caughtUpAt: number | null = null;
+  /** Polls in a row whose failure came with an RPC that does not know the cursor. */
+  let cursorMisses = 0;
+  /** Polls in a row that failed. */
+  let failures = 0;
+  let snapshotDue = true;
 
   /** New transactions after the cursor, oldest first. */
   async function newSignatures(cursor: ChainCursor | null): Promise<SignatureInfo[]> {
@@ -165,17 +198,36 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
   }
 
   async function pollOnce(sink: EventSink): Promise<{ processed: number }> {
+    try {
+      const result = await poll(sink);
+      failures = 0;
+      return result;
+    } catch (error) {
+      failures += 1;
+      throw error;
+    }
+  }
+
+  async function poll(sink: EventSink): Promise<{ processed: number }> {
     const cursor = await options.cursor.load();
     let fresh: SignatureInfo[];
     try {
       fresh = await newSignatures(cursor);
     } catch (error) {
-      if (!cursor || !options.onForeignCursor || !(await unknownToChain(cursor))) throw error;
+      if (!cursor || !options.onForeignCursor || !(await unknownToChain(cursor))) {
+        cursorMisses = 0;
+        throw error;
+      }
+      cursorMisses += 1;
+      if (cursorMisses < FOREIGN_CURSOR_MISSES) throw error;
+      cursorMisses = 0;
       await options.onForeignCursor(cursor);
       principals.clear();
       caughtUpAt = null;
+      snapshotDue = true;
       return { processed: 0 };
     }
+    cursorMisses = 0;
     const touched = new Map<string, string | null>();
     let processed = 0;
     for (const info of fresh) {
@@ -205,6 +257,53 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
     }
     if (processed === fresh.length) caughtUpAt = now();
     return { processed };
+  }
+
+  /** Every Leash account now, with the delegations of every agent. */
+  async function readSnapshot(): Promise<AccountSnapshot> {
+    const known = new Map(
+      ((await options.knownAgents?.()) ?? []).map(({ agent, delegation }) => [agent, delegation]),
+    );
+    const snapshot: AccountSnapshot = {
+      principals: await fetchPrincipalViews(chain),
+      agents: [],
+      payees: [],
+      requests: [],
+      delegations: [],
+    };
+    // The cluster's time, for the allowances (read once, and only if there is anything to read).
+    const now = snapshot.principals.length > 0 ? await readChainTime(chain) : 0n;
+    for (const principal of snapshot.principals) {
+      const agents = await fetchAgentViews(chain, address(principal.owner), { now });
+      for (const agent of agents) {
+        principals.set(agent.address, agent.principal);
+        snapshot.agents.push(agent);
+        snapshot.payees.push(...(await fetchPayees(chain, address(agent.address))));
+        snapshot.requests.push(...(await fetchOpenRequests(chain, address(agent.address))));
+      }
+    }
+    const funding = new Map(
+      snapshot.agents.map((agent) => [agent.address, known.get(agent.address) ?? null]),
+    );
+    snapshot.delegations = await delegations(funding);
+    return snapshot;
+  }
+
+  async function snapshot(sink: EventSink): Promise<void> {
+    for (let round = 1; round <= SNAPSHOT_ROUNDS; round++) {
+      const accounts = await readSnapshot();
+      await sink.snapshot(accounts);
+      snapshotDue = false;
+      const { processed } = await pollOnce(sink);
+      if (processed === 0 || round === SNAPSHOT_ROUNDS) {
+        options.onSnapshot?.({
+          principals: accounts.principals.length,
+          agents: accounts.agents.length,
+          rounds: round,
+        });
+        return;
+      }
+    }
   }
 
   /** At start: the principals and delegations of the agents the database already knows. */
@@ -237,6 +336,9 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
   return {
     kind: "chain",
     pollOnce,
+    snapshot,
+    needsSnapshot: () => snapshotDue,
+    healthy: () => failures < UNHEALTHY_AFTER_FAILURES,
     poke: () => {
       if (wake) wake();
       else poked = true;
@@ -255,6 +357,8 @@ export function createChainSource(options: ChainSourceOptions): ChainSource {
         while (!abort.signal.aborted) {
           try {
             await pollOnce(sink);
+            // After the catch-up poll of a start or a start-over: the accounts, as they are now.
+            if (snapshotDue) await snapshot(sink);
           } catch (error) {
             await report(error);
           }

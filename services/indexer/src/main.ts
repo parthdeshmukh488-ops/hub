@@ -43,10 +43,12 @@ async function main(): Promise<void> {
         now,
         onError: (err) => log.warn({ err }, "chain poll failed; retrying at the next interval"),
         onGap: (before) => log.warn({ before }, "more new transactions than one poll reads"),
+        onSnapshot: (counts) =>
+          log.info(counts, "account snapshot: the projections equal the chain"),
         onForeignCursor: async (cursor) => {
           log.warn(
             { cursor: cursor.signature, slot: cursor.slot },
-            "the RPC does not know the last transaction this database stored: it belongs to another chain (a restarted localnet?). Starting over from an empty database.",
+            "the RPC has not known the last transaction this database stored for three polls in a row: it belongs to another chain (a restarted localnet?). Starting over from an empty database.",
           );
           await store.startOver("chain");
         },

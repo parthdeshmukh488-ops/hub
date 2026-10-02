@@ -21,7 +21,7 @@ import type { EventsFilter, Store } from "./store.ts";
 
 export type AppDeps = {
   store: Store;
-  source: Pick<EventSource, "kind" | "lagSeconds">;
+  source: Pick<EventSource, "kind" | "lagSeconds" | "healthy">;
   cluster: Cluster;
   programId: string;
   webOrigin: string;
@@ -82,8 +82,9 @@ export function createApp(deps: AppDeps): Hono {
       ok = false;
     }
     const progress = ok ? await store.progress() : { lastProcessedSlot: null, lastEventAt: null };
+    // A source that cannot make progress keeps HTTP 200 (the service answers) but says so.
     const body: HealthResponse = {
-      ok,
+      ok: ok && deps.source.healthy(),
       cluster: deps.cluster,
       programId: deps.programId,
       ...progress,
