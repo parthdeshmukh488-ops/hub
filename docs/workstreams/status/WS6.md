@@ -1,9 +1,29 @@
 # WS6 status: Web control panel
 
-- Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
-- Last updated: 2026-09-30
-- Current build step: 1 done; 3 read side done (write side waits for the wallet and the IDL)
-- Messages handled: through `20260930-0130-from-ws4-to-all-indexer-fixture-mode.md`
+- Session branch: `ws6/owner-web-app-72mvts` (cloud session, 2026-10-02)
+- Last updated: 2026-10-02
+- Current build step: 2 and 3, write side (the owner acts in the app): in progress
+- Messages handled: through `20261001-2310-from-architect-to-ws5-ws1-sentinel-merged.md` (none needed WS6 action)
+
+## Plan for the owner's side (Parth's brief of 2026-10-02, in his order)
+
+1. **Wallet.** `@solana/connector` 0.3.0 does not fit: it pulls `@wallet-ui/core`, whose peer is `@solana/kit` ^6 || ^7 (we pin 8.4.0), plus React Native through the mobile adapter (~280 MB). So, as the brief allows: **Wallet Standard with `@solana/react` 8.4.0** (Kit's own hooks, same version as our Kit; `@wallet-standard/react` for the wallet list). No web3.js v1 anywhere. Header: Connect button (wallet picker), the connected address with copy, disconnect, and a warning when the wallet does not list the app's chain (`solana:devnet` / `solana:localnet`). The wallet only **signs**; the app sends through its own RPC (`rpcChain`), so localnet works with any wallet and errors come back typed.
+2. **One write path**, `src/lib/owner/`:
+   - `plans.ts`: pure `plan*(chain, input)` functions. Each re-reads the accounts from RPC through the SDK (`fetchAgentView`, `fetchPrincipalView`, `fetchRequestView`: T13), checks who may sign and the state (an already frozen agent, an expired request…), and returns `{ summary, transactions }` built by the SDK builders. Freeze/unfreeze agent, reset strikes (freeze + unfreeze in one transaction, as `owner-unfreeze.ts`), freeze/unfreeze all, approve, reject, set guardian, onboarding.
+   - `send.ts`: sign each transaction with the wallet's `TransactionSigner`, send and confirm through the `LeashChain`.
+   - `errors.ts`: any failure → owner-facing copy. Denials use the 02 §4 copy table (`DENIAL_REASONS[].ownerCopy`); the other program errors (Unauthorized, RequestExpired, …), a refused signature and an unreachable RPC get web copy.
+   - `use-owner-action.ts`: one hook for every action: summary (dialog) → wallet signs → pending (signature) → confirmed (explorer link) → views refresh from the indexer stream (plus a query invalidation as a fallback).
+3. **Approvals inbox:** Approve and Reject on every request, summary first ("Approve 1.50 USDC to Research API for “…”").
+4. **Freeze:** the agent page's big toggle, the global switch on `/app`, and "Reset strikes" on an active agent with leftover strikes.
+5. **Pairing** (`/pair?agentKey&label&preset&cluster`, and `/app/agents/new`): fingerprint of the agent key, preset filled in with every limit editable, the plain-language review, signing the onboarding transactions one by one, success → agent page. The preset's "merchant-demo" payee and the localnet mint are not in any env variable the web app reads: the wizard pre-fills them from the owner's existing agents and otherwise asks (no new env variable).
+6. **Settings** (`/app/settings`): set, change or remove the guardian.
+7. **Tests:**
+   - every `lib/owner` function on the LiteSVM testbed: the wallet-signed transaction changes the real program's state; a wrong signer is refused by the plan and fails on-chain;
+   - component tests for the summaries and the error copy;
+   - Playwright (Chromium) with a fake Wallet Standard wallet signing with a test key: in fixture mode, connect and the pairing wizard's review; approve and freeze need a chain, so they run against a LiteSVM-backed JSON-RPC shim plus the in-process test indexer (`@leash/indexer/testing`), the real write path end to end.
+8. **README:** how the owner acts, localnet and devnet runs.
+
+Owner identity: in indexer mode the app shows the connected wallet's agents (the demo storyline's owner until a wallet connects, for the replay); fixture mode stays the read-only sample.
 
 ## Plan for build step 1 (as executed)
 
