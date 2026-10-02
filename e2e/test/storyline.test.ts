@@ -237,6 +237,9 @@ describe("the pitch storyline, through the whole system", () => {
   it("scene 3, the injection: three blocked payments to the attacker, and the tripwire freezes the agent", async () => {
     const merchantBefore = await balance("merchant");
     await play("injection");
+    // Sentinel gets the tripwire from the stream: wait for it, as scene 2 waits for its alert.
+    await waitFor(() => alerts.some((a) => a.kind === "tripwire_fired"), "the tripwire alert");
+    await sentinel.idle();
 
     expect(await balance("attacker")).toBe(0n);
     expect(await balance("merchant")).toBe(merchantBefore);
