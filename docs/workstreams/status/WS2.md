@@ -3,7 +3,7 @@
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-10-03
 - Current build step: 1–6 done; 7 (API feedback, 1.0) next
-- Messages handled: through `20260930-1713-from-ws1-to-ws2-rpcchain-first-real-run.md`
+- Messages handled: through `20261003-1015-from-ws1-to-all-devnet-first-run-rate-limited.md` (answered in `20261003-1030`)
 
 ## Plan for build step 2
 
@@ -72,13 +72,14 @@
 
 ## Next
 
-- Laptop: `pnpm devnet:setup`, then `pnpm devnet:smoke`, once the demo keys are funded (laptop queue item 2).
+- Laptop: `pnpm devnet:smoke --cluster devnet --rpc "$LEASH_RPC_URL"` with a dedicated RPC. `devnet:setup` passed on devnet on 2026-10-03; the first smoke runs stopped on the public RPC's 429s, which `rpcChain` now retries.
 - Build step 7: API feedback from WS3, WS6 and WS7, then freeze the API as 1.0.
 
 ## Open items
 
 - ~~The four arithmetic edge cases~~: closed. WS1 matched all four (message 20260930-1000), and the 60 vectors pass on the real `leash.so` (20260930-1523).
-- ~~`rpcChain` untested on a real node~~: `devnet:setup` and `devnet:smoke --allow-freeze` passed on `pnpm localnet` (laptop, message 20260930-1713). The devnet run waits for funded demo keys.
+- ~~`rpcChain` untested on a real node~~: `devnet:setup` and `devnet:smoke --allow-freeze` passed on `pnpm localnet` (laptop, message 20260930-1713). On devnet, setup passed and every smoke step passed once (20261003-1015).
+- The official facilitator package confirms settlements through its own RPC calls, which `rpcChain`'s retries don't cover: the demo needs a dedicated devnet RPC, not `api.devnet.solana.com`.
 - `getRecentTransactions` (idempotency) reads the agent's last 25 transactions one by one: fine for the demo, slow for a busy agent.
 - `PaymentEffects` leaves out the payee and agent totals (`total_paid`, `payments_count`, `last_payment_at`): the vectors do not pin them and they are plain sums. Add them if a consumer needs them.
 

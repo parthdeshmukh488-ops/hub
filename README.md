@@ -73,19 +73,19 @@ As of October 3, 2026. 964 automated tests (836 TypeScript, 128 Rust) run on eve
 | --- | --- | --- |
 | Leash program (Rust, Anchor) | Done: live on devnet since Sept 30, 2026 | The deployed program is byte for byte the committed `artifacts/programs/leash.so`. `pay` uses about 32k compute units. |
 | Policy engine | Done | 60 shared policy test cases give the same result in TypeScript, in Rust, and in LiteSVM on the exact program binary that is deployed on devnet (checked byte for byte). |
-| x402 payments | Done | The unmodified official facilitator (`@x402/svm` 2.27.0) verifies and settles Leash payments: in tests on the real program binaries, and on a local validator through our facilitator service. |
+| x402 payments | Done | The unmodified official facilitator (`@x402/svm` 2.27.0) verifies and settles Leash payments: in tests on the real program binaries, on a local validator through our facilitator service, and on devnet. |
 | TypeScript SDK | Done | Owner and agent operations, the same policy evaluator, event decoding. |
 | MCP server | Done | Claude Code connects to it and gets the four Leash tools. |
 | Demo agent and demo merchants | Done | The scripted story ran end to end on a local validator, attack lab included. |
 | Indexer | Done | Follows the program on a local validator; its views equal what the SDK reads from the chain. At start it takes a snapshot of every account, so its views are right even when it missed older history. |
 | Control panel: overview, agent page, activity log with CSV export, approvals inbox, "what would happen if" tester | Done | Updates live from the indexer's stream. Tested with the storyline replay and with the indexer following a local validator. |
 | Sentinel: alerts and the guardian's autofreeze | Done | Seven alert rules, tested on the demo story. The Telegram messages are tested against a fake Bot API: plain text, and labels and memos can't inject links or markup. The guardian freezes only when allowed and when the on-chain guardian is its key: tested on the real program in LiteSVM. |
+| Telegram alerts on a real phone | Done | Sentinel's alerts reached Parth's phone through the bot. On a local validator, a burst of blocked payments made the guardian freeze all agents, end to end ([report](docs/workstreams/messages/20261003-0945-from-ws1-to-ws5-sentinel-alerts-and-guardian-freeze.md)). |
 | Solana Actions (Blinks): approve, reject, freeze, freeze all | Done | The server returns an unsigned transaction; the owner's wallet signs it. Each is tested on the real program: the right signer succeeds, a wrong one is refused on-chain. Sentinel's alerts link to them. |
 | Control panel: pairing, approve, freeze, unfreeze | Done | The owner's wallet signs each action (PR #5): 117 unit tests, plus 14 Playwright browser tests, 8 of them live on the real program in LiteSVM. The run with a real wallet on devnet is part of the devnet demo below. |
 | The whole story in one test, and in one command | Done | Agent → x402 merchant → official facilitator → program → indexer → Sentinel, in process on LiteSVM, on every commit ([e2e/](e2e/README.md)). `pnpm demo` shows the same story on the demo agent's screen. |
 | Security CI job | Done | Runs the invariant tests of the [security model](docs/architecture/03-security.md#3-invariant-tests) by name, I1 to I6, policy parity and x402. It fails if a renamed test drops out. |
-| Telegram alerts on a real phone | In progress | Set up on the laptop; delivery is being checked. |
-| The full demo on devnet, and its recording | In progress | |
+| The full demo on devnet, and its recording | In progress | So far on devnet: the demo world is set up, and the first x402 payment through Leash has settled ([explorer](https://explorer.solana.com/tx/3v4TaKJ6d3H5oaDMJGX16nU2qfk81sPVikRh8d7u8c5bccHTH8ftZGHU4qbMVudKQSWUYuFnLKtL7CmiwPB8drZE?cluster=devnet)). The full run is next. |
 | Demo agent with a live Claude model, recorded | In progress | |
 
 ## Security model

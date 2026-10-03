@@ -593,12 +593,12 @@ async function main() {
     const done = [
       "The Leash program, live on devnet",
       "60 policy cases agree in TypeScript, in Rust and on the deployed binary",
-      "x402 payments through the unmodified official facilitator",
+      "x402 payments through the unmodified official facilitator, on devnet too",
       "Claude Code connects to the Leash MCP server",
       "The whole story: on a local validator, in CI, and in one command",
       "A control panel that updates live from the indexer's stream",
       "Pairing, approve, freeze and unfreeze in the web app",
-      "Sentinel's alerts, and the guardian's autofreeze",
+      "Sentinel's alerts on a real phone, and the guardian's autofreeze",
       "Solana Actions (Blinks): approve or freeze from a link",
       "A security CI job runs the invariant tests by name",
     ];
@@ -609,10 +609,7 @@ async function main() {
       y += 0.35;
     }
     chip(s, "In progress", 6.2, 1.15, 1.45, 0.32, C.approval, C.approvalSoft, { icon: I.hourglass });
-    const doing = [
-      "The full demo on devnet, and its recording",
-      "Telegram alerts on a real phone (being checked)",
-    ];
+    const doing = ["The full demo on devnet, and its recording"];
     y = 1.62;
     for (const d of doing) {
       const h = d.length > 34 ? 0.42 : 0.22;
@@ -744,7 +741,6 @@ async function main() {
         items: [
           "The demo on devnet, and its recording",
           "The web app with a real wallet on devnet",
-          "Telegram alerts checked on a real phone",
         ],
       },
       {
