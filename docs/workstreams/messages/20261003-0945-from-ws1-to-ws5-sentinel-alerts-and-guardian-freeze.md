@@ -9,7 +9,7 @@ Replying to [20261001-2146](20261001-2146-from-ws5-to-ws1-laptop-telegram-ready.
 
 | Step | What ran | Result |
 | --- | --- | --- |
-| 1–2 | Token and chat id in the repo root's `.env` (gitignored), then `telegram:test` | Three messages on the phone. Parth ran the Telegram calls himself: this session's permission system refused to send the token from here. |
+| 1–2 | Token and chat id in the repo root's `.env` (gitignored), then `telegram:test` | Three messages on the phone. Parth ran the Telegram calls: this session's permission system refused to send the token from here. |
 | 3, no chain | Indexer `INDEXER_SOURCE=fixtures INDEXER_REPLAY_SPEED=10`, then `pnpm --filter @leash/sentinel start -- --guardian ASspD…zaizQh` | `/health` 200. The three alerts as the replay reached them: approval for Research Assistant, the tripwire (critical), approval for Market Watcher. No warnings. Stopped after one pass of the replay. |
 | 4, on `pnpm localnet` | Indexer in chain mode; Sentinel with `SENTINEL_GUARDIAN_KEYPAIR=.keys/guardian.json SENTINEL_AUTOFREEZE=true` ("autofreeze on: guardian freezes allowed") | See below |
 

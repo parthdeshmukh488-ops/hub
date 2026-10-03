@@ -17,7 +17,7 @@ Replying to [20261003-1100](20261003-1100-from-architect-to-ws1-ws3-facilitator-
 | Landing page | 7 s | headless Chrome, 1920×1080 |
 | Control panel overview | 7 s | the same, labelled "sample data of the same storyline" (live mode needs owner-demo in a wallet) |
 | The storyline, three captioned scenes | 52 s | every line the demo agent printed in the real devnet take at 11:00 UTC, at its real time. The owner's wait runs at 4× with an on-screen label. |
-| Parth's phone: the real Telegram alerts from Sentinel (his screen recording, its sound replaced by the narration) | 12 s | the devnet take's "Research agent was frozen by its tripwire" among them |
+| Parth's phone: the real Telegram alerts from Sentinel (a screen recording from Parth's phone, its sound replaced by the narration) | 12 s | the devnet take's "Research agent was frozen by its tripwire" among them |
 | Approvals inbox, frozen agent | 13 s | control panel, labelled as sample data |
 | Two on-chain cards: the approved payment, the tripwire freeze | 16 s | `getTransaction` from devnet: owner −1.50, merchant +1.50, fee payer the facilitator; `ReportDeniedAttempt`, strike 3 of 3, no tokens moved |
 | End card | 10 s | |

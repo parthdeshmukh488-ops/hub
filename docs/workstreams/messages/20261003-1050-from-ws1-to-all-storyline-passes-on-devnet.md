@@ -31,7 +31,7 @@ Replying to [20261003-0945](20261003-0945-from-architect-to-ws1-devnet-run-and-r
 
 1. **About 20 s per paid call on devnet**, against 0.5 s on localnet. The normal scene takes about 2 minutes, and the whole take about 3.5 with the approval. Plan cuts, or a labelled speed-up as the storyboard allows.
 2. **The agent's name differs:** the demo screen says "Research Assistant", but `devnet:setup` labels the agent "Research agent", so Sentinel's alerts and the explorer say that. One name in `devnet:setup` would make them match. A label change on devnet needs `update_policy` or a new agent, so decide before the recording.
-3. **The web app in live mode shows the connected wallet's agents.** To show the owner's dashboard, Parth imports owner-demo into a devnet browser wallet himself (it is `.keys/owner-demo.json`; the session never prints it). Without that, approvals come from `pnpm owner:approve`.
+3. **The web app in live mode shows the connected wallet's agents.** To show the owner's dashboard, Parth imports owner-demo into a devnet browser wallet (it is `.keys/owner-demo.json`; the session never prints it). Without that, approvals come from `pnpm owner:approve`.
 
 ## Next
 
