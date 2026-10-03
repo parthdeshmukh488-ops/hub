@@ -18,7 +18,7 @@ Only devnet and the recording are left, and only this laptop can do them: cloud 
 
 ## 1. Funds and the demo world
 1. `pnpm devnet:check` lists every key and what it lacks.
-   - Parth funds them in his browser: SOL from faucet.solana.com for owner-demo, agent, guardian and facilitator, and 10–20 devnet USDC from faucet.circle.com for owner-demo.
+   - Parth funds them in a browser: SOL from faucet.solana.com for owner-demo, agent, guardian and facilitator, and 10–20 devnet USDC from faucet.circle.com for owner-demo.
    - Run it again until it is all green.
 2. `pnpm devnet:setup --cluster devnet`, then `pnpm devnet:smoke --cluster devnet`. Record the addresses and signatures in `status/WS1.md` (no keys).
 
@@ -43,7 +43,7 @@ Every ✗ prints the command that fixes it. Take only when it says "Ready for a 
 ## 4. The take
 - **The agent:** `pnpm --filter agent-demo demo:all -- --scripted`.
 - **The owner approves the 1.50 USDC report in the web app's inbox:**
-  - Parth imports owner-demo into a browser wallet on devnet himself. The session never prints the key.
+  - Parth imports owner-demo into a browser wallet on devnet. The session never prints the key.
   - The fallback is `pnpm owner:approve --cluster devnet`.
 - **The phone** gets Sentinel's approval and tripwire alerts. For tappable buttons and Blinks, run the tunnel in [Demo on a phone](../../../apps/web/src/server/actions/README.md#demo-on-a-phone-laptop).
 - **After each take:** unfreeze with the web app's toggle, or with `pnpm owner:unfreeze --cluster devnet`, which also clears leftover strikes. Then run `pnpm demo:check` again.

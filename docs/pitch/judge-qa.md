@@ -98,4 +98,4 @@ Open core:
 With parallel Claude Code sessions, each owning one part of the architecture, working from written contracts and decision records. Every claim in the README and the deck is checked against the status files those sessions keep, and against the tests. *([docs/workstreams/](../workstreams/README.md))*
 
 **Who is on the team?**
-Parth Deshmukh, on his own. He chose the problem, planned and steered the Claude Code sessions that built each part, and ran everything that needed devnet on his laptop. *([README](../../README.md#team))*
+Parth Deshmukh, solo: chose the problem, planned and steered the Claude Code sessions that built each part, and ran every devnet step on a laptop. *([README](../../README.md#team))*
