@@ -30,8 +30,11 @@ export function tripwireFired(
   if (first && last) {
     const why = denialInfo(last.reason).ownerCopy;
     const memo = last.memo ? `, memo ${quoteMemo(last.memo)}` : "";
+    // Block times are whole seconds: strikes in one second (a fast local chain) share a time.
+    const span = last.timestamp - first.timestamp;
+    const within = span < 1 ? "within a second" : `within ${duration(span)}`;
     story =
-      `${name} tried ${chain.length} payments its policy blocks within ${duration(last.timestamp - first.timestamp)}, ` +
+      `${name} tried ${chain.length} payments its policy blocks ${within}, ` +
       "so its tripwire froze it on-chain. " +
       `The last one: ${usdc(last.amount)} to ${payeeName(state, agent, last.payee)} ` +
       `(${why.charAt(0).toLowerCase()}${why.slice(1)})${memo}.`;

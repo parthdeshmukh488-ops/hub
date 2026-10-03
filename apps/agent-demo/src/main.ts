@@ -20,6 +20,7 @@ import { createUi } from "./ui.ts";
 
 const REPO_ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 const WEB_URL = `http://localhost:${DEFAULT_PORTS.web}`;
+/** The label a pairing from the printed link gives a new agent. */
 const LABEL = "Research Assistant";
 
 async function main(): Promise<void> {
@@ -78,13 +79,15 @@ async function main(): Promise<void> {
         system: SYSTEM_PROMPT,
         tools: toolDefinitions(runtime.tools),
       });
+  // The on-chain label, as the owner's control panel and Sentinel's alerts name the agent.
+  const status = await runtime.tools.status();
   ui.header("Leash demo agent", [
-    LABEL,
+    status.ok ? status.agent.label : LABEL,
     cluster.cluster,
     claude ? claude.label : "scripted",
     `agent key ${runtime.agent.address}`,
   ]);
-  ui.agentStatus(await runtime.tools.status());
+  ui.agentStatus(status);
 
   await runDemo({
     tools: runtime.tools,

@@ -100,6 +100,16 @@ describe("tripwire_fired", () => {
     expect(alerts[0]?.body).toContain("tried 3 payments its policy blocks within 1 minute");
   });
 
+  it("says 'within a second' when the strikes share a block time", () => {
+    const strikes = [
+      ev.denied(T0, RESEARCH, { strikes: 1 }),
+      ev.denied(T0, RESEARCH, { strikes: 2 }),
+      ev.denied(T0, RESEARCH, { strikes: 3, tripped: true }),
+    ];
+    const { alerts } = run(events([...setup, ...strikes, ev.frozen(T0, RESEARCH)]));
+    expect(alerts[0]?.body).toContain("tried 3 payments its policy blocks within a second,");
+  });
+
   it("counts only the strikes of the current window", () => {
     const old = ev.denied(T0, RESEARCH, { strikes: 1 });
     const strikes = [

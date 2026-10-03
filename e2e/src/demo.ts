@@ -45,13 +45,15 @@ export async function runPitchDemo(options: PitchDemoOptions): Promise<PitchDemo
   const stack = await startStack({ write, color, onAlert: printAlert });
   try {
     const { bed, ui, runtime } = stack;
+    // The on-chain label, as Sentinel's alerts name the agent.
+    const status = await runtime.tools.status();
     ui.header("Leash demo agent", [
-      "Research Assistant",
+      status.ok ? status.agent.label : "Research agent",
       "LiteSVM",
       "scripted",
       `agent key ${runtime.agent.address}`,
     ]);
-    ui.agentStatus(await runtime.tools.status());
+    ui.agentStatus(status);
 
     const stops: string[] = [];
     for (const scene of STORYLINE) {

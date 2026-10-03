@@ -7,12 +7,13 @@ const SIG =
   "5Vr9xi5nUzSKeS3BFWELhDUeFD46gHgYBvJTJoKEHu4vfC5wE8fGhL4tH94aP74tLbBz154QeFPMADh41du4XaXD";
 const ESC = "\u001b";
 
-function screen(color = false) {
+function screen(color = false, explorer = true) {
   const lines: string[] = [];
   const ui = createUi({
     write: (line) => lines.push(line),
     color,
-    explorer: (signature) => `https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+    explorer: (signature) =>
+      explorer ? `https://explorer.solana.com/tx/${signature}?cluster=devnet` : null,
   });
   return { ui, lines, text: () => lines.join("\n") };
 }
@@ -57,6 +58,17 @@ describe("untrusted text on the terminal", () => {
 });
 
 describe("the screen", () => {
+  it("shows a payment without a link when no explorer can open it", () => {
+    const payment = { signature: SIG, amountUsdc: "0.01", payee: "p", requestNonce: null };
+    for (const color of [false, true]) {
+      const { ui, text } = screen(color, false);
+      ui.result("leash_pay", { ok: true, payment: { ...payment, payeeLabel: "Research API" } });
+      expect(text()).toContain("tx 5Vr9…XaXD");
+      expect(text()).not.toContain("explorer.solana.com");
+      expect(text()).not.toContain(`${ESC}]8;;`);
+    }
+  });
+
   it("shows one line per call and per result, in words", () => {
     const { ui, lines } = screen();
     ui.call("leash_fetch", { url: "http://m.test/api/research?q=x", purpose: "Research" });

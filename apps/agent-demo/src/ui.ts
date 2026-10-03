@@ -13,7 +13,8 @@ export type UiOptions = {
   write(line: string): void;
   /** Colours and clickable links (OSC 8). Off: plain text with full URLs, for logs and tests. */
   color: boolean;
-  explorer(signature: string): string;
+  /** The transaction's explorer page; null when no explorer can open it (an in-process chain). */
+  explorer(signature: string): string | null;
 };
 
 export type Ui = ReturnType<typeof createUi>;
@@ -36,8 +37,10 @@ function size(chars: number): string {
 export function createUi(options: UiOptions) {
   const paint = (style: Style | Style[], value: string) =>
     options.color ? styleText(style, value, { validateStream: false }) : value;
-  const link = (label: string, url: string) =>
-    options.color ? `\u001b]8;;${url}\u001b\\${label}\u001b]8;;\u001b\\` : `${label} ${url}`;
+  const link = (label: string, url: string | null) => {
+    if (url === null) return label;
+    return options.color ? `\u001b]8;;${url}\u001b\\${label}\u001b]8;;\u001b\\` : `${label} ${url}`;
+  };
   const line = (value = "") => options.write(value);
   /** The tripwire limit, learned from leash_status. */
   let maxStrikes: number | null = null;
@@ -149,7 +152,7 @@ export function createUi(options: UiOptions) {
     header(title: string, facts: string[]) {
       line(
         paint("bold", `━━ ${title} ━━`) +
-          paint("dim", ` ${facts.map((f) => plain(f)).join(" · ")}`),
+          paint("dim", ` ${facts.map((f) => oneLine(f, 80)).join(" · ")}`),
       );
     },
     /** The agent's status before the scenes; also teaches the screen the tripwire limit. */

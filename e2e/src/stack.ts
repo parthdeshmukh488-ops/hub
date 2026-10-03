@@ -1,13 +1,7 @@
 import { runDemo } from "@leash/agent-demo/demo";
 import type { SceneId } from "@leash/agent-demo/scenes";
 import { createUi, type Ui } from "@leash/agent-demo/ui";
-import {
-  type Alert,
-  CAIP2,
-  explorerTxUrl,
-  type RequestView,
-  resolveClusterConfig,
-} from "@leash/contracts";
+import { type Alert, CAIP2, type RequestView, resolveClusterConfig } from "@leash/contracts";
 import { startTestIndexer, type TestIndexer } from "@leash/indexer/testing";
 import { loadContent } from "@leash/merchant-demo/content";
 import { createApp } from "@leash/merchant-demo/server";
@@ -86,7 +80,8 @@ export async function startStack(options: StackOptions) {
   const ui: Ui = createUi({
     write: options.write,
     color: options.color,
-    explorer: (signature) => explorerTxUrl(cluster, signature),
+    // No explorer can open a transaction of this in-process chain.
+    explorer: () => null,
   });
 
   // The indexer follows the same chain, read only when `sync` says so.
