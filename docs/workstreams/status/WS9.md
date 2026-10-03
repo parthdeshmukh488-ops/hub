@@ -13,7 +13,7 @@ Parth's list, in order; each item is pushed on its own so the PR is mergeable af
 
 1. **`pnpm demo`: done.** `e2e/src/demo.ts` plays the whole storyline in the terminal on the e2e stack, which moved to `e2e/src/stack.ts` (the storyline test uses it too). It opens with "Local test chain (LiteSVM) running the real Leash program. Not devnet. The owner's approval is simulated."; Sentinel's alerts print as `alert:` lines; the simulated owner approves after the approval alert, and says so on screen. Root alias `"demo": "tsx e2e/src/demo.ts"` (the one root `package.json` edit). Smoke test `e2e/test/demo.test.ts`: honest line first, three scenes end normally, both alerts, the tripwire banner, 1.57 USDC to the merchant and 0 to the attacker.
 2. **Demo replay robustness (WS7): done.** Details in [WS7's status](WS7.md#demo-replay-robustness-2026-10-03-final-polish-session-pr-6): scripts expect `paid`, an unpaid or ≥ 400 answer stops the replay, the screen never shows ✓ for ≥ 400; tested on LiteSVM with a merchant answering 500 and answering free.
-3. Facilitator settlements through the testbed chain.
+3. **Facilitator settlements through the testbed chain: done.** `litesvmFacilitatorClient(svm, feePayers, network, { chain })` (and the signer) send each settlement through the chain's `sendAndConfirm`; the inner instructions the facilitator checks come from a simulation on the same state just before. `e2e/test/facilitator-svm.ts` and its Proxy bridge are deleted; the storyline still asserts the exact 1.57 USDC and the five `PaymentExecuted` the indexer saw. Other callers pass no `chain` and are unchanged.
 4. README, deck and pitch documents, LICENSE.
 5. Landing page `/`.
 

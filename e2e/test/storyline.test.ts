@@ -126,7 +126,7 @@ describe("the pitch storyline, through the whole system", () => {
     expect(await balance("attacker")).toBe(0n);
     expect(await balance("merchant")).toBe(merchantBefore);
     // The whole story paid the merchant 1.57 USDC, as in apps/agent-demo's test: every x402
-    // settlement ran once, though the indexer also saw it (recordingSvm).
+    // settlement ran once, though it went through the testbed chain that the indexer reads.
     expect(merchantBefore).toBe(1_570_000n);
 
     const feed = await events();

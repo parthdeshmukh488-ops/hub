@@ -43,13 +43,10 @@ pnpm --filter @leash/e2e test        # about 5 seconds: the storyline test and p
 
 No validator, no RPC and no keys are needed. The suite uses the committed `artifacts/programs/*.so` and deterministic test keys.
 
-## One bridge between test utilities
+## Settlements reach the indexer
 
-- **The gap:**
-  - The x402 facilitator's LiteSVM signer (`@leash/x402/testing`) sends its settlements straight to LiteSVM.
-  - The testbed chain (`@leash/sdk/testing`) lists only the transactions sent through it.
-  - On a real cluster both reach the same node; here the indexer would never see an x402 payment.
-- **The bridge:** [`test/facilitator-svm.ts`](test/facilitator-svm.ts) gives the facilitator a LiteSVM that runs each transaction once, then records the same result in the testbed chain's history.
+- The x402 facilitator's LiteSVM client (`litesvmFacilitatorClient` in `@leash/x402/testing`) takes the testbed's chain (`{ chain: bed.chain }`) and sends each settlement through it, as a real cluster would: the chain's history, and so the indexer, sees every x402 payment.
+- The facilitator still reads each settlement's inner instructions; they come from a simulation on the same state just before the send.
 - **Check that nothing ran twice:** the merchant's final balance is exactly the 1.57 USDC that `apps/agent-demo`'s test also asserts.
 
 ## Imports

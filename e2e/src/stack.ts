@@ -18,7 +18,6 @@ import { connectLeash } from "@leash/tools/node";
 import { litesvmFacilitatorClient } from "@leash/x402/testing";
 import { address } from "@solana/kit";
 import { pino } from "pino";
-import { recordingSvm } from "../test/facilitator-svm.ts";
 
 // The whole system in process on LiteSVM, with no network, shared by the storyline test and
 // `pnpm demo`:
@@ -56,17 +55,15 @@ export async function startStack(options: StackOptions) {
   const bed: Testbed = await createTestbed();
 
   // merchant-demo (lab included) with x402 payments through the official facilitator. Its
-  // settlements are recorded in the testbed chain's history, so the indexer sees them.
+  // settlements go through the testbed chain, so its history and the indexer see them.
   const app = createApp(
     {
       wallets: { merchant: bed.keys.merchant.address, attacker: bed.keys.attacker.address },
       payments: "on",
       x402: {
-        facilitator: litesvmFacilitatorClient(
-          recordingSvm(bed),
-          [bed.keys.stranger],
-          CAIP2.localnet,
-        ),
+        facilitator: litesvmFacilitatorClient(bed.svm, [bed.keys.stranger], CAIP2.localnet, {
+          chain: bed.chain,
+        }),
         network: CAIP2.localnet,
         asset: bed.mint,
       },

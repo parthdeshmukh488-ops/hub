@@ -13,7 +13,12 @@ import {
   type Transaction,
 } from "@solana/kit";
 import { getTokenDecoder } from "@solana-program/token";
-import { FailedTransactionMetadata, type LiteSVM, type TransactionMetadata } from "litesvm";
+import {
+  FailedTransactionMetadata,
+  type LiteSVM,
+  SimulatedTransactionInfo,
+  type TransactionMetadata,
+} from "litesvm";
 import type { FacilitatorSvmSigner } from "../facilitator/index.ts";
 
 // The official facilitator's signer interface over an in-process LiteSVM, so the unmodified
@@ -90,10 +95,25 @@ function innerInstructionsOf(meta: TransactionMetadata): InnerInstructions {
     .filter((group) => group.instructions.length > 0);
 }
 
+/**
+ * Where settlements go instead of straight to LiteSVM: the SDK testbed's chain
+ * (`@leash/sdk/testing`), which records every transaction it confirms, so an indexer over that
+ * chain sees x402 payments as it would on a real cluster.
+ */
+export type SettlementChain = {
+  sendAndConfirm(transaction: Transaction): Promise<unknown>;
+};
+
+export type LitesvmFacilitatorOptions = {
+  /** Send settlements through this chain (it must run on the same `svm`). */
+  chain?: SettlementChain;
+};
+
 /** A facilitator signer for `feePayers` on `svm`. Sent transactions stay queryable by signature. */
 export function litesvmFacilitatorSigner(
   svm: LiteSVM,
   feePayers: readonly KeyPairSigner[],
+  options: LitesvmFacilitatorOptions = {},
 ): FacilitatorSvmSigner & { readonly sent: ReadonlyMap<string, InnerInstructions> } {
   const sent = new Map<string, InnerInstructions>();
   const signerFor = (address: string) => {
@@ -136,15 +156,21 @@ export function litesvmFacilitatorSigner(
 
     async sendTransaction(transaction) {
       const decoded = decodeTransaction(transaction);
-      const result = svm.sendTransaction(decoded);
+      // Through a chain, the transaction runs once, there; its inner instructions come from a
+      // simulation on the same state just before, which LiteSVM runs deterministically.
+      const result = options.chain
+        ? svm.simulateTransaction(decoded)
+        : svm.sendTransaction(decoded);
       if (result instanceof FailedTransactionMetadata) {
         throw new Error(`transaction failed: ${result.err().toString()}`);
       }
+      const meta = result instanceof SimulatedTransactionInfo ? result.meta() : result;
+      await options.chain?.sendAndConfirm(decoded);
       const signature = getSignatureFromTransaction(decoded);
       const keys = getCompiledTransactionMessageDecoder().decode(
         decoded.messageBytes,
       ).staticAccounts;
-      sent.set(signature, parsedInnerInstructionsOf(result, keys));
+      sent.set(signature, parsedInnerInstructionsOf(meta, keys));
       return signature;
     },
 
