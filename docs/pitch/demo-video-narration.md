@@ -1,6 +1,6 @@
 # Demo video: narration
 
-The voice-over of [leash-demo-devnet.mp4](leash-demo-devnet.mp4) (2:19, 1080p), part by part. It was generated with OpenAI's `gpt-4o-mini-tts` (voice "onyx") at a normal speaking pace, about 160 words a minute. Read it aloud to record the narration in your own voice.
+The voice-over of [leash-demo-devnet.mp4](leash-demo-devnet.mp4) (2:21, 1080p, watermarked "Leash · Parth Deshmukh"), part by part. It was generated with OpenAI's `gpt-4o-mini-tts` (voice "onyx") at a normal speaking pace, about 160 words a minute. Read it aloud to record the narration in your own voice.
 
 What the video shows:
 - The terminal part replays every line the demo agent printed during a real devnet take on Oct 3, 2026, at its real timing. The owner's wait runs at 4×, labelled on screen.
@@ -10,7 +10,7 @@ What the video shows:
 
 ## Title card
 
-AI agents can pay for things now. But what happens when an agent gets fooled? Meet Leash.
+AI agents can pay for things now. But what happens when an agent gets fooled? Meet Leash, built by Parth Deshmukh.
 
 ## Landing page
 
