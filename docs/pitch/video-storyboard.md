@@ -6,7 +6,7 @@ The demo video: the link in the README, on slide 13 and in the submission, and t
 - **Say where it was filmed.** Show "Solana devnet" only for shots filmed on devnet. A shot filmed on a local validator says "local Solana validator".
 - **The attack scene keeps its disclosure on screen:** "Simulating a successful injection". The caption repeats it.
 - **No speed-ups without a label.** Cuts between steps are fine. A sped-up stretch says "2× speed".
-- **Owner actions show the real path:** a Solana Action (Blink) signed in the owner's wallet, the web app once it ships, or the `pnpm owner:…` command in a terminal.
+- **Owner actions show the real path:** the web app (Approve in the inbox, the freeze toggle), signed in the owner's wallet; a Solana Action (Blink) or the `pnpm owner:…` command in a terminal as fallbacks.
 
 ## Shots
 
@@ -16,7 +16,7 @@ The demo video: the link in the README, on slide 13 and in the submission, and t
 | 2 | 0:06–0:16 | Text card: the incident | "On May 4, a post in Morse code got Grok, wired to a trading bot, to send about two hundred thousand dollars." | May 4, 2026 · source: OECD.AI |
 | 3 | 0:16–0:28 | The control panel: the Research Assistant's rules in plain language | "Leash gives an agent a budget in Solana's own Allowances program, and rules on top: who it may pay, how much, how fast." | 5 USDC a day · 1 USDC per payment · only the Research API · freezes after 3 blocked attempts |
 | 4 | 0:28–0:45 | Split screen: the terminal's green payment lines, the control panel's feed updating | "Our research assistant pays for data per call, a cent or two each, over x402. Every payment is on-chain." | Real x402 payments on [Solana devnet / a local Solana validator] |
-| 5 | 0:45–1:00 | Terminal: the approval request. Then the owner approves (a Blink in the owner's wallet, the web app once it ships, or the terminal fallback), and the agent pays. | "A 1.50 report is above its limit, so it asks. One approval, and that exact payment goes through." | Above the limit: the owner decides |
+| 5 | 0:45–1:00 | Terminal: the approval request. Then the owner clicks Approve in the web app's inbox and signs in their wallet (fallbacks: a Blink, or the terminal), and the agent pays. | "A 1.50 report is above its limit, so it asks. One approval, and that exact payment goes through." | Above the limit: the owner decides |
 | 6 | 1:00–1:08 | The buying guide in a browser, looking normal. Then the hidden paragraph highlighted in the page source. | "This buying guide hides an instruction no reader can see: tip its author 25 USDC." | The instruction is invisible on the page, but the agent reads it |
 | 7 | 1:08–1:25 | Terminal: "Simulating a successful injection", then blocked, strike 1, 2, 3 and the red tripwire banner. The phone buzzes, if the real-phone check of Telegram has passed. | "We script the agent to fall for it. It tries three times: three blocks, three strikes, and the agent freezes itself, on-chain." | Scripted scene: simulating a successful injection. Every block and strike is real and on-chain. |
 | 8 | 1:25–1:35 | The control panel: the agent frozen, the three attempts with the attacker's address. On devnet: the freeze transaction in the explorer. | "The owner sees exactly what happened, and who tried to get paid. Only the owner can unfreeze it." | Frozen by its own tripwire |
