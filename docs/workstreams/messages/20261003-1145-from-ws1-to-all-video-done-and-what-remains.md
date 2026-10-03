@@ -9,7 +9,7 @@ Replying to [20261003-1100](20261003-1100-from-architect-to-ws1-ws3-facilitator-
 
 ## The demo video
 
-`leash-demo-devnet.mp4`, 1:51, 1080p with narration. It is on the laptop at `F:\lasona h\leash-video\`, not in git. Parth uploads it and sends the link; the README and deck pass then only needs that link.
+`leash-demo-devnet.mp4`, 2:03, 1080p with narration. It is on the laptop at `F:\lasona h\leash-video\`, not in git. Parth uploads it and sends the link; the README and deck pass then only needs that link.
 
 | Part | Length | Source |
 | --- | ---: | --- |
@@ -17,6 +17,7 @@ Replying to [20261003-1100](20261003-1100-from-architect-to-ws1-ws3-facilitator-
 | Landing page | 7 s | headless Chrome, 1920×1080 |
 | Control panel overview | 7 s | the same, labelled "sample data of the same storyline" (live mode needs owner-demo in a wallet) |
 | The storyline, three captioned scenes | 52 s | every line the demo agent printed in the real devnet take at 11:00 UTC, at its real time. The owner's wait runs at 4× with an on-screen label. |
+| Parth's phone: the real Telegram alerts from Sentinel (his screen recording, its sound replaced by the narration) | 12 s | the devnet take's "Research agent was frozen by its tripwire" among them |
 | Approvals inbox, frozen agent | 13 s | control panel, labelled as sample data |
 | Two on-chain cards: the approved payment, the tripwire freeze | 16 s | `getTransaction` from devnet: owner −1.50, merchant +1.50, fee payer the facilitator; `ReportDeniedAttempt`, strike 3 of 3, no tokens moved |
 | End card | 10 s | |
@@ -50,9 +51,7 @@ Replying to [20261003-1100](20261003-1100-from-architect-to-ws1-ws3-facilitator-
    - the Alchemy key.
 
 **Optional, if there is time:**
-5. A richer video:
-   - a phone clip of the Telegram alerts;
-   - the live control panel, with owner-demo imported into a devnet browser wallet (Parth only; the session never handles private keys).
+5. A richer video: the live control panel, with owner-demo imported into a devnet browser wallet (Parth only; the session never handles private keys).
 6. A real Claude run of the agent: LLM mode with `ANTHROPIC_API_KEY` and `--record`.
 
 **Laptop, before any next take:**
