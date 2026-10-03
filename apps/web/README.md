@@ -1,6 +1,6 @@
 # @leash/web
 
-The owner's control panel: see every agent, what it spent, what was blocked and why, and act with your wallet: approve or reject requests, freeze and unfreeze, pair new agents, set the guardian. Also the Solana Actions (Blinks); the landing page comes later.
+The owner's control panel: see every agent, what it spent, what was blocked and why, and act with your wallet: approve or reject requests, freeze and unfreeze, pair new agents, set the guardian. Also the Solana Actions (Blinks), and a landing page for judges and visitors.
 
 Owned by **WS6**. Brief: [docs/workstreams/WS6-web.md](../../docs/workstreams/WS6-web.md). Status: [docs/workstreams/status/WS6.md](../../docs/workstreams/status/WS6.md).
 
@@ -8,7 +8,7 @@ Owned by **WS6**. Brief: [docs/workstreams/WS6-web.md](../../docs/workstreams/WS
 
 | Route | What it shows |
 | --- | --- |
-| `/` | Redirects to `/app` (the landing page comes in build step 5) |
+| `/` | The landing page: the one-line promise, the 60-second story (paid → asks → blocked → frozen), how it works in three steps, why Solana, links to the app, the repo and the program on devnet. Static, no data |
 | `/app` | Overview: agents running / blocked / waiting, the **global freeze switch**, one card per agent (status, allowance left, last payment, blocked attempts, strikes), recent blocked attempts |
 | `/app/agents/[agent]` | Agent detail: the **big freeze toggle**, allowance gauge, tripwire strikes (with **Clear strikes**), approvals waiting (**Approve** / **Reject**), the rules in plain language, allowed payees with their spend, a "what would happen if…" tester, the activity feed |
 | `/app/agents/new`, `/pair` | The **pairing wizard** (below) |
@@ -78,6 +78,19 @@ NEXT_PUBLIC_DATA_SOURCE=indexer NEXT_PUBLIC_LEASH_CLUSTER=devnet pnpm --filter @
 
 Set `NEXT_PUBLIC_RPC_URL` (for example a Helius devnet URL) if the public devnet RPC rate-limits you. The connected wallet pays the network fees, so it needs a little devnet SOL. To act on the demo world of `pnpm devnet:setup`, connect the `owner-demo` key; to start fresh, connect any wallet and pair an agent.
 
+### Deploy the control panel with sample data (Vercel)
+
+So judges get a link: the landing page and the control panel on sample data. Nothing in it can sign or move funds (sample data is read-only), and it needs no indexer, keys or secrets.
+
+1. Check the build locally: `NEXT_PUBLIC_DATA_SOURCE=fixtures pnpm --filter @leash/web build` (it succeeds; checked 2026-10-03).
+2. On vercel.com: **Add New → Project**, import the GitHub repo.
+3. **Root Directory:** `apps/web`. Vercel sees the pnpm workspace and installs from the repo root; keep the detected framework (Next.js) and the default build command.
+4. **Node.js version** (Settings → General): 22.x.
+5. **Environment variables:** `NEXT_PUBLIC_DATA_SOURCE=fixtures` and `NEXT_PUBLIC_LEASH_CLUSTER=devnet` (so a judge's wallet is asked for devnet). Nothing else; never put a key there.
+6. **Deploy.** The URL opens the landing page; **Open the control panel** goes to `/app`. Put the URL in the root README and the submission.
+
+The Solana Actions routes are deployed too. They only return unsigned devnet transactions for a wallet to sign; without a real request or agent they answer with an error.
+
 ### The whole owner side without a validator (cloud)
 
 ```bash
@@ -128,15 +141,15 @@ Read only in [`src/env.ts`](src/env.ts), validated with zod.
 ```bash
 pnpm --filter @leash/web test       # 117 tests: logic, data sources, live merge, what-if, CSV, Actions,
                                     # every owner action on the LiteSVM testbed, summaries and error copy, pairing
-pnpm --filter @leash/web test:e2e   # Chromium: 6 on sample data, 8 live on LiteSVM (not part of pnpm check)
+pnpm --filter @leash/web test:e2e   # Chromium: 7 on sample data, 8 live on LiteSVM (not part of pnpm check)
 pnpm --filter @leash/web typecheck
 pnpm --filter @leash/web lint
 ```
 
 - **`test/owner.test.ts`** runs every function of `src/lib/owner` on the real programs (LiteSVM): the wallet's signature makes the change, and a wrong signer (a stranger, the guardian where only the owner may act) is refused by the plan and, sent anyway, by the program.
-- **The browser tests** inject a Wallet Standard wallet that signs with a deterministic test key (`e2e/fake-wallet.ts`). On sample data: connect, copy, reconnect after reload, the cluster warning, read-only buttons, the pairing wizard up to its review, broken and wrong-cluster links. Live (`e2e/live-stack.ts`): approve, reject, freeze and unfreeze an agent, freeze and resume all, a declined signature, another wallet, the guardian, and a full pairing that ends on the new agent's page. They use the Chromium Playwright finds (pre-installed in the cloud; `pnpm exec playwright install chromium` elsewhere).
+- **The browser tests** inject a Wallet Standard wallet that signs with a deterministic test key (`e2e/fake-wallet.ts`). On sample data: the landing page (headings, status words, the skip link by keyboard, the way into the app), connect, copy, reconnect after reload, the cluster warning, read-only buttons, the pairing wizard up to its review, broken and wrong-cluster links. Live (`e2e/live-stack.ts`): approve, reject, freeze and unfreeze an agent, freeze and resume all, a declined signature, another wallet, the guardian, and a full pairing that ends on the new agent's page. They use the Chromium Playwright finds (pre-installed in the cloud; `pnpm exec playwright install chromium` elsewhere).
 
 ## Next
 
 - Policy and allowlist editing on the agent page (`buildUpdatePolicy`, `buildAddPayee`…), with the what-if tester as the preview; "hard stop: revoke allowance".
-- Steps 4–5: PWA, landing page, accessibility pass.
+- Step 4: PWA. The landing page and its accessibility pass are done (step 5); a Lighthouse run is still to do.

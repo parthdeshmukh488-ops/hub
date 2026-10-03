@@ -1,9 +1,16 @@
 # WS6 status: Web control panel
 
 - Session branch: `ws6/owner-web-app-72mvts` (cloud session, 2026-10-02)
-- Last updated: 2026-10-02
+- Last updated: 2026-10-03
 - Current build step: 2 and 3, write side (the owner acts in the app): done, PR into `main` open
 - Messages handled: through `20261001-2310-from-architect-to-ws5-ws1-sentinel-merged.md` (none needed WS6 action)
+
+## Build step 5: the landing page (2026-10-03, final-polish session, PR #6)
+
+- **`/`** is the landing page (was a redirect to `/app`): the one-line promise, the 60-second story (paid → asks → blocked → frozen, each with an icon and a word), how it works in three steps, why Solana, links to the app, the repo and the program on devnet. Static server component; no data, no new env variables. The live counter of blocked attempts from the brief is left out: it needs a live indexer the deployed sample-data app won't have.
+- **Accessibility:** a skip link (first Tab), header/main/footer landmarks, one `h1` and ordered `h2`/`h3`, lists for the story and steps, decorative icons `aria-hidden`, status colours always with a word, the existing AA tokens in both themes. Checked at 1280 px and 375 px, light and dark. A Lighthouse run is still to do.
+- **Test:** one more Playwright test on sample data (headings, status words, skip link by keyboard, the way into `/app`): 7 on sample data, 8 live.
+- **`next build` succeeds in fixture mode**; `apps/web/README.md` says how Parth deploys the sample-data app to Vercel (root directory `apps/web`) so judges get a link.
 
 ## Plan for the owner's side (Parth's brief of 2026-10-02, in his order; executed)
 

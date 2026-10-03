@@ -67,7 +67,7 @@ Full design: [architecture overview](docs/architecture/00-overview.md) and [prog
 
 ## What works today
 
-As of October 3, 2026. 964 automated tests (836 TypeScript, 128 Rust) run on every commit, and a separate security job runs the security model's invariant tests by name. The web app also has 14 browser tests (Playwright), 8 of them on the real program in LiteSVM.
+As of October 3, 2026. 964 automated tests (836 TypeScript, 128 Rust) run on every commit, and a separate security job runs the security model's invariant tests by name. The web app also has 15 browser tests (Playwright), 8 of them on the real program in LiteSVM.
 
 | Part | State | How we know |
 | --- | --- | --- |
@@ -133,7 +133,7 @@ cargo test       # 128 Rust tests (Rust 1.98.1, pinned in rust-toolchain.toml)
 pnpm --filter @leash/e2e test   # the whole demo story through the whole system, about 5 s
 ```
 
-**Open the control panel with sample data** at http://localhost:3000:
+**Open the landing page and the control panel with sample data** at http://localhost:3000:
 
 ```bash
 pnpm --filter @leash/web dev

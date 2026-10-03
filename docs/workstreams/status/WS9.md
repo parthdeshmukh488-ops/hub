@@ -22,7 +22,7 @@ Parth's list, in order; each item is pushed on its own so the PR is mergeable af
    - **The deck** rebuilt with `build-deck.cjs` and converted to PDF (this container needed `libreoffice-impress` from apt again). Slides 9 and 12 rendered and checked.
    - **LICENSE:** MIT, copyright 2026 Parth Deshmukh.
    - Every relative link in the seven edited documents resolves (scripted check).
-5. Landing page `/`.
+5. **Landing page `/`: done** (WS6 lane): details in [WS6's status](WS6.md). `next build` passes in fixture mode; Vercel steps in `apps/web/README.md`. README and Q&A now say 15 browser tests (the PR #5 row keeps its 14).
 
 ## Pass 2: the story matches main (2026-10-02)
 
