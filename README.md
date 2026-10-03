@@ -31,9 +31,9 @@ The story the demo tells, with a research agent on a budget:
 
 > **The model was fooled. The money wasn't moved.** Solana's Allowances capped how much; Leash decided who, how fast, and when to stop.
 
-**What is scripted.** In the attack scene the agent's decisions are scripted to follow the hidden instruction, as a fooled model would. The screen says so: "Simulating a successful injection". Every payment, block and strike is real and on-chain. The demo agent can also be driven by a live Claude model; those runs and their recordings are in progress.
+**What is scripted.** In the attack scene the agent's decisions are scripted to follow the hidden instruction, as a fooled model would. The screen says so: "Simulating a successful injection". Every payment, block and strike is real and on-chain. The demo agent can also be driven by a live Claude model; recorded runs with it come next, with the Colosseum hackathon (by Nov 2).
 
-**Where it runs today.** The whole scripted story has run end to end on a local Solana validator. On every commit it also runs as one test through the whole system: agent, x402 merchant, official facilitator, the real program binaries, indexer and Sentinel. `pnpm demo` plays it on screen in one command, with no chain to set up. The devnet run and its recording are in progress.
+**Where it runs today.** The whole scripted story has run end to end on a local Solana validator. On every commit it also runs as one test through the whole system: agent, x402 merchant, official facilitator, the real program binaries, indexer and Sentinel. `pnpm demo` plays it on screen in one command, with no chain to set up. On devnet the whole story has run twice, and the [demo video](docs/pitch/leash-demo-devnet.mp4) replays the second run.
 
 The owner pairs agents, approves requests, and freezes or unfreezes them in the web app, signing with their own wallet. A Solana Action (a Blink, signed in the owner's wallet) and the terminal (`pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze`) do the same as fallbacks.
 
@@ -87,7 +87,7 @@ As of October 3, 2026. 985 automated tests (857 TypeScript, 128 Rust) run on eve
 | Security CI job | Done | Runs the invariant tests of the [security model](docs/architecture/03-security.md#3-invariant-tests) by name, I1 to I6, policy parity and x402. It fails if a renamed test drops out. |
 | The whole pitch story on devnet | Done: a rehearsal take on Oct 3, 2026 | Five x402 payments, a 1.50 USDC payment the owner approved (from the terminal), and three blocked attempts that froze the agent, with the indexer and Sentinel following live and the alerts on Parth's phone ([report](docs/workstreams/messages/20261003-1050-from-ws1-to-all-storyline-passes-on-devnet.md)). The first x402 payment through Leash on devnet: [explorer](https://explorer.solana.com/tx/3v4TaKJ6d3H5oaDMJGX16nU2qfk81sPVikRh8d7u8c5bccHTH8ftZGHU4qbMVudKQSWUYuFnLKtL7CmiwPB8drZE?cluster=devnet). |
 | The demo video | **Done:** [watch it](docs/pitch/leash-demo-devnet.mp4) | 2:19, narrated ([script](docs/pitch/demo-video-narration.md)). The agent's screen is replayed from the second devnet take (Oct 3), line by line at its real timing, with the owner's wait at 4× and labelled. Parth's phone shows Sentinel's real Telegram alerts from that take. Two cards show the approved payment and the tripwire freeze as read from devnet. The control panel shots are sample data of the same story, labelled ([report](docs/workstreams/messages/20261003-1145-from-ws1-to-all-video-done-and-what-remains.md)). |
-| Demo agent with a live Claude model, recorded | In progress | |
+| Demo agent with a live Claude model, recorded | Next (by Nov 2) | The Claude mode is built. The demo's scenes are hand-written scripts, and the screen says so. |
 
 ## Security model
 
