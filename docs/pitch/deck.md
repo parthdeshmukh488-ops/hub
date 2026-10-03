@@ -132,7 +132,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 | Done | In progress |
 | --- | --- |
-| The Leash program, live on devnet | The demo video, recorded on devnet |
+| The Leash program, live on devnet | The control panel with a real wallet, on devnet |
 | 60 policy cases agree in TypeScript, in Rust and on the deployed binary | |
 | x402 payments through the unmodified official facilitator, on devnet too | |
 | Claude Code connects to the Leash MCP server | |
@@ -181,7 +181,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 *Serves: potential to grow.*
 
 **On the slide** (a timeline of three stages)
-- **This week** (for the Oct 4 submission · in progress): the demo video, recorded on devnet; the web app with a real wallet on devnet.
+- **This week** (for the Oct 4 submission · in progress): the web app with a real wallet on devnet.
 - **By Nov 2** (the Colosseum hackathon): Telegram buttons that open the owner's wallet directly; recorded runs with a live Claude model; five user conversations.
 - **Then** (on the way to mainnet): an independent audit; the upgrade authority moved to a timelocked multisig, or revoked; mainnet.
 

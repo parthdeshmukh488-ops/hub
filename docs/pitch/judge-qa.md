@@ -26,7 +26,7 @@ Ramp is testing x402 agent wallets on Solana in a limited alpha, for its busines
 The payments, the blocks, the strikes and the freeze are real on-chain transactions. The agent's decisions in the attack scene are scripted to follow the hidden instruction, and the screen says "Simulating a successful injection". We script it because whether a model falls for a given page varies from run to run. Leash's point is that it doesn't matter. The demo agent can also run with a live Claude model; those recordings are in progress. *([apps/agent-demo/README.md](../../apps/agent-demo/README.md))*
 
 **What runs on devnet today?**
-The Leash program is deployed on devnet, byte for byte the binary our tests run. The full demo has run end to end on a local Solana validator with the same binaries. The whole pitch storyline has also run on devnet, in a rehearsal take: five x402 payments, a payment the owner approved, and three blocked attempts that froze the agent, with the indexer and Sentinel following live. The video is being recorded from devnet. *([WS1 status](../workstreams/status/WS1.md))*
+The Leash program is deployed on devnet, byte for byte the binary our tests run. The full demo has run end to end on a local Solana validator with the same binaries. The whole pitch storyline has also run on devnet, twice: five x402 payments, a payment the owner approved, and three blocked attempts that froze the agent, with the indexer and Sentinel following live. The demo video replays the second run: the agent's screen at its real timing, and the payments as read from devnet. *([WS1 status](../workstreams/status/WS1.md))*
 
 **How do you know the program does what the spec says?**
 - 60 shared policy test cases give the same result in TypeScript, in Rust, and in LiteSVM on the exact program binary deployed on devnet.
@@ -87,7 +87,7 @@ Open core:
 - **Later:** a fee per payment through a hosted facilitator, which needs no program change.
 
 **What's next?**
-- **This week:** the demo video, recorded on devnet.
+- **This week:** the control panel with a real wallet on devnet.
 - **By Nov 2, at Colosseum:** Telegram buttons that open the owner's wallet directly, recorded runs with a live model, and the first user conversations.
 - **Already done:** pairing, approvals and the freeze switch in the web app, Solana Actions (Blinks) to approve or freeze from a link, and a guardian (Sentinel) that freezes by itself.
 - **Then:** an audit, the upgrade authority moved to a multisig or revoked, and mainnet.

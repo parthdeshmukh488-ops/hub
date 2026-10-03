@@ -609,7 +609,7 @@ async function main() {
       y += 0.35;
     }
     chip(s, "In progress", 6.2, 1.15, 1.45, 0.32, C.approval, C.approvalSoft, { icon: I.hourglass });
-    const doing = ["The demo video, recorded on devnet"];
+    const doing = ["The control panel with a real wallet, on devnet"];
     y = 1.62;
     for (const d of doing) {
       const h = d.length > 34 ? 0.42 : 0.22;
@@ -739,7 +739,6 @@ async function main() {
         head: "This week",
         sub: "for the Oct 4 submission · in progress",
         items: [
-          "The demo video, recorded on devnet",
           "The web app with a real wallet on devnet",
         ],
       },
