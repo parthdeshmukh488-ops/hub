@@ -5,6 +5,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 - **Audience:** the judges of the Superteam Germany Solana Challenge at the WHU Prompting Progress hackathon. They read the deck on their own, so every slide must make sense without a speaker. The "Say" lines are the speaker notes, for the live pitch and the video.
 - **Judging criteria** ([hackathon brief](../hackathon-brief.md)): useful idea · working prototype · clear role for Solana · potential to grow. Each slide names the one it serves.
 - **Rules:** every number has a source ([below](#facts-and-sources)). Only what the status files show as done is called done; the rest says "in progress". The scripted attack is "simulating a successful injection", as the demo screen says.
+- **Kickers:** every content slide has a small purple label above its title naming its part of the story, mapped to the judging criteria: the problem, why now, the solution, how it works on Solana, working prototype, why Solana, safety, potential to grow.
 - **Design:** light and plain, like the web app, in Arial. The app's colours keep their meaning: green paid, amber waiting for approval, red blocked, blue frozen, purple for Leash itself. Status chips in those colours are the repeated motif. Screenshots come from [img/](img/).
 - **Length:** 13 slides, about 3 minutes spoken.
 - **Last checked:** October 3, 2026.
@@ -21,21 +22,21 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 **Say:** "AI agents can pay for things now. Leash makes sure an agent pays only who you allow, only as much as you allow, and stops by itself when someone tries to trick it."
 
-## 2. An agent's wallet is all or nothing
+## 2. A fooled agent can empty its whole wallet
 
-*Serves: useful idea.*
+*Serves: useful idea. Kicker: the problem.*
 
 **On the slide**
 - Three cards in a row: **A post on X, in Morse code** (May 4, 2026) → **Grok, wired to a trading bot, follows it** (it does what the text says) → **About $150–200k sent** (nothing asked if the payment made sense).
-- **An agent does what the text in front of it says.** A crafted message can make it pay the attacker.
-- Today a developer hands the agent a private key or a custodial wallet: the agent, and anyone who can fool it, can move the whole balance.
+- The main message, large: **Today, giving an AI agent a wallet gives anyone who can fool it the whole balance.**
+- Developers hand agents a private key or a custodial wallet. No model is immune to a crafted message, and nothing between the agent and the money asks whether a payment makes sense.
 - Source: OECD.AI incident report, May 4, 2026.
 
 **Say:** "No model is immune to a crafted message. On May 4, a post in Morse code got Grok to send up to two hundred thousand dollars. Nothing between the agent and the money asked whether that payment made sense."
 
 ## 3. Agents already pay, on Solana
 
-*Serves: useful idea.*
+*Serves: useful idea. Kicker: why now.*
 
 **On the slide**
 - **23.2M** x402 agent payments on Solana in the four weeks to Sept 22, 2026.
@@ -48,11 +49,12 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 **Say:** "Agent payments are already here: Solana carried twenty-three million of them in four weeks. In June the Solana Foundation shipped an audited Allowances program. It caps how much a delegate can spend, but not who it pays. That gap is where Leash sits."
 
-## 4. A firewall between agent and money
+## 4. Leash: a spending firewall for AI agents
 
-*Serves: useful idea.*
+*Serves: useful idea. Kicker: the solution.*
 
 **On the slide**
+- One sentence under the title: an on-chain program checks every payment the agent makes. It pays only who you allow, only as much as you allow, and freezes itself when someone tries to trick it.
 - Five tiles:
   - **Allowlist:** pays only payees you approved.
   - **Limits:** per payment, per payee, and a rate limit.
@@ -64,9 +66,9 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 **Say:** "Your money stays in your wallet. The agent can only spend through Leash, and Leash checks every payment on-chain. The most it can ever spend is the allowance in Solana's own audited program, and Leash can only make that smaller."
 
-## 5. How it works
+## 5. Every payment passes the Leash program
 
-*Serves: clear role for Solana.*
+*Serves: clear role for Solana. Kicker: how it works on Solana.*
 
 **On the slide**
 - A row of five boxes: **AI agent** (Leash SDK or MCP) → **Paid API** (x402 payment) → **x402 facilitator** (official package, pays the fee) → **Leash program** (allowlist · limits · freeze; highlighted) → **Allowances program** (Solana Foundation, audited).
@@ -79,7 +81,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 ## 6. The demo, in four frames
 
-*Serves: working prototype.*
+*Serves: working prototype. Kicker: working prototype.*
 
 **On the slide**
 - **Paid** (green): the agent pays the Research API 0.01–0.02 USDC per call.
@@ -95,21 +97,23 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 **If something fails live** (also in the speaker notes): the owner approves and unfreezes in the web app; if that fails, approve from the Blink in the owner's wallet or with `pnpm owner:approve`, and unfreeze with `pnpm owner:unfreeze`, which also clears leftover strikes. Before every take, run the [checklist](../../apps/agent-demo/README.md#before-each-take).
 
-## 7. Why Solana
+## 7. The rules live where the money is
 
-*Serves: clear role for Solana.*
+*Serves: clear role for Solana. Kicker: why Solana.*
 
-**On the slide**
-- **Pay per call:** a 0.01 USDC API call needs sub-cent fees and fast settlement. 76% of x402 agent payments already run on Solana.
-- **Rules where the money is:** no prompt can change on-chain rules, and a freeze applies to everyone from the next slot.
-- **Built from Solana's parts:** the Foundation's audited Allowances program is the hard ceiling, x402 carries the payment, and Leash adds the rules in between.
-- **Off-chain, a firewall can be bypassed by whoever holds the key. On Solana, the agent's key alone can't move the money.**
+**On the slide** (five rows: the Solana building block, then why it matters)
+- **Allowances program:** the Solana Foundation's audited program caps how much the agent can spend. Leash builds on it, so it never holds funds.
+- **Program-owned accounts:** the allowance belongs to the agent's Leash account, which only the program signs for, after every check. The agent's key alone can't move money.
+- **USDC over x402:** 76% of x402 agent payments already run on Solana. Sub-cent fees make a 0.01 USDC API call worth paying.
+- **Sub-second slots:** a freeze stops every payment from the next slot, about 0.4 s later, and every block is an on-chain event.
+- **Solana Actions (Blinks):** the owner approves a payment or freezes an agent from a link in a chat; the wallet signs.
+- In purple: **Off-chain, a firewall can be bypassed by whoever holds the key. On Solana, the agent's key alone can't move the money.**
 
 **Say:** "Without Solana this product doesn't work. A firewall that runs off-chain can be bypassed by whoever holds the key, and paying per API call needs fees far below a cent."
 
 ## 8. Fail-closed and non-custodial
 
-*Serves: working prototype.*
+*Serves: working prototype. Kicker: safety.*
 
 **On the slide**
 - "Your money never leaves your wallet. The most any agent can ever spend is the allowance you set in Solana's own audited program. Leash can only make that smaller."
@@ -126,7 +130,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 ## 9. Working today
 
-*Serves: working prototype.*
+*Serves: working prototype. Kicker: working prototype.*
 
 **On the slide**
 
@@ -149,13 +153,12 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 ## 10. First users
 
-*Serves: potential to grow.*
+*Serves: potential to grow. Kicker: potential to grow.*
 
 **On the slide**
 - **Who:** developers and small teams whose agents pay for APIs and services over x402: the teams big platforms ignore.
 - **How we reach them:** the MCP server, where one config line gives Claude Code, Claude Desktop or Cursor a wallet on a leash. And x402 facilitators: two settings changes.
-- **What we know so far:** no conversations with users yet. Next: five conversations with developers whose agents pay for APIs (Superteam Germany, x402 builders, MCP users).
-  > **[Parth: replace with who you talked to and what they said]**
+- **Next: talk to them:** five conversations with developers whose agents pay for APIs (Superteam Germany, x402 builders, MCP users), before Nov 2.
 - **Others in the space:**
   - **Swig, Squads:** smart-account wallets with spending limits.
   - **Crossmint, Openfort:** agent wallets.
@@ -166,7 +169,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 ## 11. Business model: open core
 
-*Serves: potential to grow.*
+*Serves: potential to grow. Kicker: potential to grow.*
 
 **On the slide**
 - **Free and open source:** the Leash program, the SDK and the MCP server. *A security product must be verifiable.*
@@ -178,7 +181,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 ## 12. Roadmap
 
-*Serves: potential to grow.*
+*Serves: potential to grow. Kicker: potential to grow.*
 
 **On the slide** (a timeline of three stages)
 - **This week** (for the Oct 4 submission · in progress): the web app with a real wallet on devnet.

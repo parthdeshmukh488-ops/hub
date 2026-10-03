@@ -76,10 +76,13 @@ function text(slide, value, x, y, w, h, o = {}) {
     isTextBox: true,
     paraSpaceAfter: o.paraSpaceAfter,
     lineSpacingMultiple: o.lineSpacingMultiple,
+    charSpacing: o.charSpacing,
   });
 }
 
-function title(slide, value) {
+/** The slide's title, under a small kicker that names its part of the story. */
+function title(slide, value, kicker) {
+  if (kicker) text(slide, kicker.toUpperCase(), 0.6, 0.24, 8.8, 0.2, { size: 10, bold: true, color: C.brand, charSpacing: 1.5 });
   text(slide, value, 0.6, 0.42, 8.8, 0.6, { size: 30, bold: true, valign: "middle" });
 }
 
@@ -215,6 +218,9 @@ async function main() {
     github: ["LuGithub", C.fg],
     globe: ["LuGlobe", C.fg],
     video: ["LuVideo", C.fg],
+    zap: ["LuZap", C.approval],
+    link: ["LuLink", C.frozen],
+    key: ["LuKeyRound", C.frozen],
   };
   for (const [key, [name, hex]] of Object.entries(want)) I[key] = await icon(name, hex);
   const shots = {
@@ -251,7 +257,7 @@ async function main() {
   // 2. Problem
   {
     const s = content(2);
-    title(s, "An agent's wallet is all or nothing");
+    title(s, "A fooled agent can empty its whole wallet", "The problem");
     const steps = [
       { icon: I.post, bg: C.surface2, head: "A post on X, in Morse code", sub: "May 4, 2026", color: C.fg },
       {
@@ -277,33 +283,25 @@ async function main() {
       text(s, st.sub, x + 0.22, 2.55, 2.15, 0.35, { size: 10.5, color: C.muted });
       if (i < 2) arrow(s, x + 2.65, 2.12, 0.4);
     });
-    s.addText(
-      [
-        {
-          text: "An agent does what the text in front of it says.",
-          options: { bold: true, breakLine: false },
-        },
-        { text: " A crafted message can make it pay the attacker.", options: { breakLine: true } },
-        {
-          text: "Today a developer hands the agent a private key or a custodial wallet: the agent, and anyone who can fool it, can move the whole balance.",
-          options: {},
-        },
-      ],
-      {
-        x: 0.6,
-        y: 3.3,
-        w: 8.8,
-        h: 1.4,
-        fontFace: FONT,
-        fontSize: 14,
-        color: C.fg,
-        margin: 0,
-        valign: "top",
-        paraSpaceAfter: 10,
-        isTextBox: true,
-      },
+    text(
+      s,
+      "Today, giving an AI agent a wallet gives anyone who can fool it the whole balance.",
+      0.6,
+      3.35,
+      8.8,
+      0.7,
+      { size: 19, bold: true },
     );
-    text(s, "Source: OECD.AI incident report, May 4, 2026", 0.6, 4.85, 6, 0.22, { size: 9, color: C.muted });
+    text(
+      s,
+      "Developers hand agents a private key or a custodial wallet. No model is immune to a crafted message, and nothing between the agent and the money asks whether a payment makes sense.",
+      0.6,
+      4.15,
+      8.8,
+      0.55,
+      { size: 12.5, color: C.muted },
+    );
+    text(s, "Source: OECD.AI incident report, May 4, 2026", 0.6, 4.9, 6, 0.22, { size: 9, color: C.muted });
     s.addNotes(
       "No model is immune to a crafted message. On May 4, a post in Morse code got Grok to send up to two hundred thousand dollars. Nothing between the agent and the money asked whether that payment made sense.",
     );
@@ -312,7 +310,7 @@ async function main() {
   // 3. Why now
   {
     const s = content(3);
-    title(s, "Agents already pay, on Solana");
+    title(s, "Agents already pay, on Solana", "Why now");
     text(s, "23.2M", 0.6, 1.15, 4.3, 0.85, { size: 54, bold: true, color: C.brand, valign: "middle" });
     text(s, "x402 agent payments on Solana in the four weeks to Sept 22, 2026", 0.6, 2.0, 4.0, 0.5, {
       size: 13,
@@ -344,7 +342,7 @@ async function main() {
   // 4. Solution
   {
     const s = content(4);
-    title(s, "A firewall between agent and money");
+    title(s, "Leash: a spending firewall for AI agents", "The solution");
     const tiles = [
       { icon: I.allow, bg: C.brandSoft, head: "Allowlist", body: "Pays only payees you approved." },
       { icon: I.limits, bg: C.okSoft, head: "Limits", body: "Per payment, per payee, and a rate limit." },
@@ -352,14 +350,23 @@ async function main() {
       { icon: I.tripwire, bg: C.blockedSoft, head: "Tripwire", body: "Three attempts to break the rules, and it freezes itself." },
       { icon: I.off, bg: C.frozenSoft, head: "Off switch", body: "One transaction freezes one agent, or all of them." },
     ];
+    text(
+      s,
+      "An on-chain program checks every payment the agent makes. It pays only who you allow, only as much as you allow, and freezes itself when someone tries to trick it.",
+      0.6,
+      1.1,
+      8.8,
+      0.55,
+      { size: 14 },
+    );
     tiles.forEach((t, i) => {
       const x = 0.6 + i * 1.8;
-      card(s, x, 1.2, 1.6, 2.3);
-      iconCircle(s, t.icon, x + 0.2, 1.4, 0.55, t.bg);
-      text(s, t.head, x + 0.2, 2.07, 1.25, 0.3, { size: 14, bold: true });
-      text(s, t.body, x + 0.2, 2.42, 1.25, 1.0, { size: 11, color: C.muted });
+      card(s, x, 1.8, 1.6, 2.05);
+      iconCircle(s, t.icon, x + 0.2, 1.97, 0.5, t.bg);
+      text(s, t.head, x + 0.2, 2.57, 1.25, 0.3, { size: 14, bold: true });
+      text(s, t.body, x + 0.2, 2.9, 1.25, 0.9, { size: 11, color: C.muted });
     });
-    text(s, "Your money never leaves your wallet. Leash can only make the allowance smaller.", 0.6, 3.75, 8.8, 0.35, {
+    text(s, "Your money never leaves your wallet. Leash can only make the allowance smaller.", 0.6, 4.05, 8.8, 0.35, {
       size: 14,
       bold: true,
     });
@@ -367,10 +374,10 @@ async function main() {
       s,
       "Solana's Allowances decide how much an agent may spend. Leash decides who it may pay, how fast, and what happens when it's attacked.",
       0.6,
-      4.2,
+      4.45,
       8.8,
-      0.6,
-      { size: 13, italic: true, color: C.brand },
+      0.55,
+      { size: 12.5, italic: true, color: C.brand },
     );
     s.addNotes(
       "Your money stays in your wallet. The agent can only spend through Leash, and Leash checks every payment on-chain. The most it can ever spend is the allowance in Solana's own audited program, and Leash can only make that smaller.",
@@ -380,7 +387,7 @@ async function main() {
   // 5. How it works
   {
     const s = content(5);
-    title(s, "How it works");
+    title(s, "Every payment passes the Leash program", "How it works on Solana");
     const boxes = [
       ["AI agent", "Leash SDK or MCP"],
       ["Paid API", "x402 payment"],
@@ -451,7 +458,7 @@ async function main() {
   // 6. Demo
   {
     const s = content(6);
-    title(s, "The demo, in four frames");
+    title(s, "The demo, in four frames", "Working prototype");
     const frames = [
       { label: "Paid", fg: C.ok, bg: C.okSoft, body: "The agent pays the Research API 0.01–0.02 USDC per call.", h: 0.45 },
       {
@@ -501,42 +508,53 @@ async function main() {
   // 7. Why Solana
   {
     const s = content(7);
-    title(s, "Why Solana");
-    const cols = [
+    title(s, "The rules live where the money is", "Why Solana");
+    const parts = [
+      {
+        icon: I.shield,
+        bg: C.okSoft,
+        head: "Allowances program",
+        body: "The Solana Foundation's audited program caps how much the agent can spend. Leash builds on it, so it never holds funds.",
+      },
+      {
+        icon: I.key,
+        bg: C.frozenSoft,
+        head: "Program-owned accounts",
+        body: "The allowance belongs to the agent's Leash account, which only the program signs for, after every check. The agent's key alone can't move money.",
+      },
       {
         icon: I.coins,
         bg: C.brandSoft,
-        head: "Pay per call",
-        body: "A 0.01 USDC API call needs sub-cent fees and fast settlement. 76% of x402 agent payments already run on Solana.",
+        head: "USDC over x402",
+        body: "76% of x402 agent payments already run on Solana. Sub-cent fees make a 0.01 USDC API call worth paying.",
       },
       {
-        icon: I.lock,
+        icon: I.zap,
+        bg: C.approvalSoft,
+        head: "Sub-second slots",
+        body: "A freeze stops every payment from the next slot, about 0.4 s later, and every block is an on-chain event.",
+      },
+      {
+        icon: I.link,
         bg: C.frozenSoft,
-        head: "Rules where the money is",
-        body: "No prompt can change on-chain rules, and a freeze applies to everyone from the next slot.",
-      },
-      {
-        icon: I.blocks,
-        bg: C.okSoft,
-        head: "Built from Solana's parts",
-        body: "The Foundation's audited Allowances program is the hard ceiling, x402 carries the payment, and Leash adds the rules in between.",
+        head: "Solana Actions (Blinks)",
+        body: "The owner approves a payment or freezes an agent from a link in a chat; the wallet signs.",
       },
     ];
-    cols.forEach((c, i) => {
-      const x = 0.6 + i * 3.0;
-      card(s, x, 1.2, 2.8, 2.75);
-      iconCircle(s, c.icon, x + 0.25, 1.42, 0.55, c.bg);
-      text(s, c.head, x + 0.25, 2.08, 2.3, 0.55, { size: 15, bold: true });
-      text(s, c.body, x + 0.25, 2.72, 2.3, 1.15, { size: 11.5, color: C.muted });
+    parts.forEach((pt, i) => {
+      const y = 1.17 + i * 0.58;
+      iconCircle(s, pt.icon, 0.6, y + 0.02, 0.42, pt.bg);
+      text(s, pt.head, 1.15, y, 2.45, 0.46, { size: 13, bold: true, valign: "middle" });
+      text(s, pt.body, 3.6, y, 5.8, 0.46, { size: 11.5, color: C.fg, valign: "middle" });
     });
     text(
       s,
       "Off-chain, a firewall can be bypassed by whoever holds the key. On Solana, the agent's key alone can't move the money.",
       0.6,
-      4.2,
+      4.25,
       8.8,
       0.6,
-      { size: 14, bold: true },
+      { size: 14, bold: true, color: C.brand },
     );
     s.addNotes(
       "Without Solana this product doesn't work. A firewall that runs off-chain can be bypassed by whoever holds the key, and paying per API call needs fees far below a cent.",
@@ -546,7 +564,7 @@ async function main() {
   // 8. Trust
   {
     const s = content(8);
-    title(s, "Fail-closed and non-custodial");
+    title(s, "Fail-closed and non-custodial", "Safety");
     card(s, 0.6, 1.2, 4.5, 1.15, { fill: C.brandSoft, border: false, shadow: false });
     text(
       s,
@@ -588,7 +606,7 @@ async function main() {
   // 9. Working today
   {
     const s = content(9);
-    title(s, "Working today");
+    title(s, "Working today", "Working prototype");
     chip(s, "Done", 0.6, 1.15, 1.0, 0.32, C.ok, C.okSoft, { icon: I.check });
     const done = [
       "The Leash program, live on devnet",
@@ -629,7 +647,7 @@ async function main() {
   // 10. First users
   {
     const s = content(10);
-    title(s, "First users");
+    title(s, "First users", "Potential to grow");
     const sections = [
       {
         icon: I.users,
@@ -645,8 +663,8 @@ async function main() {
       },
       {
         icon: I.notes,
-        head: "What we know so far",
-        body: "No conversations with users yet. Next: five conversations with developers whose agents pay for APIs (Superteam Germany, x402 builders, MCP users).",
+        head: "Next: talk to them",
+        body: "Five conversations with developers whose agents pay for APIs (Superteam Germany, x402 builders, MCP users), before Nov 2.",
         h: 0.65,
       },
     ];
@@ -657,9 +675,6 @@ async function main() {
       text(s, sec.body, 1.15, y + 0.34, 4.3, sec.h, { size: 11.5, color: C.fg });
       y += 0.34 + sec.h + 0.2;
     }
-    chip(s, "[Parth: replace with who you talked to and what they said]", 1.15, y - 0.12, 4.3, 0.34, C.approval, C.approvalSoft, {
-      size: 9,
-    });
     card(s, 5.75, 1.15, 3.65, 3.6);
     text(s, "Others in the space", 5.95, 1.3, 3.3, 0.3, { size: 13, bold: true });
     const others = [
@@ -687,7 +702,7 @@ async function main() {
   // 11. Business model
   {
     const s = content(11);
-    title(s, "Business model: open core");
+    title(s, "Business model: open core", "Potential to grow");
     const tiers = [
       {
         icon: I.code,
@@ -731,7 +746,7 @@ async function main() {
   // 12. Roadmap
   {
     const s = content(12);
-    title(s, "Roadmap");
+    title(s, "Roadmap", "Potential to grow");
     s.addShape(pres.shapes.LINE, { x: 0.74, y: 1.55, w: 8.4, h: 0, line: { color: C.line, width: 2 } });
     const stages = [
       {

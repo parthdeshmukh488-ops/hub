@@ -61,9 +61,13 @@ Full design: [architecture overview](docs/architecture/00-overview.md) and [prog
 
 ## Why Solana
 
-- **Paying per API call** only makes sense with sub-cent fees and fast settlement, and 76% of x402 agent payments already run on Solana.
-- **The firewall is on-chain, where the money is.** No prompt can change the rules, and a frozen agent is frozen for everyone from the next slot.
-- **Built from Solana's own parts.** The Foundation's audited Allowances program sets the hard ceiling and the x402 standard carries the payment. Leash adds the rules in between instead of re-inventing custody and payments.
+Off-chain, a firewall can be bypassed by whoever holds the key. On Solana, the agent's key alone can't move the money. Leash is built from Solana's own parts:
+
+- **The Allowances program.** The Solana Foundation's audited program caps how much the agent can spend. Leash builds on it, so it never holds funds.
+- **Program-owned accounts.** The allowance belongs to the agent's Leash account, which only the Leash program signs for, after every check. No prompt can change the rules.
+- **USDC over x402.** 76% of x402 agent payments already run on Solana, and sub-cent fees make a 0.01 USDC API call worth paying.
+- **Sub-second slots.** A freeze stops every payment from the next slot, about 0.4 s later, and every payment and every blocked attempt is an on-chain event.
+- **Solana Actions (Blinks).** The owner approves a payment or freezes an agent from a link in a chat; the wallet signs.
 
 ## What works today
 
