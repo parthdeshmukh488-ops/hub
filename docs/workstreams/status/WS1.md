@@ -1,7 +1,7 @@
 # WS1 status: Leash program
 
 - Session branches: `claude/whu-hackathon-ideas-lz8trx` (cloud session: no Solana toolchain) and `main` (laptop session, with the Solana toolchain)
-- Last updated: 2026-10-01
+- Last updated: 2026-10-03
 - Current build step: all seven steps done; the program is live on devnet. The laptop session now works through the laptop queue (below).
 
 ## Done
@@ -41,7 +41,7 @@
 - **Check:** `cargo test` passes 128 tests (45 unit, 14 evaluator, 2 host vector suites, 66 LiteSVM, and the on-chain vector run), as do `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check` and the IDL drift check.
 - **Decisions:** [ADR 20260930-ws1-program-interface](../../adr/20260930-ws1-program-interface.md) (contracts 1.3.0) and [ADR 20260930-ws1-program-id](../../adr/20260930-ws1-program-id.md) (contracts 1.4.0).
 - **Found while testing:** Anchor 1.2 rejects a writable account passed twice with `ConstraintDuplicateMutableAccount` (2040) before any handler runs. So `pay` with destination = source fails with 2040, not `InvalidDestination`; `report_denied_attempt` (read-only token accounts) still returns `InvalidDestination`. No contract change: it is an extra rejection, and the SDK should treat 2040 as a client bug like the other account errors.
-- Messages handled: through `20261001-0400-from-architect-to-ws5-ws9-second-account-tasks.md`.
+- Messages handled: through `20261001-2310-from-architect-to-ws5-ws1-sentinel-merged.md`.
 
 ## Laptop queue
 
@@ -54,7 +54,8 @@ The laptop session also runs what needs a real chain for the other workstreams (
 | 3 | Indexer chain mode | Passed: backfill, live, restart ([message](../messages/20261001-0130-from-ws1-to-ws4-indexer-chain-mode-on-a-real-chain.md)) | Read only: 40 s of polling at 2 s, no warnings. Events wait for item 1. |
 | 4 | `x402:smoke` through `services/facilitator` | Passed, since `2e4e045` with the repo's own code ([first run](../messages/20261001-0105-from-ws1-to-all-x402-and-demo-agent-on-a-real-chain.md), [re-check](../messages/20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md)) | Waits for item 1 |
 | 5 | `demo:all -- --scripted` | Passed twice. So did `runaway` and the MCP server over stdio (same message). | Waits for items 2 and 4. LLM mode needs Parth's `ANTHROPIC_API_KEY`. |
-| 6 | The full demo and its recording | n/a | Oct 3–4 |
+| 6 | Sentinel and Telegram | Passed: the alerts reach Parth's phone; the guardian freeze works ([message](../messages/20261003-0945-from-ws1-to-ws5-sentinel-alerts-and-guardian-freeze.md)) | Waits for item 1 |
+| 7 | The full demo and its recording | n/a | Oct 3–4 |
 
 A run order that works:
 1. `pnpm localnet`, then `pnpm devnet:setup --cluster localnet`.
