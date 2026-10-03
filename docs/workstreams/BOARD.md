@@ -16,7 +16,7 @@ Maintained by the architect session. Every Claude session reads this at startup,
 | WS1 program | **All seven steps done, live on devnet** (slot 505952773, byte for byte the committed `leash.so`): Anchor 1.2 program, IDL, program ID `HyL9S5mA…HJncu`. The LiteSVM suites run on the real binaries (66 tests, plus all 60 policy vectors on-chain); security checklist ticked; `pay` ≈ 32k CU ([status](status/WS1.md), [CU.md](../../programs/leash/CU.md)). |
 | WS3 x402 + facilitator | **Build steps 1–5 done:** `@leash/x402` (Leash client scheme, `createLeashFetch`, `leashMerchant`, `createLeashFacilitator`), `services/facilitator`. Every row of the test table passes on the real binaries through the unmodified official facilitator; 29 tests ([status](status/WS3.md)). |
 | WS5 Sentinel | **Build steps 1–5 done, on `main`** (second account): the seven alert rules (storyline snapshot test), the indexer stream client, console and Telegram alerts (plain text, untrusted text defanged), guardian autofreeze (off by default, checks the on-chain guardian), health on 4400; 101 tests ([status](status/WS5.md)). On the laptop the alerts reached Parth's phone, and the guardian froze all agents on a local validator ([report](messages/20261003-0945-from-ws1-to-ws5-sentinel-alerts-and-guardian-freeze.md)). |
-| WS9 story | **README, the pitch documents and the final polish on `main`** (second account, PR #6): the deck (`.pptx`, PDF), demo script, judge Q&A, video storyboard, `pnpm demo` (the whole story on LiteSVM in one command), the MIT licence ([status](status/WS9.md)). Left: the video link, the team and the final test count, after the devnet recording. |
+| WS9 story | **README, the pitch documents and the final polish on `main`** (second account, PR #6): the deck (`.pptx`, PDF), demo script, judge Q&A, video storyboard, `pnpm demo` (the whole story on LiteSVM in one command), the MIT licence ([status](status/WS9.md)). Team (Parth, solo) and test counts filled in on Oct 3. Left: the video link, after the devnet recording. |
 
 ## Who starts now
 
@@ -33,7 +33,7 @@ Start the sessions top-down, as many as you have terminals. Each session opens w
 | 7 | **WS7** tools, MCP, agent | anywhere | Steps 1–4 done. Step 5: pitch polish with WS9. | the demo |
 | 8 | **WS5** Sentinel | anywhere | Steps 1–5 done, on `main`; the laptop's live run passed on a local validator. Next: Sentinel beside the indexer in the devnet demo run (laptop queue item 7). | alerts |
 | 9 | **WS3** x402 + facilitator | anywhere | Steps 1–5 done. x402 through `services/facilitator` passed on localnet and on devnet (laptop, 2026-10-03). | WS7, WS8 paid routes |
-| 10 | **WS9** integration and story | anywhere | Final polish merged (PR #6). Last pass after the devnet recording: the video link, the team, the test count ([status](status/WS9.md)). | the pitch |
+| 10 | **WS9** integration and story | anywhere | Final polish merged (PR #6); team and test counts filled in. Left: the video link, after the devnet recording ([status](status/WS9.md)). | the pitch |
 
 Fewer terminals? Combine sessions in this order:
 
