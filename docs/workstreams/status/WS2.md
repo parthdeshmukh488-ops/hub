@@ -67,6 +67,7 @@
   - Reads and the confirmation polling are tried again on HTTP 429, a 5xx or a dropped connection, backing off 250 ms, 500 ms, 1 s and 2 s, and honouring `Retry-After` up to 5 s.
   - A send is repeated only on 429, which the RPC refuses before processing, so a send that may have reached the network is never doubled.
   - `retries` (default 4, 0 disables). 3 new tests; reads still end in `LeashNetworkError`.
+  - Confirmation polls once a second (was 500 ms) and checks the blockhash expiry on the first poll, then every fourth (the laptop's devnet run, 20261003-1015). A failed send connection, and polls failing after the retries, are `LeashNetworkError`; the RPC's preflight error stays raw for `LeashAgent`. 2 more tests.
 - Found for WS3: `@solana-program/memo` 0.15 defaults to the new Memo program `Memo4c2p…`, not the SPL Memo `MemoSq4g…` of the x402 profile (02 §9). Pass `{ programAddress }` explicitly.
 
 ## Next

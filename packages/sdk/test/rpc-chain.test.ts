@@ -146,6 +146,25 @@ describe("rpcChain", () => {
       preflightCommitment: "confirmed",
     });
     expect(sleep).toHaveBeenCalledTimes(3);
+    // Once a second by default: a public RPC counts every request.
+    expect(sleep).toHaveBeenCalledWith(1_000);
+  });
+
+  it("checks the blockhash's expiry on the first poll, then every fourth", async () => {
+    const statuses = [null, null, null, null, null, null, { confirmationStatus: "confirmed" }];
+    const getBlockHeight = vi.fn(() => call(50n));
+    const chain = rpcChain({
+      rpc: {
+        sendTransaction: () => call("sig"),
+        getSignatureStatuses: () => call({ value: [statuses.shift() ?? null] }),
+        getBlockHeight,
+        getTransaction: () => call(RPC_TRANSACTION),
+      } as never,
+      sleep: async () => {},
+    });
+    await chain.sendAndConfirm(await signedTransaction());
+    // Polls 0 to 5 were pending: the height was read on polls 0 and 4.
+    expect(getBlockHeight).toHaveBeenCalledTimes(2);
   });
 
   it("waits for finalized when asked to", async () => {
@@ -399,14 +418,26 @@ describe("rpcChain", () => {
       expect(send.send).toHaveBeenCalledTimes(2);
       expect(statuses.send).toHaveBeenCalledTimes(2);
 
-      // A 503 on a send may have reached the network: it is not repeated.
+      // A 503 on a send may have reached the network: it is not repeated, and it is a network
+      // error for the tools.
       const unavailable = flaky([httpError(503)], "sig");
       const failing = rpcChain({
         rpc: { sendTransaction: () => unavailable } as never,
         sleep,
       });
-      await expect(failing.sendAndConfirm(await signedTransaction())).rejects.toThrow();
+      await expect(failing.sendAndConfirm(await signedTransaction())).rejects.toBeInstanceOf(
+        LeashNetworkError,
+      );
       expect(unavailable.send).toHaveBeenCalledTimes(1);
+
+      // The RPC's own answer about the transaction (a preflight failure) stays as it is:
+      // LeashAgent reads the program's error from it.
+      const preflight = new Error("Transaction simulation failed: custom program error: 0x1773");
+      const refused = rpcChain({
+        rpc: { sendTransaction: () => flaky([preflight], "sig") } as never,
+        sleep,
+      });
+      await expect(refused.sendAndConfirm(await signedTransaction())).rejects.toBe(preflight);
     });
   });
 });

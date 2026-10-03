@@ -54,7 +54,7 @@ export type RpcChainOptions = {
   rpc: Rpc<LeashRpcApi>;
   /** Default "confirmed". */
   commitment?: Extract<Commitment, "confirmed" | "finalized">;
-  /** Poll interval while waiting for confirmation. Default 500 ms. */
+  /** Poll interval while waiting for confirmation. Default 1 s: public RPCs count requests. */
   pollIntervalMs?: number;
   /** Test hook: how to wait between polls and retries. */
   sleep?: (ms: number) => Promise<void>;
@@ -105,6 +105,16 @@ function transient(error: unknown): boolean {
   return error instanceof TypeError;
 }
 
+/** The blockhash's expiry is checked on the first poll, then on every this many polls. */
+const BLOCK_HEIGHT_EVERY = 4;
+
+/** A failure of the connection or the RPC itself (not an answer about the transaction). */
+function transportFailure(error: unknown): boolean {
+  return (
+    isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR) || error instanceof TypeError
+  );
+}
+
 /** How long a throttled answer asks us to wait (`Retry-After`, in seconds), if it says. */
 function retryAfterMs(error: unknown): number {
   if (!isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR)) return 0;
@@ -118,7 +128,7 @@ function retryAfterMs(error: unknown): number {
 export function rpcChain(options: RpcChainOptions): LeashChain {
   const { rpc } = options;
   const commitment = options.commitment ?? "confirmed";
-  const pollIntervalMs = options.pollIntervalMs ?? 500;
+  const pollIntervalMs = options.pollIntervalMs ?? 1_000;
   const sleep = options.sleep ?? defaultSleep;
   const base58 = getBase58Decoder();
   const base64 = getBase64Encoder();
@@ -146,7 +156,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
   /** The confirmed transaction, retried while the node has not indexed it yet. */
   async function fetchRecord(signature: Signature): Promise<TransactionRecord> {
     for (let attempt = 0; attempt < 20; attempt++) {
-      const response = await retrying(() =>
+      const response = await read("reading the confirmed transaction", () =>
         rpc
           .getTransaction(signature, {
             commitment,
@@ -215,21 +225,32 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
       const signature = getSignatureFromTransaction(transaction);
       const lastValidBlockHeight = lifetimeOf(transaction);
       // Preflight on: a failing transaction throws the RPC's preflight error, cause included.
-      // Repeated only when throttled: any other failure may have reached the network.
-      await retrying(
-        () =>
-          rpc
-            .sendTransaction(getBase64EncodedWireTransaction(transaction), {
-              encoding: "base64",
-              preflightCommitment: commitment,
-            })
-            .send(),
-        throttled,
-      );
-      for (;;) {
+      // Repeated only when throttled: any other failure may have reached the network. A failed
+      // connection is a network error; the RPC's preflight error stays as it is, because
+      // `LeashAgent` reads the program's error from it.
+      try {
+        await retrying(
+          () =>
+            rpc
+              .sendTransaction(getBase64EncodedWireTransaction(transaction), {
+                encoding: "base64",
+                preflightCommitment: commitment,
+              })
+              .send(),
+          throttled,
+        );
+      } catch (error) {
+        if (transportFailure(error)) {
+          throw new LeashNetworkError(`sending transaction ${signature} failed`, error);
+        }
+        throw error;
+      }
+      for (let poll = 0; ; poll++) {
         const {
           value: [status],
-        } = await retrying(() => rpc.getSignatureStatuses([signature]).send());
+        } = await read(`checking transaction ${signature}`, () =>
+          rpc.getSignatureStatuses([signature]).send(),
+        );
         if (status?.err) {
           throw getSolanaErrorFromTransactionError(
             status.err as Parameters<typeof getSolanaErrorFromTransactionError>[0],
@@ -239,8 +260,10 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
           status?.confirmationStatus === "finalized" ||
           (commitment === "confirmed" && status?.confirmationStatus === "confirmed");
         if (reached) return fetchRecord(signature);
-        if (lastValidBlockHeight !== null) {
-          const height = await retrying(() => rpc.getBlockHeight({ commitment }).send());
+        if (lastValidBlockHeight !== null && poll % BLOCK_HEIGHT_EVERY === 0) {
+          const height = await read("reading the block height", () =>
+            rpc.getBlockHeight({ commitment }).send(),
+          );
           if (height > lastValidBlockHeight) {
             throw new LeashNetworkError(`transaction ${signature} expired before it confirmed`);
           }
