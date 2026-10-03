@@ -68,6 +68,7 @@
   - A send is repeated only on 429, which the RPC refuses before processing, so a send that may have reached the network is never doubled.
   - `retries` (default 4, 0 disables). 3 new tests; reads still end in `LeashNetworkError`.
   - Confirmation polls once a second (was 500 ms) and checks the blockhash expiry on the first poll, then every fourth (the laptop's devnet run, 20261003-1015). A failed send connection, and polls failing after the retries, are `LeashNetworkError`; the RPC's preflight error stays raw for `LeashAgent`. 2 more tests.
+- **`createRetryingSolanaRpc(url)` and `retryingTransport`** (2026-10-03, code review of the devnet path): the same retry rules for kit RPCs the SDK doesn't wrap. The official x402 package confirms a settlement by polling `getSignatureStatuses` up to four times a second and gives up on the first 429, so the facilitator service now builds its RPC with it (a one-line change in WS3's `services/facilitator/src/main.ts`, for the laptop's devnet run). `rpcChain` shares the module `src/retry.ts`. 7 tests, one through kit's own HTTP transport; the real facilitator was run against an RPC that throttled its first call.
 - Found for WS3: `@solana-program/memo` 0.15 defaults to the new Memo program `Memo4c2p…`, not the SPL Memo `MemoSq4g…` of the x402 profile (02 §9). Pass `{ programAddress }` explicitly.
 
 ## Next

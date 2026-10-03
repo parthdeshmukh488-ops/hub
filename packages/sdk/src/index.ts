@@ -149,6 +149,7 @@ export {
   readAgentStatus,
   requestToView,
 } from "./read.ts";
+export { createRetryingSolanaRpc, type RetryOptions, retryingTransport } from "./retry.ts";
 export { type LeashRpcApi, type RpcChainOptions, rpcChain } from "./rpc-chain.ts";
 export {
   buildTransactionMessage,

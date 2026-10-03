@@ -3,8 +3,9 @@ import { isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
 import { resolveClusterConfig } from "@leash/contracts";
+import { createRetryingSolanaRpc } from "@leash/sdk";
 import { createLeashFacilitator } from "@leash/x402/facilitator";
-import { createKeyPairSignerFromBytes, createSolanaRpc, devnet } from "@solana/kit";
+import { createKeyPairSignerFromBytes, devnet } from "@solana/kit";
 import type { Network } from "@x402/core/types";
 import { createApp } from "./app.ts";
 import { loadEnv } from "./env.ts";
@@ -34,7 +35,9 @@ async function main(): Promise<void> {
     Uint8Array.from(JSON.parse(readFileSync(keyPath, "utf8")) as number[]),
   );
   // One RPC for every network. The devnet brand only types it; localnet speaks the same API.
-  const rpc = createSolanaRpc(devnet(config.rpcUrl));
+  // It retries throttled calls: the official package confirms a settlement by polling
+  // `getSignatureStatuses` up to four times a second, and a public RPC answers that with HTTP 429.
+  const rpc = createRetryingSolanaRpc(devnet(config.rpcUrl));
   const facilitator = createLeashFacilitator({
     signer: facilitatorSigner(keypair, rpc, config.x402Network),
     networks: config.x402Network as Network,

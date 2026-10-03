@@ -11,7 +11,7 @@ pnpm --filter @leash/facilitator start      # or `dev` to restart on changes
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `LEASH_CLUSTER` | `localnet` | `localnet` or `devnet` |
-| `LEASH_RPC_URL` | per cluster | RPC for simulation, sending and confirmation |
+| `LEASH_RPC_URL` | per cluster | RPC for simulation, sending and confirmation. Throttled calls (HTTP 429) are retried with backoff (`createRetryingSolanaRpc` of `@leash/sdk`), but a demo on devnet should still use a dedicated RPC. |
 | `LEASH_PROGRAM_ID` | the real Leash ID | Put another deployment on the allowlist |
 | `FACILITATOR_PORT` | `4200` | HTTP port |
 | `FACILITATOR_FEE_PAYER_KEYPAIR` | `.keys/facilitator.json` | Solana CLI keypair file, relative to the repo root. It pays SOL fees only. |

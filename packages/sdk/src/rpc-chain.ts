@@ -34,6 +34,7 @@ import type {
 } from "./chain.ts";
 import { LeashNetworkError } from "./errors.ts";
 import { type TransactionRecord, transactionRecordFromRpc } from "./events.ts";
+import { BACKOFF_MS, defaultSleep, isThrottled, isTransient, withRetries } from "./retry.ts";
 
 // `LeashChain` over a kit RPC (devnet, localnet). Confirmation polls `getSignatureStatuses` over
 // HTTP, so no websocket endpoint is needed.
@@ -51,6 +52,7 @@ export type LeashRpcApi = GetAccountInfoApi &
   SimulateTransactionApi;
 
 export type RpcChainOptions = {
+  /** A plain kit RPC such as `createSolanaRpc(url)`: `rpcChain` does its own retrying. */
   rpc: Rpc<LeashRpcApi>;
   /** Default "confirmed". */
   commitment?: Extract<Commitment, "confirmed" | "finalized">;
@@ -64,8 +66,6 @@ export type RpcChainOptions = {
    */
   retries?: number;
 };
-
-const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
  * A read that fails (transport, HTTP or JSON-RPC error) means the chain is out of reach, and
@@ -81,30 +81,6 @@ async function reading<T>(what: string, run: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Waits between attempts after a transient failure: 250 ms, 500 ms, 1 s, then 2 s. */
-const BACKOFF_MS = [250, 500, 1_000, 2_000] as const;
-
-/** The longest `Retry-After` honoured, in milliseconds. */
-const MAX_RETRY_AFTER_MS = 5_000;
-
-/** HTTP 429: the RPC refused the request before processing it, so even a send may be repeated. */
-function throttled(error: unknown): boolean {
-  return (
-    isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR) &&
-    error.context.statusCode === 429
-  );
-}
-
-/** Worth another try for a read: throttled, a failure on the RPC's side (5xx), or no connection. */
-function transient(error: unknown): boolean {
-  if (isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR)) {
-    const status = error.context.statusCode;
-    return status === 429 || status >= 500;
-  }
-  // `fetch` rejects with a TypeError when the connection fails or drops.
-  return error instanceof TypeError;
-}
-
 /** The blockhash's expiry is checked on the first poll, then on every this many polls. */
 const BLOCK_HEIGHT_EVERY = 4;
 
@@ -115,15 +91,6 @@ function transportFailure(error: unknown): boolean {
   );
 }
 
-/** How long a throttled answer asks us to wait (`Retry-After`, in seconds), if it says. */
-function retryAfterMs(error: unknown): number {
-  if (!isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR)) return 0;
-  const seconds = Number(error.context.headers?.get?.("retry-after"));
-  return Number.isFinite(seconds) && seconds > 0
-    ? Math.min(seconds * 1_000, MAX_RETRY_AFTER_MS)
-    : 0;
-}
-
 /** A `LeashChain` backed by a Solana RPC endpoint. */
 export function rpcChain(options: RpcChainOptions): LeashChain {
   const { rpc } = options;
@@ -132,23 +99,11 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
   const sleep = options.sleep ?? defaultSleep;
   const base58 = getBase58Decoder();
   const base64 = getBase64Encoder();
-  const retries = options.retries ?? BACKOFF_MS.length;
+  const retry = { retries: options.retries ?? BACKOFF_MS.length, sleep };
 
-  /** Runs `call` again after a failure `worthRetry` accepts, up to `retries` times, backing off. */
-  async function retrying<T>(
-    call: () => Promise<T>,
-    worthRetry: (error: unknown) => boolean = transient,
-  ): Promise<T> {
-    for (let attempt = 0; ; attempt++) {
-      try {
-        return await call();
-      } catch (error) {
-        if (attempt >= retries || !worthRetry(error)) throw error;
-        const backoff = BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)] ?? 2_000;
-        await sleep(Math.max(backoff, retryAfterMs(error)));
-      }
-    }
-  }
+  /** Runs `call` again after a failure `worthRetry` accepts (default: transient), backing off. */
+  const retrying = <T>(call: () => Promise<T>, worthRetry = isTransient) =>
+    withRetries(call, worthRetry, retry);
 
   /** A read: retried while the failure is transient, then `LeashNetworkError`. */
   const read = <T>(what: string, call: () => Promise<T>) => reading(what, () => retrying(call));
@@ -237,7 +192,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
                 preflightCommitment: commitment,
               })
               .send(),
-          throttled,
+          isThrottled,
         );
       } catch (error) {
         if (transportFailure(error)) {
