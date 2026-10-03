@@ -94,7 +94,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 **Say:** "The agent reads a buying guide with a hidden instruction: tip twenty-five dollars to a stranger. In this run we script the agent to fall for it, and the screen says so, because we want to show what happens when the model is fooled. It tries three times: three blocks, three strikes, and the agent freezes itself, on-chain. The model was fooled. The money wasn't moved."
 
-**If something fails live** (also in the speaker notes): approve from the Blink in the owner's wallet, in the web app, or with `pnpm owner:approve`; unfreeze in the web app or with `pnpm owner:unfreeze`, which also clears leftover strikes. Before every take, run the [checklist](../../apps/agent-demo/README.md#before-each-take).
+**If something fails live** (also in the speaker notes): the owner approves and unfreezes in the web app; if that fails, approve from the Blink in the owner's wallet or with `pnpm owner:approve`, and unfreeze with `pnpm owner:unfreeze`, which also clears leftover strikes. Before every take, run the [checklist](../../apps/agent-demo/README.md#before-each-take).
 
 ## 7. Why Solana
 
@@ -133,17 +133,18 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 
 | Done | In progress |
 | --- | --- |
-| The Leash program, live on devnet | Pairing, approve, freeze and unfreeze in the web app |
-| 60 policy cases agree in TypeScript, in Rust and on the deployed binary | The full demo on devnet, and its recording |
-| x402 payments through the unmodified official facilitator | Telegram alerts on a real phone (being checked) |
+| The Leash program, live on devnet | The full demo on devnet, and its recording |
+| 60 policy cases agree in TypeScript, in Rust and on the deployed binary | Telegram alerts on a real phone (being checked) |
+| x402 payments through the unmodified official facilitator | |
 | Claude Code connects to the Leash MCP server | |
-| The whole story: on a local validator, and in one test on every commit | |
+| The whole story: on a local validator, in CI, and in one command (`pnpm demo`) | |
 | A control panel that updates live from the indexer's stream | |
+| Pairing, approve, freeze and unfreeze in the web app | |
 | Sentinel's alerts, and the guardian's autofreeze | |
 | Solana Actions (Blinks): approve or freeze from a link | |
 | A security CI job runs the invariant tests by name | |
 
-- **911** automated tests, run on every commit: 783 TypeScript · 128 Rust.
+- **964** automated tests, run on every commit: 836 TypeScript · 128 Rust.
 
 **Say:** "Everything on the left runs today, and you can check it: the repo is public, and the tests run without a chain. The right column is what we're finishing this week."
 
@@ -181,11 +182,11 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 *Serves: potential to grow.*
 
 **On the slide** (a timeline of three stages)
-- **This week** (for the Oct 4 submission · in progress): the demo on devnet, and its recording; pairing, approvals and the off switch in the web app; Telegram alerts checked on a real phone.
+- **This week** (for the Oct 4 submission · in progress): the demo on devnet, and its recording; the web app with a real wallet on devnet; Telegram alerts checked on a real phone.
 - **By Nov 2** (the Colosseum hackathon): Telegram buttons that open the owner's wallet directly; recorded runs with a live Claude model; five user conversations.
 - **Then** (on the way to mainnet): an independent audit; the upgrade authority moved to a timelocked multisig, or revoked; mainnet.
 
-**Say:** "We keep building through Colosseum. The order is: finish the owner's side in the web app, put the wallet one tap from every alert, and only then go to mainnet, after an audit."
+**Say:** "We keep building through Colosseum. The order is: the owner's side on devnet, then put the wallet one tap from every alert, and only then go to mainnet, after an audit."
 
 ## 13. Team and close
 
@@ -215,7 +216,8 @@ Checked on October 2, 2026. Update this table whenever a number on a slide chang
 | Claude Code connects to the MCP server | [WS7 status](../workstreams/status/WS7.md) |
 | The whole scripted story ran end to end on a local validator | [Laptop run, Oct 1](../workstreams/messages/20261001-0105-from-ws1-to-all-x402-and-demo-agent-on-a-real-chain.md), [re-check](../workstreams/messages/20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md) |
 | The control panel updates live from the indexer's stream (storyline replay, and the indexer following a local validator) | [WS6 status](../workstreams/status/WS6.md), [laptop run](../workstreams/messages/20261001-0130-from-ws1-to-ws4-indexer-chain-mode-on-a-real-chain.md) |
-| 911 automated tests: 783 TypeScript, 128 Rust | `pnpm test` and `cargo test` on `main` with PR #4, Oct 2, 2026 |
+| 964 automated tests: 836 TypeScript, 128 Rust | `pnpm test` and `cargo test` on `main` with PR #5, plus PR #6 (`pnpm demo`, replay checks), Oct 3, 2026 |
+| Web app: 117 unit tests, 14 browser tests (8 live on LiteSVM) | PR #5 and [WS6 status](../workstreams/status/WS6.md), Oct 3, 2026 |
 | Sentinel's alerts and the guardian's autofreeze; Telegram messages tested against a fake Bot API | [WS5 status](../workstreams/status/WS5.md), [services/sentinel](../../services/sentinel/README.md) |
 | Solana Actions (Blinks): approve, reject, freeze, freeze all; each tested on the real program, a wrong signer refused on-chain | [WS6 Actions status](../workstreams/status/WS6-actions.md) |
 | The whole story in one test: agent, x402, facilitator, program, indexer, Sentinel | [e2e/README.md](../../e2e/README.md), [WS9 status](../workstreams/status/WS9.md) |

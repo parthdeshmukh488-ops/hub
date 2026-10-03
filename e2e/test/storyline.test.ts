@@ -1,63 +1,26 @@
-import { runDemo } from "@leash/agent-demo/demo";
 import { SCENES, type SceneId, STORYLINE } from "@leash/agent-demo/scenes";
-import { createUi } from "@leash/agent-demo/ui";
 import {
   type Alert,
-  CAIP2,
   EventsPageResponseSchema,
-  explorerTxUrl,
   type LeashEvent,
   type LeashEventOf,
   OwnerOverviewResponseSchema,
-  resolveClusterConfig,
 } from "@leash/contracts";
-import { startTestIndexer, type TestIndexer } from "@leash/indexer/testing";
-import { loadContent } from "@leash/merchant-demo/content";
-import { createApp } from "@leash/merchant-demo/server";
-import { buildApproveRequest, fetchOpenRequests, LEASH_PROGRAM_ADDRESS } from "@leash/sdk";
-import { createTestbed, type Testbed } from "@leash/sdk/testing";
-import { createIndexerClient, DEFAULT_CONFIG, Sentinel } from "@leash/sentinel";
-import { connectLeash } from "@leash/tools/node";
-import { litesvmFacilitatorClient } from "@leash/x402/testing";
-import { address } from "@solana/kit";
-import { pino } from "pino";
+import type { Testbed } from "@leash/sdk/testing";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { recordingSvm } from "./facilitator-svm.ts";
+import { type Stack, startStack, waitFor } from "../src/stack.ts";
 
-// The pitch storyline through the whole system, in process on LiteSVM, with no network:
-//   the demo agent (scripted scenes) → its tools → merchant-demo with x402 payments on → the
-//   official facilitator → the Leash program and Subscriptions (the real binaries) → the indexer
-//   in chain mode over the same chain → Sentinel, live on the indexer's stream.
-// The test is the owner: it approves the agent's request once Sentinel has alerted about it.
+// The pitch storyline through the whole system (src/stack.ts), in process on LiteSVM, with no
+// network. The test is the owner: it approves the agent's request once Sentinel has alerted
+// about it.
 
-const MERCHANT_URL = "http://merchant.test";
-const WEB_URL = "http://localhost:3000";
-
+let stack: Stack;
 let bed: Testbed;
-let indexer: TestIndexer;
-let sentinel: Sentinel;
 const alerts: Alert[] = [];
 const screen: string[] = [];
-let play: (scene: SceneId, ownerActs?: () => Promise<void>) => Promise<void>;
-
-async function waitFor(check: () => boolean, what: string, timeoutMs = 10_000): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  while (!check()) {
-    if (Date.now() > deadline) throw new Error(`timed out waiting for ${what}`);
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-}
-
-/** The indexer reads the chain's new transactions; Sentinel gets them on the stream. */
-async function sync(): Promise<void> {
-  await indexer.sync();
-  // Let the stream's messages reach Sentinel's queue, then let it finish them.
-  await new Promise((resolve) => setTimeout(resolve, 50));
-  await sentinel.idle();
-}
 
 async function api<T>(path: string, schema: { parse(value: unknown): T }): Promise<T> {
-  const response = await fetch(`${indexer.url}${path}`);
+  const response = await fetch(`${stack.indexer.url}${path}`);
   expect(response.status).toBe(200);
   return schema.parse(await response.json());
 }
@@ -78,100 +41,27 @@ const overview = () => api(`/v1/owners/${bed.keys.owner.address}`, OwnerOverview
 
 const balance = (who: "merchant" | "attacker") => bed.balanceOf(bed.keys[who].address);
 
+async function play(scene: SceneId, ownerActs?: () => Promise<void>): Promise<void> {
+  const result = await stack.play(scene, ownerActs);
+  expect(result.stop).toBe("end_turn");
+}
+
 beforeAll(async () => {
-  bed = await createTestbed();
-
-  // merchant-demo (lab included) with x402 payments through the official facilitator. Its
-  // settlements are recorded in the testbed chain's history, so the indexer sees them.
-  const app = createApp(
-    {
-      wallets: { merchant: bed.keys.merchant.address, attacker: bed.keys.attacker.address },
-      payments: "on",
-      x402: {
-        facilitator: litesvmFacilitatorClient(
-          recordingSvm(bed),
-          [bed.keys.stranger],
-          CAIP2.localnet,
-        ),
-        network: CAIP2.localnet,
-        asset: bed.mint,
-      },
-    },
-    loadContent(),
-  );
-  const merchantFetch = async (input: string | URL | Request, init?: RequestInit) =>
-    app.fetch(new Request(input, init));
-
-  // The agent's real tools and the demo's screen.
-  const cluster = resolveClusterConfig("localnet", { usdcMint: bed.mint });
-  const runtime = connectLeash({
-    cluster,
-    signer: bed.keys.agentKey,
-    owner: bed.keys.owner.address,
-    chain: bed.chain,
-    fetch: merchantFetch,
-    logger: { warn: () => {} },
-  });
-  const ui = createUi({
+  stack = await startStack({
     write: (line) => screen.push(line),
     color: false,
-    explorer: (signature) => explorerTxUrl(cluster, signature),
+    onAlert: (alert) => alerts.push(alert),
   });
-
-  // The indexer follows the same chain, read only when the test says so.
-  indexer = await startTestIndexer({
-    source: { kind: "chain", chain: bed.chain, programId: LEASH_PROGRAM_ADDRESS },
-    now: () => Number(bed.now()),
-  });
-
-  // Sentinel watches the principals whose guardian is the testbed's guardian key.
-  sentinel = new Sentinel({
-    indexer: createIndexerClient(indexer.url),
-    guardian: bed.keys.guardian.address,
-    notifiers: [{ name: "collect", send: async (alert) => void alerts.push(alert) }],
-    config: DEFAULT_CONFIG,
-    webUrl: WEB_URL,
-    log: pino({ level: "silent" }),
-    clock: () => Number(bed.now()),
-    refreshOwnersMs: 60_000,
-  });
-  await sentinel.start();
-  await waitFor(() => sentinel.status().ok, "Sentinel connected with its owner");
-  await sentinel.idle();
-
-  play = async (scene, ownerActs) => {
-    let acted = false;
-    const [result] = await runDemo({
-      tools: runtime.tools,
-      chain: bed.chain,
-      agent: bed.accounts.agent,
-      ui,
-      scenes: [scene],
-      merchant: MERCHANT_URL,
-      fetch: merchantFetch,
-      model: null,
-      ownerWait: {
-        pollMs: 1,
-        sleep: async () => {
-          if (acted || !ownerActs) return;
-          acted = true;
-          await ownerActs();
-        },
-      },
-    });
-    expect(result?.stop).toBe("end_turn");
-    await sync();
-  };
+  bed = stack.bed;
 });
 
 afterAll(async () => {
-  await sentinel?.stop();
-  await indexer?.close();
+  await stack?.close();
 });
 
 describe("the pitch storyline, through the whole system", () => {
   it("starts with Sentinel watching the owner, and nothing to report", async () => {
-    expect(sentinel.status()).toMatchObject({
+    expect(stack.sentinel.status()).toMatchObject({
       guardian: bed.keys.guardian.address,
       owners: [bed.keys.owner.address],
     });
@@ -199,20 +89,12 @@ describe("the pitch storyline, through the whole system", () => {
     const before = await balance("merchant");
     await play("approval", async () => {
       // The request is on-chain; the indexer reads it and Sentinel alerts, then the owner acts.
-      await sync();
+      await stack.sync();
       await waitFor(
         () => alerts.some((a) => a.kind === "approval_requested"),
         "the approval alert",
       );
-      const [request] = await fetchOpenRequests(bed.chain, bed.accounts.agent);
-      if (!request) throw new Error("no open request");
-      await bed.send(bed.keys.owner, [
-        await buildApproveRequest({
-          owner: bed.keys.owner,
-          agent: bed.accounts.agent,
-          request: address(request.address),
-        }),
-      ]);
+      await stack.approveOpenRequest();
     });
 
     const feed = await events();
@@ -239,12 +121,12 @@ describe("the pitch storyline, through the whole system", () => {
     await play("injection");
     // Sentinel gets the tripwire from the stream: wait for it, as scene 2 waits for its alert.
     await waitFor(() => alerts.some((a) => a.kind === "tripwire_fired"), "the tripwire alert");
-    await sentinel.idle();
+    await stack.sentinel.idle();
 
     expect(await balance("attacker")).toBe(0n);
     expect(await balance("merchant")).toBe(merchantBefore);
     // The whole story paid the merchant 1.57 USDC, as in apps/agent-demo's test: every x402
-    // settlement ran once, though the indexer also saw it (recordingSvm).
+    // settlement ran once, though it went through the testbed chain that the indexer reads.
     expect(merchantBefore).toBe(1_570_000n);
 
     const feed = await events();

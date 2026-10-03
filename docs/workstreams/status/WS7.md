@@ -1,7 +1,7 @@
 # WS7 status: Agent tools, MCP server and demo agent
 
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
-- Last updated: 2026-10-01
+- Last updated: 2026-10-03
 - Current build step: 1–4 done (step 3 with hand-written scene scripts; real LLM recordings come from the laptop); next: 5, pitch polish with WS9
 - Messages handled: through `20261001-0150-from-ws1-to-ws4-ci-fix-remembered-poke.md`
 
@@ -32,6 +32,15 @@ What the cloud can't do: call the Claude API. There's no key here, and runs cost
 ## Plan for build step 1 (as executed)
 
 `@leash/tools` against mocked ports, every error code path tested. The minimal interfaces go to WS2 (agent) and WS3 (paid fetch) in messages, so the real implementations match.
+
+## Demo replay robustness (2026-10-03, final-polish session, PR #6)
+
+A laptop finding: a scripted `leash_fetch` came back unpaid (`✓ 500 … free`) and the replay carried on.
+
+- `outcomeOf(content, tool)`: a `leash_fetch` that paid is `paid`; one with HTTP status ≥ 400 is `http_<status>`. Other tools keep `ok`.
+- The scene scripts expect `paid` of every fetch that should pay (normal 5, approval 1, runaway 30). An unpaid or failed answer stops the replay with "A live result differs from the script". Recordings that say `ok` still accept `paid`.
+- The screen: a status ≥ 400 is `✗ the merchant answered <status> …` (paid or not); browse's 402 is `– 402 payment required`, not ✓.
+- Tests: `outcomeOf` cases; the screen never prints ✓ for ≥ 400; on LiteSVM, a merchant answering 500 or answering free on the second research call stops the normal scene.
 
 ## Done
 

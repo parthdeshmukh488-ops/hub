@@ -125,7 +125,7 @@ describe("the screen", () => {
       '  → mystery {"a":1}',
       "    ✓ 200 text/html · 1.5 k chars · free",
       "    ⏸ approval requested (request 5Vr9…XaXD)",
-      "    ✓ 402 payment required: browse never pays",
+      "    – 402 payment required: browse never pays",
       "    ✓ 200 text/markdown · 5 chars · free",
       "    ✓ frozen (tripwire) · 4.93 USDC left · strikes 3/3",
       "    ✗ NOT_PAIRED",
@@ -133,6 +133,37 @@ describe("the screen", () => {
       "    ✗ BLOCKED: this agent is paused · recorded on-chain",
       "    ✓",
     ]);
+  });
+
+  it("never prints ✓ for an HTTP status of 400 or above", () => {
+    const { ui, lines } = screen();
+    ui.result("leash_fetch", {
+      ok: true,
+      status: 500,
+      contentType: "text/plain",
+      body: "boom",
+      payment: null,
+    });
+    ui.result("leash_fetch", {
+      ok: true,
+      status: 503,
+      contentType: "text/plain",
+      body: "",
+      payment: {
+        signature: SIG,
+        amountUsdc: "0.01",
+        payee: "p",
+        payeeLabel: "Research API",
+        requestNonce: null,
+      },
+    });
+    ui.result("browse", { ok: true, status: 404, contentType: "text/html", body: "" });
+    expect(lines).toEqual([
+      "    ✗ the merchant answered 500 text/plain · not paid",
+      `    ✗ the merchant answered 503 text/plain · paid 0.01 USDC → Research API · tx 5Vr9…XaXD https://explorer.solana.com/tx/${SIG}?cluster=devnet`,
+      "    ✗ 404 text/html",
+    ]);
+    expect(lines.join("\n")).not.toContain("✓");
   });
 
   it("counts strikes against the tripwire once it knows the limit, and sums up a scene", () => {

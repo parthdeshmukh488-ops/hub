@@ -2,9 +2,27 @@
 
 - Session branch: `claude/determined-faraday-9rk16e` (Parth's second Claude account, cloud)
 - Task D session branch: `claude/compassionate-keller-5rmytv` (second account, cloud)
-- Last updated: 2026-10-02
+- Final-polish branch: `ws9/final-polish-jx1vpt` (cloud, 2026-10-03)
+- Last updated: 2026-10-03
 - Current build step: Task B's writing is done (README v1, the deck and its PDF, demo script, judge Q&A, video storyboard); next: Parth's placeholders, then keeping it all true as parts ship
 - Messages handled: through `20261001-1715-from-architect-to-ws9-pr1-review.md` (on the architect's branch until its next merge; it reviews PR #1). That includes the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md); this session is its Task B.
+
+## Final polish (2026-10-03)
+
+Parth's list, in order; each item is pushed on its own so the PR is mergeable after any of them. Lanes: `e2e/**`, `apps/agent-demo/**`, `packages/x402/src/testing/**`, `README.md`, `LICENSE`, `docs/pitch/**`, the root `demo` alias, `apps/web/**` (not the Actions or server actions), status files WS6, WS7, WS9. No program changes, no new env variables.
+
+1. **`pnpm demo`: done.** `e2e/src/demo.ts` plays the whole storyline in the terminal on the e2e stack, which moved to `e2e/src/stack.ts` (the storyline test uses it too). It opens with "Local test chain (LiteSVM) running the real Leash program. Not devnet. The owner's approval is simulated."; Sentinel's alerts print as `alert:` lines; the simulated owner approves after the approval alert, and says so on screen. Root alias `"demo": "tsx e2e/src/demo.ts"` (the one root `package.json` edit). Smoke test `e2e/test/demo.test.ts`: honest line first, three scenes end normally, both alerts, the tripwire banner, 1.57 USDC to the merchant and 0 to the attacker.
+2. **Demo replay robustness (WS7): done.** Details in [WS7's status](WS7.md#demo-replay-robustness-2026-10-03-final-polish-session-pr-6): scripts expect `paid`, an unpaid or ≥ 400 answer stops the replay, the screen never shows ✓ for ≥ 400; tested on LiteSVM with a merchant answering 500 and answering free.
+3. **Facilitator settlements through the testbed chain: done.** `litesvmFacilitatorClient(svm, feePayers, network, { chain })` (and the signer) send each settlement through the chain's `sendAndConfirm`; the inner instructions the facilitator checks come from a simulation on the same state just before. `e2e/test/facilitator-svm.ts` and its Proxy bridge are deleted; the storyline still asserts the exact 1.57 USDC and the five `PaymentExecuted` the indexer saw. Other callers pass no `chain` and are unchanged.
+4. **README, deck and pitch documents, LICENSE: done** (video link, team and user conversations stay placeholders).
+   - **Re-counted** on this branch (main with PR #5, plus items 1–3): **964 tests**. `pnpm test`: 836 TypeScript (sdk 242, contracts 178, web 117, sentinel 101, indexer 57, agent-demo 39, tools 30, merchant-demo 24, x402 23, mcp 10, facilitator 9, e2e 6). `cargo test`: 128, 0 failed. Plus the web app's 14 Playwright tests (8 live on LiteSVM), not in `pnpm test`.
+   - **README:** the web app's owner actions are Done (117 unit tests, 14 Playwright, 8 live); `pnpm demo` heads "Try it"; the story is "in one test, and in one command"; a License section.
+   - **demo-script.md:** the owner approves in the web app's inbox and uses the freeze toggle (the overview's global switch for "pull the brake"); Blinks and the `pnpm owner:…` commands are the fallbacks. The `✓ 500 … free` fallback is replaced: the replay now stops by itself, so carry on with `demo approval injection`. `pnpm demo` is fallback 2 when the demo can't run.
+   - **Slide 9 and the judge Q&A agree:** the web app's owner actions moved to Done; in progress are the devnet demo and its recording, and Telegram on a real phone. Slide 12 "this week": the web app with a real wallet on devnet. Slide 6's notes and the storyboard put the web app first.
+   - **The deck** rebuilt with `build-deck.cjs` and converted to PDF (this container needed `libreoffice-impress` from apt again). Slides 9 and 12 rendered and checked.
+   - **LICENSE:** MIT, copyright 2026 Parth Deshmukh.
+   - Every relative link in the seven edited documents resolves (scripted check).
+5. **Landing page `/`: done** (WS6 lane): details in [WS6's status](WS6.md). `next build` passes in fixture mode; Vercel steps in `apps/web/README.md`. README and Q&A now say 15 browser tests (the PR #5 row keeps its 14).
 
 ## Pass 2: the story matches main (2026-10-02)
 

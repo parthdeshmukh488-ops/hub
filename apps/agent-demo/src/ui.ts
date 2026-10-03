@@ -26,6 +26,9 @@ const record = (value: unknown): Record<string, unknown> =>
   typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 const text = (value: unknown): string => (typeof value === "string" ? value : "");
 
+/** An HTTP status of 400 or above. */
+const failed = (status: unknown) => typeof status === "number" && status >= 400;
+
 function size(chars: number): string {
   return chars >= 1_000 ? `${(chars / 1_000).toFixed(1)} k chars` : `${chars} chars`;
 }
@@ -57,7 +60,7 @@ export function createUi(options: UiOptions) {
     }
   }
 
-  function payment(receipt: Record<string, unknown>): string {
+  function payment(receipt: Record<string, unknown>, mark = "✓ "): string {
     const to = text(receipt.payeeLabel) || shortId(text(receipt.payee));
     const signature = text(receipt.signature);
     const tx = link(`tx ${shortId(signature)}`, options.explorer(signature));
@@ -65,7 +68,7 @@ export function createUi(options: UiOptions) {
     return (
       paint(
         "green",
-        `✓ paid ${oneLine(text(receipt.amountUsdc), 20)} USDC → ${oneLine(to, 40)}${approved} · `,
+        `${mark}paid ${oneLine(text(receipt.amountUsdc), 20)} USDC → ${oneLine(to, 40)}${approved} · `,
       ) + tx
     );
   }
@@ -97,6 +100,11 @@ export function createUi(options: UiOptions) {
     switch (name) {
       case "leash_fetch": {
         const status = `${output.status} ${oneLine(text(output.contentType).split(";")[0] ?? "", 30)}`;
+        // A failed request never gets a ✓, paid or not.
+        if (failed(output.status)) {
+          const paid = output.payment ? ` · ${payment(record(output.payment), "")}` : " · not paid";
+          return `${paint("red", `✗ the merchant answered ${status}`)}${paid}`;
+        }
         return output.payment
           ? `${payment(record(output.payment))} · ${status}`
           : paint("dim", `✓ ${status} · ${size(text(output.body).length)} · free`);
@@ -119,12 +127,19 @@ export function createUi(options: UiOptions) {
         return `✓ ${text(agent.status)}${frozen} · ${text(allowance.remainingUsdc)}${of} USDC left · strikes ${output.strikes}/${output.tripwireMaxStrikes}`;
       }
       case "browse":
-        return output.status === 402
-          ? paint("yellow", "✓ 402 payment required: browse never pays")
-          : paint(
-              "dim",
-              `✓ ${output.status} ${oneLine(text(output.contentType).split(";")[0] ?? "", 30)} · ${size(text(output.body).length)} · free`,
-            );
+        if (output.status === 402) {
+          return paint("yellow", "– 402 payment required: browse never pays");
+        }
+        if (failed(output.status)) {
+          return paint(
+            "red",
+            `✗ ${output.status} ${oneLine(text(output.contentType).split(";")[0] ?? "", 30)}`,
+          );
+        }
+        return paint(
+          "dim",
+          `✓ ${output.status} ${oneLine(text(output.contentType).split(";")[0] ?? "", 30)} · ${size(text(output.body).length)} · free`,
+        );
       default:
         return "✓";
     }

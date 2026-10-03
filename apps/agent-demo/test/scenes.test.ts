@@ -40,6 +40,39 @@ describe("scene scripts", () => {
     expect(screen).toContain("Summary: spent 0.07 USDC in 5 payments · 0 blocked · agent active");
   });
 
+  it("normal: a research call that comes back free or failed stops the replay", async () => {
+    const answers = [
+      new Response("Internal Server Error", {
+        status: 500,
+        headers: { "content-type": "text/plain" },
+      }),
+      new Response('{"free":true}', {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    ];
+    for (const answer of answers) {
+      // The second research call (motor types) gets the merchant's broken answer.
+      const demo = await demoBed({
+        intercept: (request) =>
+          request.url.includes("q=hub+or+mid-drive") ? answer.clone() : null,
+      });
+      const result = await demo.play("normal", demo.replay("normal"));
+      expect(result.stop).toBe("diverged");
+      // The calls in that turn ran; nothing after it did.
+      expect(result.payments.map((p) => p.amountUsdc)).toEqual(["0.01", "0.01"]);
+      const screen = demo.screen();
+      expect(screen).toContain("A live result differs from the script, so the replay stops here.");
+      expect(screen).not.toContain("Summary: spent 0.07 USDC");
+      if (answer.status === 500) {
+        expect(screen).toContain("✗ the merchant answered 500 text/plain · not paid");
+        expect(screen).not.toMatch(/✓ 500/);
+      } else {
+        expect(screen).toMatch(/✓ 200 application\/json · \d+ chars · free/);
+      }
+    }
+  });
+
   it("approval: above the instant limit, the loop waits for the owner, then pays with the approved request", async () => {
     const demo = await demoBed();
     const result = await demo.play("approval", demo.replay("approval"), {

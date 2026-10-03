@@ -73,3 +73,30 @@ test("a link for another cluster is refused", async ({ page }) => {
   );
   await expect(page.getByText("This link is for devnet")).toBeVisible();
 });
+
+test("the landing page: the promise, the story, keyboard first, and the way into the app", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Spending limits and an off switch for AI agents, enforced on Solana.",
+    }),
+  ).toBeVisible();
+  for (const name of ["The 60-second story", "How it works", "Why Solana", "See it for yourself"]) {
+    await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  }
+  // Every status comes with a word, not only a colour.
+  for (const label of ["Paid", "Waiting for you", "Blocked", "Frozen"]) {
+    await expect(page.getByText(label, { exact: true })).toBeVisible();
+  }
+  // The first Tab lands on the skip link, which jumps to the content.
+  await page.keyboard.press("Tab");
+  const skip = page.getByRole("link", { name: "Skip to content" });
+  await expect(skip).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#main$/);
+  await page.getByRole("link", { name: "Open the control panel" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+});

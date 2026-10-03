@@ -33,9 +33,9 @@ The story the demo tells, with a research agent on a budget:
 
 **What is scripted.** In the attack scene the agent's decisions are scripted to follow the hidden instruction, as a fooled model would. The screen says so: "Simulating a successful injection". Every payment, block and strike is real and on-chain. The demo agent can also be driven by a live Claude model; those runs and their recordings are in progress.
 
-**Where it runs today.** The whole scripted story has run end to end on a local Solana validator. On every commit it also runs as one test through the whole system: agent, x402 merchant, official facilitator, the real program binaries, indexer and Sentinel. The devnet run and its recording are in progress.
+**Where it runs today.** The whole scripted story has run end to end on a local Solana validator. On every commit it also runs as one test through the whole system: agent, x402 merchant, official facilitator, the real program binaries, indexer and Sentinel. `pnpm demo` plays it on screen in one command, with no chain to set up. The devnet run and its recording are in progress.
 
-Pairing, approving, freezing and unfreezing in the web app are being built now. Until they ship, the owner approves or freezes from a Solana Action (a Blink, signed in the owner's wallet), or from the terminal (`pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze`).
+The owner pairs agents, approves requests, and freezes or unfreezes them in the web app, signing with their own wallet. A Solana Action (a Blink, signed in the owner's wallet) and the terminal (`pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze`) do the same as fallbacks.
 
 ## How it works
 
@@ -67,7 +67,7 @@ Full design: [architecture overview](docs/architecture/00-overview.md) and [prog
 
 ## What works today
 
-As of October 2, 2026. 911 automated tests (783 TypeScript, 128 Rust) run on every commit, and a separate security job runs the security model's invariant tests by name.
+As of October 3, 2026. 964 automated tests (836 TypeScript, 128 Rust) run on every commit, and a separate security job runs the security model's invariant tests by name. The web app also has 15 browser tests (Playwright), 8 of them on the real program in LiteSVM.
 
 | Part | State | How we know |
 | --- | --- | --- |
@@ -81,9 +81,9 @@ As of October 2, 2026. 911 automated tests (783 TypeScript, 128 Rust) run on eve
 | Control panel: overview, agent page, activity log with CSV export, approvals inbox, "what would happen if" tester | Done | Updates live from the indexer's stream. Tested with the storyline replay and with the indexer following a local validator. |
 | Sentinel: alerts and the guardian's autofreeze | Done | Seven alert rules, tested on the demo story. The Telegram messages are tested against a fake Bot API: plain text, and labels and memos can't inject links or markup. The guardian freezes only when allowed and when the on-chain guardian is its key: tested on the real program in LiteSVM. |
 | Solana Actions (Blinks): approve, reject, freeze, freeze all | Done | The server returns an unsigned transaction; the owner's wallet signs it. Each is tested on the real program: the right signer succeeds, a wrong one is refused on-chain. Sentinel's alerts link to them. |
-| The whole story in one test | Done | Agent → x402 merchant → official facilitator → program → indexer → Sentinel, in process on LiteSVM, on every commit ([e2e/](e2e/README.md)). |
+| Control panel: pairing, approve, freeze, unfreeze | Done | The owner's wallet signs each action (PR #5): 117 unit tests, plus 14 Playwright browser tests, 8 of them live on the real program in LiteSVM. The run with a real wallet on devnet is part of the devnet demo below. |
+| The whole story in one test, and in one command | Done | Agent → x402 merchant → official facilitator → program → indexer → Sentinel, in process on LiteSVM, on every commit ([e2e/](e2e/README.md)). `pnpm demo` shows the same story on the demo agent's screen. |
 | Security CI job | Done | Runs the invariant tests of the [security model](docs/architecture/03-security.md#3-invariant-tests) by name, I1 to I6, policy parity and x402. It fails if a renamed test drops out. |
-| Control panel: pairing, approve, freeze, unfreeze | In progress | Until then: Solana Actions, or `pnpm devnet:setup`, `pnpm owner:approve`, `pnpm owner:unfreeze` |
 | Telegram alerts on a real phone | In progress | Set up on the laptop; delivery is being checked. |
 | The full demo on devnet, and its recording | In progress | |
 | Demo agent with a live Claude model, recorded | In progress | |
@@ -116,16 +116,24 @@ The threat model, mitigations and tests: [docs/architecture/03-security.md](docs
 
 You need Node 22.12 or newer and pnpm 10, on Linux, macOS or WSL (the `litesvm` npm package has no Windows build).
 
-**Run the tests, no chain needed.** LiteSVM runs the real program binaries in process.
+**See the whole story in one command, no chain needed.**
 
 ```bash
 pnpm install
-pnpm test        # 783 TypeScript tests
+pnpm demo        # about 5 seconds
+```
+
+It runs the real Leash program on a local test chain (LiteSVM), not devnet, and simulates the owner's approval; its first line says so. You see the agent pay for research, ask for approval above its limit, fall for a poisoned page, get blocked three times and freeze itself, with Sentinel's alerts in between ([e2e/README.md](e2e/README.md)).
+
+**Run the tests, no chain needed.** LiteSVM runs the real program binaries in process.
+
+```bash
+pnpm test        # 836 TypeScript tests
 cargo test       # 128 Rust tests (Rust 1.98.1, pinned in rust-toolchain.toml)
 pnpm --filter @leash/e2e test   # the whole demo story through the whole system, about 5 s
 ```
 
-**Open the control panel with sample data** at http://localhost:3000:
+**Open the landing page and the control panel with sample data** at http://localhost:3000:
 
 ```bash
 pnpm --filter @leash/web dev
@@ -169,3 +177,7 @@ Leash was built with parallel Claude Code sessions, each owning one part of the 
 ## Team
 
 **[Team: names and roles, to be filled in by Parth]**
+
+## License
+
+[MIT](LICENSE), copyright 2026 Parth Deshmukh.
