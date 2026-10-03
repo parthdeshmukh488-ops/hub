@@ -138,7 +138,7 @@ export class LeashExactSvmScheme implements SchemeNetworkClient {
     x402Version: number,
     requirements: PaymentRequirements,
   ): Promise<PaymentPayloadResult> {
-    const { agent, chain, network, purpose } = this.#options;
+    const { agent, network, purpose } = this.#options;
     const { payTo, amount, feePayer, memo } = validate(requirements, {
       network,
       mint: await agent.mint(),
@@ -155,11 +155,11 @@ export class LeashExactSvmScheme implements SchemeNetworkClient {
       { append: [memoInstruction] },
     );
     const units = Math.min(MAX_COMPUTE_UNITS, Math.ceil(Number(prepared.unitsConsumed) * 1.15));
-    const lifetime = await chain.getLatestBlockhash();
+    // The simulation's blockhash, seconds old: one round trip fewer per payment.
     const message = pipe(
       createTransactionMessage({ version: 0 }),
       (m) => setTransactionMessageFeePayer(feePayer, m),
-      (m) => setTransactionMessageLifetimeUsingBlockhash(lifetime, m),
+      (m) => setTransactionMessageLifetimeUsingBlockhash(prepared.lifetime, m),
       (m) =>
         appendTransactionMessageInstructions(
           [

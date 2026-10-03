@@ -113,6 +113,9 @@ export function createApp(options: AppOptions): Hono {
         amount: paymentRequirements.amount,
         verificationPath: verificationPath(paymentPayload),
       };
+      // How long the official scheme took (its RPC calls; for settle also the confirmation).
+      const started = performance.now();
+      const ms = () => Math.round(performance.now() - started);
       try {
         if (kind === "verify") {
           const result = await facilitator.verify(paymentPayload, paymentRequirements);
@@ -122,6 +125,7 @@ export function createApp(options: AppOptions): Hono {
               isValid: result.isValid,
               invalidReason: result.invalidReason,
               payer: result.payer,
+              ms: ms(),
             },
             "verify",
           );
@@ -135,6 +139,7 @@ export function createApp(options: AppOptions): Hono {
             errorReason: result.errorReason,
             transaction: result.transaction,
             payer: result.payer,
+            ms: ms(),
           },
           "settle",
         );

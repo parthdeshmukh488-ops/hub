@@ -782,6 +782,39 @@ describe("edge cases", () => {
   });
 });
 
+describe("round trips", () => {
+  it("fetches one blockhash per operation, read alongside the accounts", async () => {
+    const bed = await createTestbed();
+    let blockhashes = 0;
+    const chain = wrapChain(bed.chain, {
+      getLatestBlockhash: () => {
+        blockhashes += 1;
+        return bed.chain.getLatestBlockhash();
+      },
+    });
+    const { agent } = agentOf(bed, { chain });
+    const count = async (operation: () => Promise<unknown>) => {
+      blockhashes = 0;
+      await operation().catch(() => undefined);
+      return blockhashes;
+    };
+    const merchant = { to: bed.keys.merchant.address, purpose: "x" };
+    // Simulation and send share it; so do the denied payment's simulation, report and send.
+    expect(await count(() => agent.pay({ ...merchant, amount: 1n }))).toBe(1);
+    expect(
+      await count(() => agent.pay({ to: bed.keys.attacker.address, amount: 1n, purpose: "x" })),
+    ).toBe(1);
+    expect(await count(() => agent.requestApproval({ ...merchant, amount: 2n * USDC }))).toBe(1);
+    // x402 builds its transaction on the simulation's blockhash.
+    const prepared = await agent.preparePayment({
+      ...merchant,
+      amount: 1n,
+      reference: new Uint8Array(32),
+    });
+    expect(prepared.lifetime).toEqual(await bed.chain.getLatestBlockhash());
+  });
+});
+
 describe("preparePayment (the x402 path)", () => {
   it("returns a checked pay instruction without sending anything", async () => {
     const bed = await createTestbed();

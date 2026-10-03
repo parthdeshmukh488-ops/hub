@@ -145,13 +145,28 @@ describe("rpcChain", () => {
       encoding: "base64",
       preflightCommitment: "confirmed",
     });
-    expect(sleep).toHaveBeenCalledTimes(3);
-    // Once a second by default: a public RPC counts every request.
-    expect(sleep).toHaveBeenCalledWith(1_000);
+    // Two pending polls (500 ms each), then one retry of the record the node did not have yet.
+    expect(sleep.mock.calls).toEqual([[500], [500], [500]]);
   });
 
-  it("checks the blockhash's expiry on the first poll, then every fourth", async () => {
-    const statuses = [null, null, null, null, null, null, { confirmationStatus: "confirmed" }];
+  it("polls quickly at first, then once a second: a public RPC counts every request", async () => {
+    const statuses = [null, null, null, null, { confirmationStatus: "confirmed" }];
+    const sleep = vi.fn(async (_ms: number) => {});
+    const chain = rpcChain({
+      rpc: {
+        sendTransaction: () => call("sig"),
+        getSignatureStatuses: () => call({ value: [statuses.shift() ?? null] }),
+        getBlockHeight: () => call(50n),
+        getTransaction: () => call(RPC_TRANSACTION),
+      } as never,
+      sleep,
+    });
+    await chain.sendAndConfirm(await signedTransaction());
+    expect(sleep.mock.calls).toEqual([[500], [500], [1_000], [1_000]]);
+  });
+
+  it("checks the blockhash's expiry on the fourth poll, then every fourth", async () => {
+    const statuses = [...Array<null>(8).fill(null), { confirmationStatus: "confirmed" }];
     const getBlockHeight = vi.fn(() => call(50n));
     const chain = rpcChain({
       rpc: {
@@ -163,7 +178,7 @@ describe("rpcChain", () => {
       sleep: async () => {},
     });
     await chain.sendAndConfirm(await signedTransaction());
-    // Polls 0 to 5 were pending: the height was read on polls 0 and 4.
+    // Polls 0 to 7 were pending: the height was read on polls 3 and 7.
     expect(getBlockHeight).toHaveBeenCalledTimes(2);
   });
 
@@ -212,6 +227,7 @@ describe("rpcChain", () => {
         getSignatureStatuses: () => call({ value: [null] }),
         getBlockHeight: () => call(101n),
       } as never,
+      sleep: async () => {},
     });
     await expect(pending.sendAndConfirm(await signedTransaction(100n))).rejects.toBeInstanceOf(
       LeashNetworkError,

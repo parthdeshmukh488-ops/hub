@@ -30,7 +30,12 @@ import {
   getTokenDecoder,
 } from "@solana-program/token";
 import { type DecodedDelegation, decodeDelegation } from "./allowance.ts";
-import { clockUnixTimestamp, type LeashChain, SYSVAR_CLOCK_ADDRESS } from "./chain.ts";
+import {
+  type BlockhashLifetime,
+  clockUnixTimestamp,
+  type LeashChain,
+  SYSVAR_CLOCK_ADDRESS,
+} from "./chain.ts";
 import { AGENT_STATUS_FROM_CHAIN, policyToState, REQUEST_STATUS_FROM_CHAIN } from "./convert.ts";
 import {
   LeashNetworkError,
@@ -159,6 +164,8 @@ type PreparedPayment = {
   memo: Uint8Array;
   reference: Uint8Array;
   request: OpenRequest | null;
+  /** The blockhash of the simulation, reused by the send. */
+  lifetime: BlockhashLifetime;
 };
 
 /** A payment that passed the policy and the simulation, ready for someone else's transaction. */
@@ -173,6 +180,11 @@ export type PreparedPaymentResult = {
   requestNonce: bigint | null;
   payeeLabel: string | null;
   purpose: string;
+  /**
+   * The blockhash the payment was simulated with. It stays valid for about a minute, so the
+   * caller's transaction can use it instead of fetching another.
+   */
+  lifetime: BlockhashLifetime;
 };
 
 /** A payment as `report_denied_attempt` takes it. */
@@ -360,6 +372,7 @@ export class LeashAgent {
         requestNonce: request ? request.account.nonce : null,
         payeeLabel: state.payee ? decodeLabel(bytes(state.payee.label)) : null,
         purpose: args.purpose,
+        lifetime: prepared.lifetime,
       };
     });
   }
@@ -370,13 +383,17 @@ export class LeashAgent {
    */
   reportDenied(args: Required<PaymentArgs>): Promise<ReportResult> {
     return this.#serialize(async () => {
-      const state = await this.#readState(args.to as Address);
-      return this.#report(state, {
-        to: args.to,
-        amount: args.amount,
-        memo: encodeMemo(args.purpose),
-        reference: args.reference,
-      });
+      const [state, lifetime] = await this.#readStateAndBlockhash(args.to as Address);
+      return this.#report(
+        state,
+        {
+          to: args.to,
+          amount: args.amount,
+          memo: encodeMemo(args.purpose),
+          reference: args.reference,
+        },
+        lifetime,
+      );
     });
   }
 
@@ -398,12 +415,13 @@ export class LeashAgent {
     const to = args.to as Address;
     let record: TransactionRecord;
     try {
-      record = await this.#send(instructions, prepared.unitsConsumed);
+      record = await this.#send(instructions, prepared.unitsConsumed, prepared.lifetime);
     } catch (error) {
       const failure = findLeashFailure(error, { instructions: this.#withBudget(instructions, 0) });
       // The state moved between simulation and send (e.g. a concurrent payment of the owner).
       if (failure?.denial) {
-        return this.#denied(state, failure.denial, { to, amount: args.amount, memo, reference });
+        const payment = { to, amount: args.amount, memo, reference };
+        return this.#denied(state, failure.denial, payment, prepared.lifetime);
       }
       throw this.#classify(error, failure, { to: args.to, amount: args.amount });
     }
@@ -424,7 +442,7 @@ export class LeashAgent {
     const memo = encodeMemo(args.purpose);
     const to = args.to as Address;
     const attempted = { to: args.to, amount: args.amount };
-    const state = await this.#readState(to);
+    const [state, lifetime] = await this.#readStateAndBlockhash(to);
     const request = await this.#findApprovedRequest(state, to, args.amount);
     // 02 §3: paying an approved request uses its reference; otherwise the caller's, or random.
     const reference = request
@@ -479,14 +497,15 @@ export class LeashAgent {
     });
     instructions.push(payInstruction, ...(options.append ?? []));
 
-    const simulation = await this.#simulate(instructions);
+    const simulation = await this.#simulate(instructions, lifetime);
     if (simulation.failure !== null) {
       const { failure } = simulation;
       if (failure.denial !== null) {
         if (local.outcome !== "denied" || local.reason !== failure.denial) {
           this.#parityMismatch(local, failure);
         }
-        return this.#denied(state, failure.denial, { to, amount: args.amount, memo, reference });
+        const payment = { to, amount: args.amount, memo, reference };
+        return this.#denied(state, failure.denial, payment, lifetime);
       }
       throw toSdkError(failure, attempted);
     }
@@ -499,6 +518,7 @@ export class LeashAgent {
       memo,
       reference,
       request,
+      lifetime,
     };
   }
 
@@ -506,7 +526,7 @@ export class LeashAgent {
     const memo = encodeMemo(args.purpose);
     const to = args.to as Address;
     const attempted = { to: args.to, amount: args.amount };
-    const state = await this.#readState(to);
+    const [state, lifetime] = await this.#readStateAndBlockhash(to);
     const reference = args.reference ?? randomReference();
     const request = await findRequestPda(state.accounts.agent, state.agent.stats.requestNonce);
     const instruction = leash.getRequestPaymentInstruction({
@@ -524,19 +544,19 @@ export class LeashAgent {
       program: LEASH_PROGRAM_ADDRESS,
     });
 
-    const simulation = await this.#simulate([instruction]);
+    const simulation = await this.#simulate([instruction], lifetime);
     const refused = (failure: LeashFailure): Promise<never> => {
       // `ApprovalsDisabled` is what `pay` reports as `exceedsPaymentLimit` for this amount.
       if (failure.denial !== null || failure.name === "ApprovalsDisabled") {
         const reason = failure.denial ?? "exceedsPaymentLimit";
-        return this.#denied(state, reason, { to, amount: args.amount, memo, reference });
+        return this.#denied(state, reason, { to, amount: args.amount, memo, reference }, lifetime);
       }
       throw toSdkError(failure, attempted);
     };
     if (simulation.failure !== null) return refused(simulation.failure);
     let record: TransactionRecord;
     try {
-      record = await this.#send([instruction], simulation.unitsConsumed);
+      record = await this.#send([instruction], simulation.unitsConsumed, lifetime);
     } catch (error) {
       const failure = findLeashFailure(error, { instructions: this.#withBudget([instruction], 0) });
       if (failure) return refused(failure);
@@ -557,6 +577,7 @@ export class LeashAgent {
     state: PaymentState,
     reason: DenialReason,
     payment: ReportedPayment,
+    lifetime: BlockhashLifetime,
   ): Promise<never> {
     const attempted = { to: payment.to, amount: payment.amount };
     const info = denialInfo(reason);
@@ -570,7 +591,7 @@ export class LeashAgent {
     }
     let report: ReportResult;
     try {
-      report = await this.#report(state, payment);
+      report = await this.#report(state, payment, lifetime);
     } catch (error) {
       this.#logger.warn("leash: could not record a denied payment", {
         reason,
@@ -588,7 +609,11 @@ export class LeashAgent {
     });
   }
 
-  async #report(state: PaymentState, payment: ReportedPayment): Promise<ReportResult> {
+  async #report(
+    state: PaymentState,
+    payment: ReportedPayment,
+    lifetime: BlockhashLifetime,
+  ): Promise<ReportResult> {
     const { amount, memo, reference } = payment;
     if (!state.destinationExists) {
       throw new TransactionFailedError("the payee has no token account for this mint");
@@ -606,11 +631,11 @@ export class LeashAgent {
       eventAuthority: await findLeashEventAuthorityPda(),
       program: LEASH_PROGRAM_ADDRESS,
     });
-    const simulation = await this.#simulate([instruction]);
+    const simulation = await this.#simulate([instruction], lifetime);
     if (simulation.failure !== null) {
       throw toSdkError(simulation.failure, { to: payment.to, amount });
     }
-    const record = await this.#send([instruction], simulation.unitsConsumed);
+    const record = await this.#send([instruction], simulation.unitsConsumed, lifetime);
     const events = decodeLeashEvents(record);
     const denied = eventOf(events, "PaymentDenied");
     if (!denied) throw new Error(`report ${record.signature} confirmed without PaymentDenied`);
@@ -654,6 +679,14 @@ export class LeashAgent {
       source,
     };
     return this.#accounts;
+  }
+
+  /**
+   * The payment state and a blockhash, read in parallel. One blockhash serves an operation's
+   * simulations and its send: it stays valid for about a minute, and every fetch is a round trip.
+   */
+  #readStateAndBlockhash(to: Address): Promise<[PaymentState, BlockhashLifetime]> {
+    return Promise.all([this.#readState(to), this.#chain.getLatestBlockhash()]);
   }
 
   async #readState(to: Address): Promise<PaymentState> {
@@ -853,12 +886,16 @@ export class LeashAgent {
     ];
   }
 
-  async #transaction(instructions: readonly Instruction[], units: number) {
+  async #transaction(
+    instructions: readonly Instruction[],
+    units: number,
+    lifetime: BlockhashLifetime,
+  ) {
     const all = this.#withBudget(instructions, units);
     const message = buildTransactionMessage({
       feePayer: this.#signer,
       instructions: all,
-      lifetime: await this.#chain.getLatestBlockhash(),
+      lifetime,
     });
     return { message, transaction: await signTransactionMessageWithSigners(message) };
   }
@@ -866,8 +903,13 @@ export class LeashAgent {
   /** Simulates with the maximum compute budget. `failure` is the Leash error, if any. */
   async #simulate(
     instructions: readonly Instruction[],
+    lifetime: BlockhashLifetime,
   ): Promise<{ failure: LeashFailure | null; unitsConsumed: bigint }> {
-    const { message, transaction } = await this.#transaction(instructions, MAX_COMPUTE_UNITS);
+    const { message, transaction } = await this.#transaction(
+      instructions,
+      MAX_COMPUTE_UNITS,
+      lifetime,
+    );
     const result = await this.#chain.simulate(transaction);
     if (result.err === null || result.err === undefined) {
       return { failure: null, unitsConsumed: result.unitsConsumed };
@@ -880,9 +922,10 @@ export class LeashAgent {
   async #send(
     instructions: readonly Instruction[],
     unitsConsumed: bigint,
+    lifetime: BlockhashLifetime,
   ): Promise<TransactionRecord> {
     const units = Math.min(MAX_COMPUTE_UNITS, Math.ceil(Number(unitsConsumed) * 1.15));
-    const { transaction } = await this.#transaction(instructions, units);
+    const { transaction } = await this.#transaction(instructions, units, lifetime);
     return this.#chain.sendAndConfirm(transaction);
   }
 

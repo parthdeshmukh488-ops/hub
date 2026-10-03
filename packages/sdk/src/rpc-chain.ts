@@ -81,8 +81,18 @@ async function reading<T>(what: string, run: () => Promise<T>): Promise<T> {
   }
 }
 
-/** The blockhash's expiry is checked on the first poll, then on every this many polls. */
+/**
+ * The blockhash's expiry is checked on every this many polls, from the fourth: a blockhash taken
+ * seconds before the send cannot have expired by the first ones.
+ */
 const BLOCK_HEIGHT_EVERY = 4;
+
+/** The first polls come sooner, since devnet usually confirms within 1–2 s. */
+const QUICK_POLLS = 2;
+const QUICK_POLL_MS = 500;
+
+/** A confirmed transaction the node cannot return yet is asked for again after this long. */
+const RECORD_RETRY_MS = 500;
 
 /** A failure of the connection or the RPC itself (not an answer about the transaction). */
 function transportFailure(error: unknown): boolean {
@@ -121,7 +131,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
           .send(),
       );
       if (response !== null) return transactionRecordFromRpc(response);
-      await sleep(pollIntervalMs);
+      await sleep(Math.min(pollIntervalMs, RECORD_RETRY_MS));
     }
     throw new LeashNetworkError(`transaction ${signature} is confirmed but not retrievable`);
   }
@@ -215,7 +225,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
           status?.confirmationStatus === "finalized" ||
           (commitment === "confirmed" && status?.confirmationStatus === "confirmed");
         if (reached) return fetchRecord(signature);
-        if (lastValidBlockHeight !== null && poll % BLOCK_HEIGHT_EVERY === 0) {
+        if (lastValidBlockHeight !== null && poll % BLOCK_HEIGHT_EVERY === BLOCK_HEIGHT_EVERY - 1) {
           const height = await read("reading the block height", () =>
             rpc.getBlockHeight({ commitment }).send(),
           );
@@ -223,7 +233,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
             throw new LeashNetworkError(`transaction ${signature} expired before it confirmed`);
           }
         }
-        await sleep(pollIntervalMs);
+        await sleep(poll < QUICK_POLLS ? Math.min(pollIntervalMs, QUICK_POLL_MS) : pollIntervalMs);
       }
     },
 
