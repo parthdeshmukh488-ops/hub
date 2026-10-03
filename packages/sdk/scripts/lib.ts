@@ -12,7 +12,8 @@ import {
 } from "@solana/kit";
 import { type LeashChain, rpcChain } from "../src/index.ts";
 
-const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
+/** The repo root (`.keys/` and `.localnet.json` live there). */
+export const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
 
 export type DemoKeys = {
   owner: KeyPairSigner;
@@ -36,7 +37,8 @@ export function fail(message: string, code = 1): never {
   process.exit(code);
 }
 
-async function readKey(name: string): Promise<KeyPairSigner> {
+/** A demo key from `.keys/<name>.json`; fails with the `pnpm keys` hint when it is missing. */
+export async function readKey(name: string): Promise<KeyPairSigner> {
   const path = `${ROOT}.keys/${name}.json`;
   if (!existsSync(path)) fail(`Missing ${path}. Create the demo keys with \`pnpm keys\`.`, 2);
   const bytes = Uint8Array.from(JSON.parse(readFileSync(path, "utf8")) as number[]);

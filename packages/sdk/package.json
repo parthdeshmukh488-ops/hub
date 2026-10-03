@@ -16,7 +16,8 @@
     "devnet:setup": "tsx scripts/devnet-setup.ts",
     "devnet:smoke": "tsx scripts/devnet-smoke.ts",
     "owner:approve": "tsx scripts/owner-approve.ts",
-    "owner:unfreeze": "tsx scripts/owner-unfreeze.ts"
+    "owner:unfreeze": "tsx scripts/owner-unfreeze.ts",
+    "demo:check": "tsx scripts/demo-check.ts"
   },
   "dependencies": {
     "@leash/contracts": "workspace:*",
