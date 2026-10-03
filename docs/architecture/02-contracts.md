@@ -268,7 +268,7 @@ The SDK owns decoding (`decodeLeashEvents(transaction) → LeashEvent[]`); the i
 
 | Method and path | Response |
 | --- | --- |
-| `GET /v1/health` | `{ ok, cluster, programId, lastProcessedSlot, lastEventAt, lagSeconds }` |
+| `GET /v1/health` | `{ ok, cluster, programId, lastProcessedSlot, lastEventAt, lagSeconds }`. `ok` is false when the database is unreachable or the event source has failed three polls in a row; the HTTP status stays 200 ([ADR](../adr/20261003-ws4-indexer-snapshot-and-health.md)). |
 | `GET /v1/owners/:owner` | `{ principal: PrincipalView \| null, agents: AgentView[] }` |
 | `GET /v1/agents/:agent` | `{ agent: AgentView, payees: PayeeView[], requests: RequestView[] }` |
 | `GET /v1/owners/:owner/events?agent&types&before&after&limit` | `{ items: LeashEvent[], nextBefore: string \| null }` |

@@ -1,6 +1,6 @@
 # The security model states where the devnet upgrade authority really is
 
-- Status: Proposed (a wording fix in 03-security; Parth merges architecture changes)
+- Status: Accepted by Parth, 2026-10-03 (applied to 03-security T15)
 - Date: 2026-10-03 (recorded by the architect)
 - Workstream: WS1
 - Contract change: no

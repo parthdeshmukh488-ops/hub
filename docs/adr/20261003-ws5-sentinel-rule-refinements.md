@@ -1,6 +1,6 @@
 # Sentinel's rules skip what the owner or the program already handled
 
-- Status: Proposed (implemented, on `main`)
+- Status: Accepted by Parth, 2026-10-03 (implemented; the WS5 brief's rule table now says so)
 - Date: 2026-10-03 (recorded by the architect; built in WS5's steps 1–5 and Task C)
 - Workstream: WS5
 - Contract change: no. The alert kinds and the `Alert` shape of 02 §12 are unchanged. This refines the rule table in the [WS5 brief](../workstreams/WS5-sentinel.md).

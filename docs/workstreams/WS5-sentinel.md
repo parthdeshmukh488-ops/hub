@@ -26,10 +26,10 @@ Watch every agent, tell the owner the moment something matters, and pull the bra
   | Rule | Trigger | Severity | Action if autofreeze is on |
   | --- | --- | --- | --- |
   | `tripwire_fired` | `AgentFrozen` with reason `tripwire` | critical | – (already frozen) |
-  | `burst_denials` | ≥ 3 `PaymentDenied` across an owner's agents within 5 min | warning | freeze the principal |
+  | `burst_denials` | ≥ 3 `PaymentDenied` across an owner's agents within 5 min; not when they all come from one agent whose tripwire fired ([ADR](../adr/20261003-ws5-sentinel-rule-refinements.md)) | warning | freeze the principal |
   | `approval_requested` | `PaymentRequested` | info | – |
-  | `spend_spike` | spend in 10 min > 3× the trailing hourly average (and ≥ 1 USDC) | warning | freeze the agent |
-  | `new_payee_spend` | payment ≥ 50% of a payee's cap within 10 min of `PayeeAdded` | warning | – |
+  | `spend_spike` | spend in 10 min > 3× the trailing hourly average (and ≥ 1 USDC); payments of approved requests not counted | warning | freeze the agent |
+  | `new_payee_spend` | payment ≥ 50% of a payee's cap within 10 min of `PayeeAdded`; payments of approved requests not counted | warning | – |
   | `allowance_low` | remaining allowance < 10% | info | – |
   | `guardian_freeze` | Sentinel itself froze something | critical | – |
 

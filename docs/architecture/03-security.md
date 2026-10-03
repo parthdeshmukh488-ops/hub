@@ -34,7 +34,7 @@ Out of scope: a compromised owner wallet (use a hardware wallet or a multisig as
 | T12 | **Strike DoS**: an attacker deliberately freezes an agent | Accepted as fail-safe: a frozen agent is better than a drained one. The owner is alerted and can raise the threshold. | Availability loss until the owner acts |
 | T13 | **Indexer lies or is stale** | The indexer is read-only convenience. Before any owner signature, the web app re-reads the accounts from RPC. The chain enforces everything. | Wrong display, never wrong enforcement |
 | T14 | **Sentinel compromised** | The guardian key can only freeze and reject requests. It cannot unfreeze, pay or change policy. | DoS by freezing |
-| T15 | **Upgrade authority compromised** | Devnet: deployer key kept offline. Pitch/production: timelocked multisig or revoked authority. | Stated openly in the pitch |
+| T15 | **Upgrade authority compromised** | Devnet: the upgrade authority is the deployer key on Parth's laptop (the Solana CLI key), kept out of the repo, with a backup; whoever holds it could replace the program ([ADR](../adr/20261003-ws1-devnet-upgrade-authority.md)). Pitch/production: a timelocked multisig, or a revoked authority. | Stated openly in the pitch |
 | T16 | **Subscriptions program changes** | Pinned to the audited v0.5 line. Leash refuses delegation accounts with `version != 1`. Any semantic change makes the CPI fail (fail closed). | Liveness, not safety |
 | T17 | **Secrets reach the model** | The agent key lives in a file; tools and the MCP server never return key material; logs redact it | None |
 | T18 | **Stored XSS** through labels or memos (owner- or agent-controlled strings) | Render as text only; escape in Telegram messages; zod length limits | None if escaping is tested |

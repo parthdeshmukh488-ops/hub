@@ -71,6 +71,7 @@ When you finish one of these, write a message to the listed sessions ([how](mess
 
 ## Rules added since the briefs were written
 
+- **Four build-time decisions accepted by Parth** (2026-10-03): [RPC retries and fewer round trips](../adr/20261003-ws2-rpc-robustness-on-devnet.md); [Sentinel's rule refinements](../adr/20261003-ws5-sentinel-rule-refinements.md) (WS5 brief updated); [the indexer's snapshot and health](../adr/20261003-ws4-indexer-snapshot-and-health.md) (02 §7.1 updated); [where the devnet upgrade authority is](../adr/20261003-ws1-devnet-upgrade-authority.md) (03-security T15 updated).
 - **Branch per session**, created from the latest `main`: `ws<N>/<slug>`. Push often. When a build step meets its definition of done, ask Parth to merge it into `main`. That merge is also how your messages reach other sessions.
 - **TypeScript is pinned to 6.0.3** and shared versions are pinned in the root `package.json` ([ADR-0006](../adr/0006-monorepo-and-service-stack.md#pinned-versions-ws0-2026-09-29)). Don't bump them in a feature branch.
 - **zod 4 keeps running checks after one fails.** Never write a `refine` that assumes an earlier check passed.
