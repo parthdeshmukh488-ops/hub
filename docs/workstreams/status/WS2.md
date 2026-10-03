@@ -74,6 +74,7 @@
   - `rpcChain`: the first two status polls after 0.5 s, the expiry check from the fourth poll on, and a confirmed transaction the node cannot return yet asked for again after 0.5 s.
   - The facilitator logs the `ms` of each `verify` and `settle` (WS3's `app.ts`), so the laptop can see the settlement's share.
   - Tests: blockhash fetches counted per operation on the testbed; the poll schedule. 260 tests.
+- **Architect, 2026-10-03 (afternoon):** four build-time ADRs written and accepted by Parth, with 03-security T15, 02-contracts §7.1 and the WS5 brief updated; README, deck and judge Q&A brought in line with the devnet runs, the team (Parth, solo), the test counts (985 + 15 browser tests) and the demo video; `pnpm demo` without dead explorer links or a Node deprecation warning; `check-ignored` reads only `.gitignore`. The daily devnet smoke routine (it ran in a cloud session that cannot reach devnet) is paused; re-enable it in the routines list if devnet becomes reachable there.
 - Found for WS3: `@solana-program/memo` 0.15 defaults to the new Memo program `Memo4c2p…`, not the SPL Memo `MemoSq4g…` of the x402 profile (02 §9). Pass `{ programAddress }` explicitly.
 
 ## Next
