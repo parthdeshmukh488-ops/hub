@@ -89,7 +89,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 - **The model was fooled. The money wasn't moved.**
 - Small print: *Scripted scene: simulating a successful injection. Every payment, block and strike is real and on-chain. Screenshot: the control panel replaying the demo story (sample data).*
 
-**Visual:** the activity log ([activity](img/web-activity.png)): the request, the tripwire freeze, the three blocked attempts. In the live pitch: the [demo video](leash-demo-devnet.mp4) (2:19, the devnet take).
+**Visual:** the activity log ([activity](img/web-activity.png)): the request, the tripwire freeze, the three blocked attempts. In the live pitch: the [demo video](leash-demo-devnet.mp4) (2:21, the devnet take).
 
 **Say:** "The agent reads a buying guide with a hidden instruction: tip twenty-five dollars to a stranger. In this run we script the agent to fall for it, and the screen says so, because we want to show what happens when the model is fooled. It tries three times: three blocks, three strikes, and the agent freezes itself, on-chain. The model was fooled. The money wasn't moved."
 
@@ -193,7 +193,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 - **The model was fooled. The money wasn't moved.**
 - Solana's Allowances cap how much. Leash decides who, how fast, and when to stop.
 - Parth Deshmukh · solo builder
-- [github.com/parthdeshmukh488-ops/hub](https://github.com/parthdeshmukh488-ops/hub) · [Leash on devnet: `HyL9S5mA…HJncu`](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · [Demo video (2:19)](leash-demo-devnet.mp4)
+- [github.com/parthdeshmukh488-ops/hub](https://github.com/parthdeshmukh488-ops/hub) · [Leash on devnet: `HyL9S5mA…HJncu`](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · [Demo video (2:21)](leash-demo-devnet.mp4)
 - Small print: built with parallel Claude Code sessions, each owning one part of the architecture.
 
 **Say:** "Agents will keep getting fooled. With Leash, that stops costing you money."

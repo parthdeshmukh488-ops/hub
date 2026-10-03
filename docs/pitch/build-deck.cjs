@@ -798,7 +798,7 @@ async function main() {
         label: "Leash on devnet: HyL9S5mA…HJncu",
         url: "https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet",
       },
-      { icon: I.video, label: "Demo video (2:19)", url: "https://github.com/parthdeshmukh488-ops/hub/blob/main/docs/pitch/leash-demo-devnet.mp4" },
+      { icon: I.video, label: "Demo video (2:21)", url: "https://github.com/parthdeshmukh488-ops/hub/blob/main/docs/pitch/leash-demo-devnet.mp4" },
     ];
     links.forEach((l, i) => {
       const x = 0.6 + i * 3.0;
