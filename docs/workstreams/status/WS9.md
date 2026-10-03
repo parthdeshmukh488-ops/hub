@@ -2,9 +2,20 @@
 
 - Session branch: `claude/determined-faraday-9rk16e` (Parth's second Claude account, cloud)
 - Task D session branch: `claude/compassionate-keller-5rmytv` (second account, cloud)
-- Last updated: 2026-10-02
+- Final-polish branch: `ws9/final-polish-jx1vpt` (cloud, 2026-10-03)
+- Last updated: 2026-10-03
 - Current build step: Task B's writing is done (README v1, the deck and its PDF, demo script, judge Q&A, video storyboard); next: Parth's placeholders, then keeping it all true as parts ship
 - Messages handled: through `20261001-1715-from-architect-to-ws9-pr1-review.md` (on the architect's branch until its next merge; it reviews PR #1). That includes the second account's [work queue](../messages/20261001-1200-from-architect-to-second-account-work-queue.md); this session is its Task B.
+
+## Final polish (2026-10-03)
+
+Parth's list, in order; each item is pushed on its own so the PR is mergeable after any of them. Lanes: `e2e/**`, `apps/agent-demo/**`, `packages/x402/src/testing/**`, `README.md`, `LICENSE`, `docs/pitch/**`, the root `demo` alias, `apps/web/**` (not the Actions or server actions), status files WS6, WS7, WS9. No program changes, no new env variables.
+
+1. **`pnpm demo`: done.** `e2e/src/demo.ts` plays the whole storyline in the terminal on the e2e stack, which moved to `e2e/src/stack.ts` (the storyline test uses it too). It opens with "Local test chain (LiteSVM) running the real Leash program. Not devnet. The owner's approval is simulated."; Sentinel's alerts print as `alert:` lines; the simulated owner approves after the approval alert, and says so on screen. Root alias `"demo": "tsx e2e/src/demo.ts"` (the one root `package.json` edit). Smoke test `e2e/test/demo.test.ts`: honest line first, three scenes end normally, both alerts, the tripwire banner, 1.57 USDC to the merchant and 0 to the attacker.
+2. Demo replay robustness (WS7): next.
+3. Facilitator settlements through the testbed chain.
+4. README, deck and pitch documents, LICENSE.
+5. Landing page `/`.
 
 ## Pass 2: the story matches main (2026-10-02)
 
