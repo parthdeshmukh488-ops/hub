@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRequests } from "../data/hooks.ts";
 import { useLive } from "../live/live-provider.tsx";
+import { ConnectButton } from "../wallet/connect-button.tsx";
 import { cn } from "./cn.ts";
 import { ThemeToggle } from "./theme-toggle.tsx";
 
@@ -11,10 +12,11 @@ const LINKS = [
   { href: "/app", label: "Overview" },
   { href: "/app/activity", label: "Activity" },
   { href: "/app/approvals", label: "Approvals" },
+  { href: "/app/settings", label: "Settings" },
 ] as const;
 
 const STATUS = {
-  sample: { label: "Sample data · read-only", dot: "bg-fg-muted" },
+  sample: { label: "Sample data", dot: "bg-fg-muted" },
   connecting: { label: "Connecting…", dot: "bg-approval" },
   live: { label: "Live", dot: "bg-ok" },
   reconnecting: { label: "Reconnecting…", dot: "bg-approval" },
@@ -76,6 +78,7 @@ export function AppHeader() {
             {state.label}
           </p>
           <ThemeToggle />
+          <ConnectButton />
         </div>
       </div>
     </header>
