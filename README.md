@@ -2,7 +2,7 @@
 
 **Spending limits and an off switch for AI agents, enforced on Solana.**
 
-[Pitch deck (PDF)](docs/pitch/leash-deck.pdf) · Demo video: in progress · [Leash program on devnet](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · Built for the Superteam Germany Solana Challenge at WHU, October 2026
+[Pitch deck (PDF)](docs/pitch/leash-deck.pdf) · [Demo video (2:19)](docs/pitch/leash-demo-devnet.mp4) · [Leash program on devnet](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · Built for the Superteam Germany Solana Challenge at WHU, October 2026
 
 ![The Leash control panel after an attack: the Research Assistant agent froze itself after three blocked 25 USDC payments to an unknown wallet](docs/pitch/img/web-overview.png)
 <sub>The Leash control panel replaying the demo story (sample data). The agent tried to pay an unknown wallet three times, was blocked each time, and froze itself.</sub>
@@ -86,7 +86,7 @@ As of October 3, 2026. 985 automated tests (857 TypeScript, 128 Rust) run on eve
 | The whole story in one test, and in one command | Done | Agent → x402 merchant → official facilitator → program → indexer → Sentinel, in process on LiteSVM, on every commit ([e2e/](e2e/README.md)). `pnpm demo` shows the same story on the demo agent's screen. |
 | Security CI job | Done | Runs the invariant tests of the [security model](docs/architecture/03-security.md#3-invariant-tests) by name, I1 to I6, policy parity and x402. It fails if a renamed test drops out. |
 | The whole pitch story on devnet | Done: a rehearsal take on Oct 3, 2026 | Five x402 payments, a 1.50 USDC payment the owner approved (from the terminal), and three blocked attempts that froze the agent, with the indexer and Sentinel following live and the alerts on Parth's phone ([report](docs/workstreams/messages/20261003-1050-from-ws1-to-all-storyline-passes-on-devnet.md)). The first x402 payment through Leash on devnet: [explorer](https://explorer.solana.com/tx/3v4TaKJ6d3H5oaDMJGX16nU2qfk81sPVikRh8d7u8c5bccHTH8ftZGHU4qbMVudKQSWUYuFnLKtL7CmiwPB8drZE?cluster=devnet). |
-| The demo video | Recorded; the link follows | 2:03, narrated. The agent's screen is replayed from the second devnet take (Oct 3), line by line at its real timing, with the owner's wait at 4× and labelled. Parth's phone shows Sentinel's real Telegram alerts from that take. Two cards show the approved payment and the tripwire freeze as read from devnet. The control panel shots are sample data of the same story, labelled ([report](docs/workstreams/messages/20261003-1145-from-ws1-to-all-video-done-and-what-remains.md)). |
+| The demo video | **Done:** [watch it](docs/pitch/leash-demo-devnet.mp4) | 2:19, narrated ([script](docs/pitch/demo-video-narration.md)). The agent's screen is replayed from the second devnet take (Oct 3), line by line at its real timing, with the owner's wait at 4× and labelled. Parth's phone shows Sentinel's real Telegram alerts from that take. Two cards show the approved payment and the tripwire freeze as read from devnet. The control panel shots are sample data of the same story, labelled ([report](docs/workstreams/messages/20261003-1145-from-ws1-to-all-video-done-and-what-remains.md)). |
 | Demo agent with a live Claude model, recorded | In progress | |
 
 ## Security model
@@ -168,7 +168,7 @@ For the devnet demo, `pnpm devnet:check` checks the Subscriptions program and th
 | [`apps/`](apps/) | Web control panel, demo agent, demo merchants and attack lab |
 | [`docs/architecture/`](docs/architecture/00-overview.md) | System design, program spec, contracts, security model, conventions |
 | [`docs/adr/`](docs/adr/README.md) | Architecture decisions |
-| [`docs/pitch/`](docs/pitch/deck.md) | The pitch: the deck ([PDF](docs/pitch/leash-deck.pdf), [PowerPoint](docs/pitch/leash-deck.pptx), [slide by slide](docs/pitch/deck.md)), the [demo script](docs/pitch/demo-script.md), [judge Q&A](docs/pitch/judge-qa.md) and [video storyboard](docs/pitch/video-storyboard.md) |
+| [`docs/pitch/`](docs/pitch/deck.md) | The pitch: the deck ([PDF](docs/pitch/leash-deck.pdf), [PowerPoint](docs/pitch/leash-deck.pptx), [slide by slide](docs/pitch/deck.md)), the [demo script](docs/pitch/demo-script.md), [judge Q&A](docs/pitch/judge-qa.md), [video storyboard](docs/pitch/video-storyboard.md), and the [demo video](docs/pitch/leash-demo-devnet.mp4) with its [narration](docs/pitch/demo-video-narration.md) |
 | [`docs/workstreams/`](docs/workstreams/README.md) | How the build is split, and where each part stands |
 
 ## How it was built
