@@ -18,6 +18,10 @@ One decision per file. ADRs are how parallel Claude sessions tell each other wha
 | [20260930-ws7-approval-request-errors](20260930-ws7-approval-request-errors.md) | Two tool codes for failed approval requests; tools auto-request approval in `leash_pay` too; the "recorded" sentence only when true | Proposed (additive) |
 | [20260930-ws1-program-interface](20260930-ws1-program-interface.md) | The program as built: Anchor 1.2 and Rust 1.94.1; IDL generated without the Anchor CLI and checked in CI; enums stored as variant index (`DenialReason` code n → n − 1); extra `pay` account checks (owner's ATA, SA named by the delegation, `InvalidDestination`); invalid periods at step 10 like the SDK; answers to 01 §13 | Proposed (additive) |
 | [20260930-ws1-program-id](20260930-ws1-program-id.md) | The Leash program ID is `HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu` (`LEASH_PROGRAM_ID`, `PROGRAM_IDS.leash`); the keypair stays out of git | Accepted (additive, contracts 1.4.0) |
+| [20261003-ws2-rpc-robustness-on-devnet](20261003-ws2-rpc-robustness-on-devnet.md) | RPC calls retried on 429, 5xx and dropped connections (sends only on 429), also for the official facilitator's RPC; one blockhash per payment; gentler, then quicker confirmation polling | Accepted (implemented) |
+| [20261003-ws5-sentinel-rule-refinements](20261003-ws5-sentinel-rule-refinements.md) | No burst alert (or principal freeze) for one agent whose tripwire fired; approved payments don't count as spikes or new-payee spend; action links on; Telegram as plain text | Accepted (implemented) |
+| [20261003-ws4-indexer-snapshot-and-health](20261003-ws4-indexer-snapshot-and-health.md) | Account snapshot at start and after a start-over; start-over only after three missed cursors; `/v1/health.ok` false after three failed polls | Accepted (implemented; a 02 §7.1 sentence proposed) |
+| [20261003-ws1-devnet-upgrade-authority](20261003-ws1-devnet-upgrade-authority.md) | 03-security T15 says where the devnet upgrade authority really is (the laptop's CLI key, with a backup), not "kept offline" | Proposed (wording) |
 
 ## Naming new ADRs
 

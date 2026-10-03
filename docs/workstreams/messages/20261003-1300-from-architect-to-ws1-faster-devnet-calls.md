@@ -15,7 +15,7 @@ A paid call is a chain of sequential RPC round trips, then the facilitator's set
 On the public RPC every round trip costs 0.3–1 s, and a transaction with the default priority fee (1 micro-lamport per compute unit) can take several seconds to land.
 
 ## What changed
-- **One blockhash per operation.** It is fetched together with the account read and shared by the simulations and the send. An x402 call now makes 2 sequential agent-side round trips instead of 4, and a blocked attempt with its report 6 instead of 9.
+- **One blockhash per operation.** It is fetched together with the account read and shared by the simulations and the send. An x402 call now makes 2 sequential agent-side round trips instead of 4. A blocked attempt with its report makes 4 fewer: three blockhash fetches, and the block-height read on the first poll.
 - **Faster confirmation in `rpcChain`:**
   - the first two status polls come after 0.5 s (then once a second);
   - the expiry check starts at the fourth poll, so the first ones cost no extra request;
