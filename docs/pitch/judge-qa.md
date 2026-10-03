@@ -31,7 +31,7 @@ The Leash program is deployed on devnet, byte for byte the binary our tests run.
 **How do you know the program does what the spec says?**
 - 60 shared policy test cases give the same result in TypeScript, in Rust, and in LiteSVM on the exact program binary deployed on devnet.
 - Further tests cover the invariants, random payment sequences that never exceed the allowance, and every account in `pay` swapped for a plausible wrong one.
-- 964 automated tests run on every commit (836 TypeScript, 128 Rust), and the web app has 15 browser tests, 8 of them on the real program in LiteSVM. A separate security job runs the invariant tests by name, and fails if one drops out.
+- 985 automated tests run on every commit (857 TypeScript, 128 Rust), and the web app has 15 browser tests, 8 of them on the real program in LiteSVM. A separate security job runs the invariant tests by name, and fails if one drops out.
 - One test runs the whole demo story through the whole system: agent, x402, the official facilitator, the program, the indexer and Sentinel. `pnpm demo` shows the same run on screen, in one command, with no chain to set up.
 
 *([WS1 status](../workstreams/status/WS1.md), [security §3](../architecture/03-security.md#3-invariant-tests), [WS9 status](../workstreams/status/WS9.md), [e2e](../../e2e/README.md))*

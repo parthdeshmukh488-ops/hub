@@ -67,7 +67,7 @@ Full design: [architecture overview](docs/architecture/00-overview.md) and [prog
 
 ## What works today
 
-As of October 3, 2026. 964 automated tests (836 TypeScript, 128 Rust) run on every commit, and a separate security job runs the security model's invariant tests by name. The web app also has 15 browser tests (Playwright), 8 of them on the real program in LiteSVM.
+As of October 3, 2026. 985 automated tests (857 TypeScript, 128 Rust) run on every commit, and a separate security job runs the security model's invariant tests by name. The web app also has 15 browser tests (Playwright), 8 of them on the real program in LiteSVM.
 
 | Part | State | How we know |
 | --- | --- | --- |
@@ -82,7 +82,7 @@ As of October 3, 2026. 964 automated tests (836 TypeScript, 128 Rust) run on eve
 | Sentinel: alerts and the guardian's autofreeze | Done | Seven alert rules, tested on the demo story. The Telegram messages are tested against a fake Bot API: plain text, and labels and memos can't inject links or markup. The guardian freezes only when allowed and when the on-chain guardian is its key: tested on the real program in LiteSVM. |
 | Telegram alerts on a real phone | Done | Sentinel's alerts reached Parth's phone through the bot. On a local validator, a burst of blocked payments made the guardian freeze all agents, end to end ([report](docs/workstreams/messages/20261003-0945-from-ws1-to-ws5-sentinel-alerts-and-guardian-freeze.md)). |
 | Solana Actions (Blinks): approve, reject, freeze, freeze all | Done | The server returns an unsigned transaction; the owner's wallet signs it. Each is tested on the real program: the right signer succeeds, a wrong one is refused on-chain. Sentinel's alerts link to them. |
-| Control panel: pairing, approve, freeze, unfreeze | Done | The owner's wallet signs each action (PR #5): 117 unit tests, plus 14 Playwright browser tests, 8 of them live on the real program in LiteSVM. On devnet, approving from the web app with a real wallet is part of the recording (below). |
+| Control panel: pairing, approve, freeze, unfreeze | Done | The owner's wallet signs each action (PR #5): 117 unit tests, plus 15 Playwright browser tests, 8 of them live on the real program in LiteSVM. On devnet, approving from the web app with a real wallet is part of the recording (below). |
 | The whole story in one test, and in one command | Done | Agent → x402 merchant → official facilitator → program → indexer → Sentinel, in process on LiteSVM, on every commit ([e2e/](e2e/README.md)). `pnpm demo` shows the same story on the demo agent's screen. |
 | Security CI job | Done | Runs the invariant tests of the [security model](docs/architecture/03-security.md#3-invariant-tests) by name, I1 to I6, policy parity and x402. It fails if a renamed test drops out. |
 | The whole pitch story on devnet | Done: a rehearsal take on Oct 3, 2026 | Five x402 payments, a 1.50 USDC payment the owner approved (from the terminal), and three blocked attempts that froze the agent, with the indexer and Sentinel following live and the alerts on Parth's phone ([report](docs/workstreams/messages/20261003-1050-from-ws1-to-all-storyline-passes-on-devnet.md)). The first x402 payment through Leash on devnet: [explorer](https://explorer.solana.com/tx/3v4TaKJ6d3H5oaDMJGX16nU2qfk81sPVikRh8d7u8c5bccHTH8ftZGHU4qbMVudKQSWUYuFnLKtL7CmiwPB8drZE?cluster=devnet). |
@@ -129,7 +129,7 @@ It runs the real Leash program on a local test chain (LiteSVM), not devnet, and 
 **Run the tests, no chain needed.** LiteSVM runs the real program binaries in process.
 
 ```bash
-pnpm test        # 836 TypeScript tests
+pnpm test        # 857 TypeScript tests
 cargo test       # 128 Rust tests (Rust 1.98.1, pinned in rust-toolchain.toml)
 pnpm --filter @leash/e2e test   # the whole demo story through the whole system, about 5 s
 ```

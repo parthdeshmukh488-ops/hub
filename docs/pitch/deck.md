@@ -144,7 +144,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 | Solana Actions (Blinks): approve or freeze from a link | |
 | A security CI job runs the invariant tests by name | |
 
-- **964** automated tests, run on every commit: 836 TypeScript · 128 Rust.
+- **985** automated tests, run on every commit: 857 TypeScript · 128 Rust.
 
 **Say:** "Everything on the left runs today, and you can check it: the repo is public, and the tests run without a chain. The right column is what we're finishing this week."
 
@@ -216,8 +216,8 @@ Checked on October 2, 2026. Update this table whenever a number on a slide chang
 | Claude Code connects to the MCP server | [WS7 status](../workstreams/status/WS7.md) |
 | The whole scripted story ran end to end on a local validator | [Laptop run, Oct 1](../workstreams/messages/20261001-0105-from-ws1-to-all-x402-and-demo-agent-on-a-real-chain.md), [re-check](../workstreams/messages/20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md) |
 | The control panel updates live from the indexer's stream (storyline replay, and the indexer following a local validator) | [WS6 status](../workstreams/status/WS6.md), [laptop run](../workstreams/messages/20261001-0130-from-ws1-to-ws4-indexer-chain-mode-on-a-real-chain.md) |
-| 964 automated tests: 836 TypeScript, 128 Rust | `pnpm test` and `cargo test` on `main` with PR #5, plus PR #6 (`pnpm demo`, replay checks), Oct 3, 2026 |
-| Web app: 117 unit tests, 14 browser tests (8 live on LiteSVM) | PR #5 and [WS6 status](../workstreams/status/WS6.md), Oct 3, 2026 |
+| 985 automated tests: 857 TypeScript, 128 Rust | `pnpm test` and `cargo test` on `main`, Oct 3, 2026 (after the devnet speed and retry work) |
+| Web app: 117 unit tests, 15 browser tests (8 live on LiteSVM) | PR #5 and [WS6 status](../workstreams/status/WS6.md), Oct 3, 2026 |
 | Sentinel's alerts and the guardian's autofreeze; Telegram messages tested against a fake Bot API | [WS5 status](../workstreams/status/WS5.md), [services/sentinel](../../services/sentinel/README.md) |
 | Solana Actions (Blinks): approve, reject, freeze, freeze all; each tested on the real program, a wrong signer refused on-chain | [WS6 Actions status](../workstreams/status/WS6-actions.md) |
 | The whole story in one test: agent, x402, facilitator, program, indexer, Sentinel | [e2e/README.md](../../e2e/README.md), [WS9 status](../workstreams/status/WS9.md) |

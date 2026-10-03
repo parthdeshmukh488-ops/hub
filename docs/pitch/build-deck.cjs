@@ -618,9 +618,9 @@ async function main() {
       y += h + 0.14;
     }
     card(s, 6.2, 3.35, 3.2, 1.35);
-    text(s, "964", 6.45, 3.5, 2.8, 0.6, { size: 36, bold: true, color: C.brand, valign: "middle" });
+    text(s, "985", 6.45, 3.5, 2.8, 0.6, { size: 36, bold: true, color: C.brand, valign: "middle" });
     text(s, "automated tests, run on every commit", 6.45, 4.1, 2.8, 0.25, { size: 11 });
-    text(s, "836 TypeScript · 128 Rust", 6.45, 4.36, 2.8, 0.22, { size: 10, color: C.muted });
+    text(s, "857 TypeScript · 128 Rust", 6.45, 4.36, 2.8, 0.22, { size: 10, color: C.muted });
     s.addNotes(
       "Everything on the left runs today, and you can check it: the repo is public, and the tests run without a chain. The right column is what we're finishing this week.",
     );
