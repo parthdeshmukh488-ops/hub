@@ -50,11 +50,11 @@ The laptop session also runs what needs a real chain for the other workstreams (
 | # | Item | Localnet | Devnet |
 | --- | --- | --- | --- |
 | 1 | Fund the demo keys | not needed | **Done** 2026-10-03: owner-demo 1 SOL and 20 USDC, agent 0.5, guardian 0.2, facilitator 1 |
-$1 Setup passed; the smoke test's steps all passed but no run finished: the public RPC answers 429 ([message](../messages/20261003-1015-from-ws1-to-all-devnet-first-run-rate-limited.md)) |
-| 3 | Indexer chain mode | Passed: backfill, live, restart ([message](../messages/20261001-0130-from-ws1-to-ws4-indexer-chain-mode-on-a-real-chain.md)) | Read only: 40 s of polling at 2 s, no warnings. Events wait for item 1. |
-$1 **Passed** 2026-10-03 (same message) |
-| 5 | `demo:all -- --scripted` | Passed twice. So did `runaway` and the MCP server over stdio (same message). | Waits for items 2 and 4. LLM mode needs Parth's `ANTHROPIC_API_KEY`. |
-| 6 | Sentinel and Telegram | Passed: the alerts reach Parth's phone; the guardian freeze works ([message](../messages/20261003-0945-from-ws1-to-ws5-sentinel-alerts-and-guardian-freeze.md)) | Waits for item 1 |
+| 2 | `devnet:setup`, `devnet:smoke` | Passed ([message](../messages/20260930-1713-from-ws1-to-ws2-rpcchain-first-real-run.md)) | Setup passed. Every step of the smoke test passed, but no run finished: the public RPC answers 429 ([message](../messages/20261003-1015-from-ws1-to-all-devnet-first-run-rate-limited.md)) |
+| 3 | Indexer chain mode | Passed: backfill, live, restart ([message](../messages/20261001-0130-from-ws1-to-ws4-indexer-chain-mode-on-a-real-chain.md)) | Read only: 40 s of polling at 2 s, no warnings. Events wait for a dedicated RPC. |
+| 4 | `x402:smoke` through `services/facilitator` | Passed, since `2e4e045` with the repo's own code ([first run](../messages/20261001-0105-from-ws1-to-all-x402-and-demo-agent-on-a-real-chain.md), [re-check](../messages/20261001-1225-from-ws1-to-all-fixes-rechecked-on-a-real-validator.md)) | **Passed** 2026-10-03 ([message](../messages/20261003-1015-from-ws1-to-all-devnet-first-run-rate-limited.md)) |
+| 5 | `demo:all -- --scripted` | Passed twice. So did `runaway` and the MCP server over stdio (same message). | Waits for a dedicated RPC (item 2). LLM mode needs Parth's `ANTHROPIC_API_KEY`. |
+| 6 | Sentinel and Telegram | Passed: the alerts reach Parth's phone; the guardian freeze works ([message](../messages/20261003-0945-from-ws1-to-ws5-sentinel-alerts-and-guardian-freeze.md)) | Waits for a dedicated RPC |
 | 7 | The full demo and its recording | n/a | Oct 3–4 |
 
 A run order that works:
