@@ -1,6 +1,6 @@
 # On devnet, RPC calls are retried with backoff, and a payment makes as few round trips as it can
 
-- Status: Accepted (implemented, on `main`)
+- Status: Proposed (implemented, on `main`)
 - Date: 2026-10-03
 - Workstream: WS2 (one line each in WS3's `services/facilitator` and `packages/x402`)
 - Contract change: no. The SDK gains `createRetryingSolanaRpc`, `retryingTransport` and `PreparedPaymentResult.lifetime`; nothing is removed.

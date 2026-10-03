@@ -1,6 +1,6 @@
 # The indexer starts from an account snapshot, starts over only after three missed cursors, and its health says whether it can make progress
 
-- Status: Accepted (implemented, on `main`; the 02 §7.1 sentence below is proposed)
+- Status: Proposed (implemented, on `main`; the 02 §7.1 sentence is new)
 - Date: 2026-10-03 (recorded by the architect; built in WS4's steps 2–4 and Task E)
 - Workstream: WS4
 - Contract change: a clarification of `/v1/health.ok` in 02-contracts. Same fields, same types.
