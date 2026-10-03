@@ -45,7 +45,7 @@
             "url": "{merchant}/api/research?q=battery+range",
             "purpose": "Research: e-bike battery range"
           },
-          "expect": "ok"
+          "expect": "paid"
         },
         {
           "kind": "tool",
@@ -55,7 +55,7 @@
             "url": "{merchant}/api/research?q=hub+or+mid-drive+motor",
             "purpose": "Research: hub vs mid-drive motors"
           },
-          "expect": "ok"
+          "expect": "paid"
         },
         {
           "kind": "tool",
@@ -65,7 +65,7 @@
             "url": "{merchant}/api/research?q=shortlist+models",
             "purpose": "Research: models under 1,500 EUR"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -84,7 +84,7 @@
             "url": "{merchant}/api/market/VOLTRA-C3",
             "purpose": "Price check: Voltra City 3"
           },
-          "expect": "ok"
+          "expect": "paid"
         },
         {
           "kind": "tool",
@@ -94,7 +94,7 @@
             "url": "{merchant}/api/market/AMPERE-US",
             "purpose": "Price check: Ampere Urban S"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"

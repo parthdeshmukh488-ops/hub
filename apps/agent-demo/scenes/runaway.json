@@ -20,7 +20,7 @@
             "url": "{merchant}/lab/loop?page=1",
             "purpose": "Data set: page 1"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -35,7 +35,7 @@
             "url": "{merchant}/lab/loop?page=2",
             "purpose": "Data set: page 2"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -50,7 +50,7 @@
             "url": "{merchant}/lab/loop?page=3",
             "purpose": "Data set: page 3"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -65,7 +65,7 @@
             "url": "{merchant}/lab/loop?page=4",
             "purpose": "Data set: page 4"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -80,7 +80,7 @@
             "url": "{merchant}/lab/loop?page=5",
             "purpose": "Data set: page 5"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -95,7 +95,7 @@
             "url": "{merchant}/lab/loop?page=6",
             "purpose": "Data set: page 6"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -110,7 +110,7 @@
             "url": "{merchant}/lab/loop?page=7",
             "purpose": "Data set: page 7"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -125,7 +125,7 @@
             "url": "{merchant}/lab/loop?page=8",
             "purpose": "Data set: page 8"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -140,7 +140,7 @@
             "url": "{merchant}/lab/loop?page=9",
             "purpose": "Data set: page 9"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -155,7 +155,7 @@
             "url": "{merchant}/lab/loop?page=10",
             "purpose": "Data set: page 10"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -170,7 +170,7 @@
             "url": "{merchant}/lab/loop?page=11",
             "purpose": "Data set: page 11"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -189,7 +189,7 @@
             "url": "{merchant}/lab/loop?page=12",
             "purpose": "Data set: page 12"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -204,7 +204,7 @@
             "url": "{merchant}/lab/loop?page=13",
             "purpose": "Data set: page 13"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -219,7 +219,7 @@
             "url": "{merchant}/lab/loop?page=14",
             "purpose": "Data set: page 14"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -234,7 +234,7 @@
             "url": "{merchant}/lab/loop?page=15",
             "purpose": "Data set: page 15"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -249,7 +249,7 @@
             "url": "{merchant}/lab/loop?page=16",
             "purpose": "Data set: page 16"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -264,7 +264,7 @@
             "url": "{merchant}/lab/loop?page=17",
             "purpose": "Data set: page 17"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -279,7 +279,7 @@
             "url": "{merchant}/lab/loop?page=18",
             "purpose": "Data set: page 18"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -294,7 +294,7 @@
             "url": "{merchant}/lab/loop?page=19",
             "purpose": "Data set: page 19"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -309,7 +309,7 @@
             "url": "{merchant}/lab/loop?page=20",
             "purpose": "Data set: page 20"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -324,7 +324,7 @@
             "url": "{merchant}/lab/loop?page=21",
             "purpose": "Data set: page 21"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -339,7 +339,7 @@
             "url": "{merchant}/lab/loop?page=22",
             "purpose": "Data set: page 22"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -354,7 +354,7 @@
             "url": "{merchant}/lab/loop?page=23",
             "purpose": "Data set: page 23"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -369,7 +369,7 @@
             "url": "{merchant}/lab/loop?page=24",
             "purpose": "Data set: page 24"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -384,7 +384,7 @@
             "url": "{merchant}/lab/loop?page=25",
             "purpose": "Data set: page 25"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -399,7 +399,7 @@
             "url": "{merchant}/lab/loop?page=26",
             "purpose": "Data set: page 26"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -414,7 +414,7 @@
             "url": "{merchant}/lab/loop?page=27",
             "purpose": "Data set: page 27"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -429,7 +429,7 @@
             "url": "{merchant}/lab/loop?page=28",
             "purpose": "Data set: page 28"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -444,7 +444,7 @@
             "url": "{merchant}/lab/loop?page=29",
             "purpose": "Data set: page 29"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"
@@ -459,7 +459,7 @@
             "url": "{merchant}/lab/loop?page=30",
             "purpose": "Data set: page 30"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use"

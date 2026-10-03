@@ -150,4 +150,17 @@ describe("recording and replay", () => {
     expect(outcomeOf('{"ok":false,"error":"x"}')).toBe("error");
     expect(outcomeOf("not json")).toBe("error");
   });
+
+  it("tells a paid fetch from a free or failed one", () => {
+    const paid = '{"ok":true,"status":200,"payment":{"signature":"s"}}';
+    expect(outcomeOf(paid, "leash_fetch")).toBe("paid");
+    expect(outcomeOf('{"ok":true,"status":200,"payment":null}', "leash_fetch")).toBe("ok");
+    expect(outcomeOf('{"ok":true,"status":500,"payment":null}', "leash_fetch")).toBe("http_500");
+    expect(outcomeOf('{"ok":true,"status":502,"payment":{"signature":"s"}}', "leash_fetch")).toBe(
+      "http_502",
+    );
+    // Other tools keep `ok`: a browse that meets a 402 is the expected answer.
+    expect(outcomeOf('{"ok":true,"status":402}', "browse")).toBe("ok");
+    expect(outcomeOf(paid, "leash_pay")).toBe("ok");
+  });
 });

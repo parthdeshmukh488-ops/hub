@@ -27,7 +27,12 @@ export function loadScene(scene: SceneId): Recording {
  * The whole demo in process: merchant-demo (WS8, lab included) with payments on, the official x402
  * facilitator, and the agent's real tools, on the real program in LiteSVM. The screen is captured.
  */
-export async function demoBed() {
+export async function demoBed(
+  options: {
+    /** Answers a merchant request instead of merchant-demo, or null to let it through. */
+    intercept?: (request: Request) => Response | null;
+  } = {},
+) {
   const bed = await createTestbed();
   const content = loadContent();
   const app = createApp(
@@ -42,8 +47,10 @@ export async function demoBed() {
     },
     content,
   );
-  const fetch = async (input: string | URL | Request, init?: RequestInit) =>
-    app.fetch(new Request(input, init));
+  const fetch = async (input: string | URL | Request, init?: RequestInit) => {
+    const request = new Request(input, init);
+    return options.intercept?.(request) ?? app.fetch(request);
+  };
   const cluster = resolveClusterConfig("localnet", { usdcMint: bed.mint });
   const runtime = connectLeash({
     cluster,

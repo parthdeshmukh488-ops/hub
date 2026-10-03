@@ -32,6 +32,8 @@ Each scene script starts with a disclosure shown on screen, so the demo never cl
 
 A replay also stops by itself ("A live result differs from the script") if a tool returns something the script did not expect. For example: the owner declines the approval, or devnet is too slow to hit the rate limit. The screen then never shows an answer written for another outcome.
 
+A `leash_fetch` step that should pay expects `paid` in the script: if the merchant answers free, or with an HTTP status of 400 or above, the replay stops the same way, and the screen marks a status of 400 or above with ✗, never ✓. (Older recordings that expect `ok` of a paid fetch still replay; a failed status stops them too.)
+
 ## Scenes
 
 | Scene | Task (to a research assistant) | What happens on-chain |

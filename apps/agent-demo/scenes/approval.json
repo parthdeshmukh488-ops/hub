@@ -48,7 +48,7 @@
             "url": "{merchant}/api/reports/premium?topic=e-bikes",
             "purpose": "Premium report: 2026 e-bike comparison"
           },
-          "expect": "ok"
+          "expect": "paid"
         }
       ],
       "stop": "tool_use",

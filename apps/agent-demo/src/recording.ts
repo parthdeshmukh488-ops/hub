@@ -54,15 +54,31 @@ function replaceStrings<T>(value: T, from: string, to: string): T {
   return value;
 }
 
-/** `ok`, or the tool error's code: what a script expects of a tool call. */
-export function outcomeOf(content: string): string {
+/**
+ * What a script expects of a tool call: `ok`, or the tool error's code. A `leash_fetch` that paid
+ * is `paid`, and one whose HTTP status is 400 or above is `http_<status>`, so a script step that
+ * should pay stops the replay when the merchant answers free or fails.
+ */
+export function outcomeOf(content: string, tool?: string): string {
   try {
-    const output = JSON.parse(content) as { ok?: unknown; code?: unknown };
-    return output.ok === true ? "ok" : typeof output.code === "string" ? output.code : "error";
+    const output = JSON.parse(content) as {
+      ok?: unknown;
+      code?: unknown;
+      status?: unknown;
+      payment?: unknown;
+    };
+    if (output.ok !== true) return typeof output.code === "string" ? output.code : "error";
+    if (tool !== "leash_fetch") return "ok";
+    if (typeof output.status === "number" && output.status >= 400) return `http_${output.status}`;
+    return output.payment ? "paid" : "ok";
   } catch {
     return "error";
   }
 }
+
+/** Recordings made before `paid` existed expect `ok` of a paid fetch; that still matches. */
+const matches = (actual: string, expected: string) =>
+  actual === expected || (expected === "ok" && actual === "paid");
 
 /**
  * Plays a recording's turns in order, then ends the turn. If a live tool result differs from what
@@ -88,8 +104,8 @@ export function replayModel(recording: Recording, options: { merchant: string })
           const previous = turns[index - 1]?.steps ?? [];
           for (const result of results) {
             const step = previous.find((s) => s.kind === "tool" && s.id === result.id);
-            const expected = step?.kind === "tool" ? step.expect : undefined;
-            if (expected !== undefined && outcomeOf(result.content) !== expected) {
+            if (step?.kind !== "tool" || step.expect === undefined) continue;
+            if (!matches(outcomeOf(result.content, step.name), step.expect)) {
               return { steps: [], stop: "diverged" };
             }
           }
@@ -124,7 +140,8 @@ export function recordingModel(
             // The results of the last turn's calls become what a replay expects of them.
             for (const step of turns.at(-1)?.steps ?? []) {
               const result = step.kind === "tool" && results.find((r) => r.id === step.id);
-              if (result && step.kind === "tool") step.expect = outcomeOf(result.content);
+              if (result && step.kind === "tool")
+                step.expect = outcomeOf(result.content, step.name);
             }
             return keep(inner.next(results, note, context), context?.ownerApproved === true);
           },

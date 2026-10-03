@@ -12,7 +12,7 @@
 Parth's list, in order; each item is pushed on its own so the PR is mergeable after any of them. Lanes: `e2e/**`, `apps/agent-demo/**`, `packages/x402/src/testing/**`, `README.md`, `LICENSE`, `docs/pitch/**`, the root `demo` alias, `apps/web/**` (not the Actions or server actions), status files WS6, WS7, WS9. No program changes, no new env variables.
 
 1. **`pnpm demo`: done.** `e2e/src/demo.ts` plays the whole storyline in the terminal on the e2e stack, which moved to `e2e/src/stack.ts` (the storyline test uses it too). It opens with "Local test chain (LiteSVM) running the real Leash program. Not devnet. The owner's approval is simulated."; Sentinel's alerts print as `alert:` lines; the simulated owner approves after the approval alert, and says so on screen. Root alias `"demo": "tsx e2e/src/demo.ts"` (the one root `package.json` edit). Smoke test `e2e/test/demo.test.ts`: honest line first, three scenes end normally, both alerts, the tripwire banner, 1.57 USDC to the merchant and 0 to the attacker.
-2. Demo replay robustness (WS7): next.
+2. **Demo replay robustness (WS7): done.** Details in [WS7's status](WS7.md#demo-replay-robustness-2026-10-03-final-polish-session-pr-6): scripts expect `paid`, an unpaid or ≥ 400 answer stops the replay, the screen never shows ✓ for ≥ 400; tested on LiteSVM with a merchant answering 500 and answering free.
 3. Facilitator settlements through the testbed chain.
 4. README, deck and pitch documents, LICENSE.
 5. Landing page `/`.
