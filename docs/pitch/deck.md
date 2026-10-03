@@ -197,7 +197,6 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 - Solana's Allowances cap how much. Leash decides who, how fast, and when to stop.
 - Parth Deshmukh · solo builder
 - [github.com/parthdeshmukh488-ops/hub](https://github.com/parthdeshmukh488-ops/hub) · [Leash on devnet: `HyL9S5mA…HJncu`](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · [Demo video (2:21, YouTube)](https://youtu.be/dsJoAv4XV_8) ([MP4](leash-demo-devnet.mp4))
-- Small print: built with parallel Claude Code sessions, each owning one part of the architecture.
 
 **Say:** "Agents will keep getting fooled. With Leash, that stops costing you money."
 

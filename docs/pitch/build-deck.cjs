@@ -823,11 +823,6 @@ async function main() {
         { x: x + 0.36, y: 3.98, w: 2.5, h: 0.3, fontFace: FONT, fontSize: 9.5, margin: 0, valign: "middle", isTextBox: true },
       );
     });
-    text(s, "Built with parallel Claude Code sessions, each owning one part of the architecture.", 0.6, 4.85, 8.8, 0.25, {
-      size: 9,
-      color: C.muted,
-      align: "center",
-    });
     s.addNotes("Agents will keep getting fooled. With Leash, that stops costing you money.");
   }
 

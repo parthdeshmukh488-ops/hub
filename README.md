@@ -177,11 +177,11 @@ For the devnet demo, `pnpm devnet:check` checks the Subscriptions program and th
 
 ## How it was built
 
-Leash was built with parallel Claude Code sessions, each owning one part of the architecture ([docs/workstreams/](docs/workstreams/README.md)). They work from written contracts ([docs/architecture/](docs/architecture/00-overview.md)), record decisions as ADRs ([docs/adr/](docs/adr/README.md)) and hand work to each other through messages. Every "Done" above comes from the status files those sessions keep, and from the tests.
+Leash was built in parallel workstreams, each owning one part of the architecture ([docs/workstreams/](docs/workstreams/README.md)). They work from written contracts ([docs/architecture/](docs/architecture/00-overview.md)), record decisions as ADRs ([docs/adr/](docs/adr/README.md)) and hand work to each other through messages. Every "Done" above comes from the status files the workstreams keep, and from the tests.
 
 ## Team
 
-**Parth Deshmukh**, solo builder: chose the problem, planned and steered the Claude Code sessions that built each part (above), and ran every devnet step on a laptop.
+**Parth Deshmukh**, solo builder: chose the problem, planned and steered every workstream (above), and ran every devnet step on a laptop.
 
 ## License
 
