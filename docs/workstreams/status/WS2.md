@@ -63,6 +63,10 @@
 - **`fetchRequestView(chain, request)`** (2026-10-01, for the Solana Actions of Task C): one payment request by its address, or null when it is missing, foreign or another type. Approve and reject Actions get only the request's address. Tested on the testbed.
 - **`fetchPrincipalViews(chain)`** (2026-10-02, for the indexer's account snapshot in Task E): every principal of the program, oldest first, through one `getProgramAccounts`. An indexer whose backfill misses older history still finds every owner. Tested on the testbed.
 - **`pnpm demo:check [--cluster devnet|localnet] [--no-services]`** (2026-10-03): the read-only preflight before each take. It checks SOL and USDC on the demo keys; the agent (frozen? strikes that still count? allowance and the payee's daily budget left? requests left over?); and the five services (the merchant must answer 402, the indexer must see the agent). Every problem prints the command that fixes it. Logic in `scripts/demo-readiness.ts`, 6 tests on the testbed.
+- **`rpcChain` retries transient failures** (2026-10-03, for devnet, where the public RPC throttles and every service of the demo shares one IP):
+  - Reads and the confirmation polling are tried again on HTTP 429, a 5xx or a dropped connection, backing off 250 ms, 500 ms, 1 s and 2 s, and honouring `Retry-After` up to 5 s.
+  - A send is repeated only on 429, which the RPC refuses before processing, so a send that may have reached the network is never doubled.
+  - `retries` (default 4, 0 disables). 3 new tests; reads still end in `LeashNetworkError`.
 - Found for WS3: `@solana-program/memo` 0.15 defaults to the new Memo program `Memo4c2p…`, not the SPL Memo `MemoSq4g…` of the x402 profile (02 §9). Pass `{ programAddress }` explicitly.
 
 ## Next

@@ -4,6 +4,7 @@ import {
   createKeyPairSignerFromPrivateKeyBytes,
   getBase58Encoder,
   getBase64Decoder,
+  SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR,
   SolanaError,
   signTransactionMessageWithSigners,
 } from "@solana/kit";
@@ -290,6 +291,7 @@ describe("rpcChain", () => {
         getSignaturesForAddress: () => failing,
         getTransaction: () => failing,
       } as never,
+      sleep: async () => {},
     });
     const transaction = await signedTransaction();
     const reads: Array<() => Promise<unknown>> = [
@@ -306,6 +308,8 @@ describe("rpcChain", () => {
       expect(error).toBeInstanceOf(LeashNetworkError);
       expect((error as Error).cause).toBe(down);
     }
+    // A dropped connection is transient: each read was tried once and retried four times.
+    expect(failing.send).toHaveBeenCalledTimes(reads.length * 5);
     // A network error from deeper down keeps its own message.
     const unindexed = rpcChain({
       rpc: {
@@ -317,5 +321,92 @@ describe("rpcChain", () => {
     await expect(unindexed.getRecentTransactions(LEASH, 1)).rejects.toThrow(
       "Network error: transaction a is confirmed but not retrievable",
     );
+  });
+  describe("retries, for public RPCs that throttle (devnet)", () => {
+    const httpError = (statusCode: number, retryAfter?: string) =>
+      new SolanaError(SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR, {
+        headers: new Headers(retryAfter ? { "retry-after": retryAfter } : {}),
+        message: `HTTP ${statusCode}`,
+        statusCode,
+      });
+    /** A call that fails with `errors` in order, then answers `value`. */
+    const flaky = <T>(errors: unknown[], value: T) => ({
+      send: vi.fn(async () => {
+        const error = errors.shift();
+        if (error) throw error;
+        return value;
+      }),
+    });
+    const BLOCKHASH = { value: { blockhash: "abc", lastValidBlockHeight: 9n } };
+
+    it("retries a throttled or failing read with backoff, honouring Retry-After", async () => {
+      const sleep = vi.fn(async (_ms: number) => {});
+      const answer = flaky([httpError(429), httpError(503), httpError(429, "3")], BLOCKHASH);
+      const chain = rpcChain({ rpc: { getLatestBlockhash: () => answer } as never, sleep });
+      expect(await chain.getLatestBlockhash()).toEqual(BLOCKHASH.value);
+      expect(answer.send).toHaveBeenCalledTimes(4);
+      expect(sleep.mock.calls.map(([ms]) => ms)).toEqual([250, 500, 3_000]);
+    });
+
+    it("does not retry a request the RPC rejected as wrong, and gives up after four retries", async () => {
+      const sleep = vi.fn(async (_ms: number) => {});
+      const wrong = flaky([httpError(400)], BLOCKHASH);
+      const chain = rpcChain({ rpc: { getLatestBlockhash: () => wrong } as never, sleep });
+      await expect(chain.getLatestBlockhash()).rejects.toBeInstanceOf(LeashNetworkError);
+      expect(wrong.send).toHaveBeenCalledTimes(1);
+
+      const throttledForever = flaky(
+        Array.from({ length: 9 }, () => httpError(429)),
+        BLOCKHASH,
+      );
+      const busy = rpcChain({
+        rpc: { getLatestBlockhash: () => throttledForever } as never,
+        sleep,
+      });
+      await expect(busy.getLatestBlockhash()).rejects.toBeInstanceOf(LeashNetworkError);
+      expect(throttledForever.send).toHaveBeenCalledTimes(5);
+      const none = rpcChain({
+        rpc: { getLatestBlockhash: () => flaky([httpError(429)], BLOCKHASH) } as never,
+        sleep,
+        retries: 0,
+      });
+      await expect(none.getLatestBlockhash()).rejects.toBeInstanceOf(LeashNetworkError);
+    });
+
+    it("sends again only when throttled, and keeps polling through a throttled status check", async () => {
+      const sleep = vi.fn(async (_ms: number) => {});
+      let sends = 0;
+      const send = flaky([httpError(429)], "sig");
+      const statuses = flaky([httpError(429)], {
+        value: [{ confirmationStatus: "confirmed", err: null }],
+      });
+      const chain = rpcChain({
+        rpc: {
+          sendTransaction: () => {
+            sends += 1;
+            return send;
+          },
+          getSignatureStatuses: () => statuses,
+          getBlockHeight: () => call(50n),
+          getTransaction: () => call(RPC_TRANSACTION),
+        } as never,
+        sleep,
+      });
+      const record = await chain.sendAndConfirm(await signedTransaction());
+      expect(record).toMatchObject({ signature: "sig", err: null });
+      // The RPC refused the first send with 429 (not processed), so it was sent once more.
+      expect(sends).toBe(2);
+      expect(send.send).toHaveBeenCalledTimes(2);
+      expect(statuses.send).toHaveBeenCalledTimes(2);
+
+      // A 503 on a send may have reached the network: it is not repeated.
+      const unavailable = flaky([httpError(503)], "sig");
+      const failing = rpcChain({
+        rpc: { sendTransaction: () => unavailable } as never,
+        sleep,
+      });
+      await expect(failing.sendAndConfirm(await signedTransaction())).rejects.toThrow();
+      expect(unavailable.send).toHaveBeenCalledTimes(1);
+    });
   });
 });

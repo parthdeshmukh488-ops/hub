@@ -17,10 +17,12 @@ import {
   getBase64Encoder,
   getSignatureFromTransaction,
   getSolanaErrorFromTransactionError,
+  isSolanaError,
   type Rpc,
   type SendTransactionApi,
   type Signature,
   type SimulateTransactionApi,
+  SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR,
   type Transaction,
 } from "@solana/kit";
 import type {
@@ -54,8 +56,13 @@ export type RpcChainOptions = {
   commitment?: Extract<Commitment, "confirmed" | "finalized">;
   /** Poll interval while waiting for confirmation. Default 500 ms. */
   pollIntervalMs?: number;
-  /** Test hook: how to wait between polls. */
+  /** Test hook: how to wait between polls and retries. */
   sleep?: (ms: number) => Promise<void>;
+  /**
+   * Further attempts after a transient failure (default 4, then 0 disables). Public RPCs throttle
+   * with HTTP 429, and on devnet every service of the demo shares one IP.
+   */
+  retries?: number;
 };
 
 const defaultSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -74,6 +81,39 @@ async function reading<T>(what: string, run: () => Promise<T>): Promise<T> {
   }
 }
 
+/** Waits between attempts after a transient failure: 250 ms, 500 ms, 1 s, then 2 s. */
+const BACKOFF_MS = [250, 500, 1_000, 2_000] as const;
+
+/** The longest `Retry-After` honoured, in milliseconds. */
+const MAX_RETRY_AFTER_MS = 5_000;
+
+/** HTTP 429: the RPC refused the request before processing it, so even a send may be repeated. */
+function throttled(error: unknown): boolean {
+  return (
+    isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR) &&
+    error.context.statusCode === 429
+  );
+}
+
+/** Worth another try for a read: throttled, a failure on the RPC's side (5xx), or no connection. */
+function transient(error: unknown): boolean {
+  if (isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR)) {
+    const status = error.context.statusCode;
+    return status === 429 || status >= 500;
+  }
+  // `fetch` rejects with a TypeError when the connection fails or drops.
+  return error instanceof TypeError;
+}
+
+/** How long a throttled answer asks us to wait (`Retry-After`, in seconds), if it says. */
+function retryAfterMs(error: unknown): number {
+  if (!isSolanaError(error, SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR)) return 0;
+  const seconds = Number(error.context.headers?.get?.("retry-after"));
+  return Number.isFinite(seconds) && seconds > 0
+    ? Math.min(seconds * 1_000, MAX_RETRY_AFTER_MS)
+    : 0;
+}
+
 /** A `LeashChain` backed by a Solana RPC endpoint. */
 export function rpcChain(options: RpcChainOptions): LeashChain {
   const { rpc } = options;
@@ -82,17 +122,39 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
   const sleep = options.sleep ?? defaultSleep;
   const base58 = getBase58Decoder();
   const base64 = getBase64Encoder();
+  const retries = options.retries ?? BACKOFF_MS.length;
+
+  /** Runs `call` again after a failure `worthRetry` accepts, up to `retries` times, backing off. */
+  async function retrying<T>(
+    call: () => Promise<T>,
+    worthRetry: (error: unknown) => boolean = transient,
+  ): Promise<T> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await call();
+      } catch (error) {
+        if (attempt >= retries || !worthRetry(error)) throw error;
+        const backoff = BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)] ?? 2_000;
+        await sleep(Math.max(backoff, retryAfterMs(error)));
+      }
+    }
+  }
+
+  /** A read: retried while the failure is transient, then `LeashNetworkError`. */
+  const read = <T>(what: string, call: () => Promise<T>) => reading(what, () => retrying(call));
 
   /** The confirmed transaction, retried while the node has not indexed it yet. */
   async function fetchRecord(signature: Signature): Promise<TransactionRecord> {
     for (let attempt = 0; attempt < 20; attempt++) {
-      const response = await rpc
-        .getTransaction(signature, {
-          commitment,
-          encoding: "json",
-          maxSupportedTransactionVersion: 0,
-        })
-        .send();
+      const response = await retrying(() =>
+        rpc
+          .getTransaction(signature, {
+            commitment,
+            encoding: "json",
+            maxSupportedTransactionVersion: 0,
+          })
+          .send(),
+      );
       if (response !== null) return transactionRecordFromRpc(response);
       await sleep(pollIntervalMs);
     }
@@ -101,13 +163,13 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
 
   return {
     async getAccounts(addresses) {
-      return reading("reading accounts", () =>
+      return read("reading accounts", () =>
         fetchEncodedAccounts(rpc, [...addresses], { commitment }),
       );
     },
 
     async getProgramAccounts(program, filters) {
-      const accounts = await reading("reading program accounts", () =>
+      const accounts = await read("reading program accounts", () =>
         rpc
           .getProgramAccounts(program, {
             commitment,
@@ -129,14 +191,14 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
     },
 
     async getLatestBlockhash() {
-      const { value } = await reading("reading the latest blockhash", () =>
+      const { value } = await read("reading the latest blockhash", () =>
         rpc.getLatestBlockhash({ commitment }).send(),
       );
       return value;
     },
 
     async simulate(transaction): Promise<SimulationResult> {
-      const { value } = await reading("simulating", () =>
+      const { value } = await read("simulating", () =>
         rpc
           .simulateTransaction(getBase64EncodedWireTransaction(transaction), {
             commitment,
@@ -153,16 +215,21 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
       const signature = getSignatureFromTransaction(transaction);
       const lastValidBlockHeight = lifetimeOf(transaction);
       // Preflight on: a failing transaction throws the RPC's preflight error, cause included.
-      await rpc
-        .sendTransaction(getBase64EncodedWireTransaction(transaction), {
-          encoding: "base64",
-          preflightCommitment: commitment,
-        })
-        .send();
+      // Repeated only when throttled: any other failure may have reached the network.
+      await retrying(
+        () =>
+          rpc
+            .sendTransaction(getBase64EncodedWireTransaction(transaction), {
+              encoding: "base64",
+              preflightCommitment: commitment,
+            })
+            .send(),
+        throttled,
+      );
       for (;;) {
         const {
           value: [status],
-        } = await rpc.getSignatureStatuses([signature]).send();
+        } = await retrying(() => rpc.getSignatureStatuses([signature]).send());
         if (status?.err) {
           throw getSolanaErrorFromTransactionError(
             status.err as Parameters<typeof getSolanaErrorFromTransactionError>[0],
@@ -173,7 +240,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
           (commitment === "confirmed" && status?.confirmationStatus === "confirmed");
         if (reached) return fetchRecord(signature);
         if (lastValidBlockHeight !== null) {
-          const height = await rpc.getBlockHeight({ commitment }).send();
+          const height = await retrying(() => rpc.getBlockHeight({ commitment }).send());
           if (height > lastValidBlockHeight) {
             throw new LeashNetworkError(`transaction ${signature} expired before it confirmed`);
           }
@@ -183,7 +250,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
     },
 
     async getSignatures(address: Address, page: SignaturePage) {
-      const entries = await reading("reading signatures", () =>
+      const entries = await read("reading signatures", () =>
         rpc
           .getSignaturesForAddress(address, {
             commitment,
@@ -204,7 +271,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
     },
 
     async getTransactionRecord(signature: string) {
-      const response = await reading("reading a transaction", () =>
+      const response = await read("reading a transaction", () =>
         rpc
           .getTransaction(signature as Signature, {
             commitment,
@@ -217,7 +284,7 @@ export function rpcChain(options: RpcChainOptions): LeashChain {
     },
 
     async getRecentTransactions(address: Address, limit: number) {
-      return reading("reading recent transactions", async () => {
+      return read("reading recent transactions", async () => {
         const signatures = await rpc.getSignaturesForAddress(address, { commitment, limit }).send();
         const records: TransactionRecord[] = [];
         for (const entry of signatures) {
