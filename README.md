@@ -177,7 +177,7 @@ Leash was built with parallel Claude Code sessions, each owning one part of the 
 
 ## Team
 
-**[Team: names and roles, to be filled in by Parth]**
+**Parth Deshmukh**, solo builder. He chose the problem, planned and steered the Claude Code sessions that built each part (above), and ran everything that needed devnet on his laptop.
 
 ## License
 

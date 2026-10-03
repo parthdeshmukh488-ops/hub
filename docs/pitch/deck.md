@@ -6,9 +6,8 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 - **Judging criteria** ([hackathon brief](../hackathon-brief.md)): useful idea · working prototype · clear role for Solana · potential to grow. Each slide names the one it serves.
 - **Rules:** every number has a source ([below](#facts-and-sources)). Only what the status files show as done is called done; the rest says "in progress". The scripted attack is "simulating a successful injection", as the demo screen says.
 - **Design:** light and plain, like the web app, in Arial. The app's colours keep their meaning: green paid, amber waiting for approval, red blocked, blue frozen, purple for Leash itself. Status chips in those colours are the repeated motif. Screenshots come from [img/](img/).
-- **Placeholders for Parth:** the team (slides 1 and 13) and the user conversations (slide 10), in amber.
 - **Length:** 13 slides, about 3 minutes spoken.
-- **Last checked:** October 1, 2026.
+- **Last checked:** October 3, 2026.
 
 ## 1. Title
 
@@ -16,7 +15,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 - **Leash**
 - Spending limits and an off switch for AI agents, enforced on Solana.
 - Superteam Germany Solana Challenge · WHU Prompting Progress · October 2026
-- **[Team: names and roles, to be filled in by Parth]**
+- Parth Deshmukh · solo builder
 
 **Visual:** the Leash mark (the web app's purple "L"), and the control panel after the attack ([overview](img/web-overview.png)), captioned "The control panel after an attack (sample data)".
 
@@ -193,7 +192,7 @@ The content of the submission deck, one section per slide: **[leash-deck.pptx](l
 **On the slide**
 - **The model was fooled. The money wasn't moved.**
 - Solana's Allowances cap how much. Leash decides who, how fast, and when to stop.
-- **[Team: names and roles, to be filled in by Parth]**
+- Parth Deshmukh · solo builder
 - [github.com/parthdeshmukh488-ops/hub](https://github.com/parthdeshmukh488-ops/hub) · [Leash on devnet: `HyL9S5mA…HJncu`](https://explorer.solana.com/address/HyL9S5mA8ujMMkDcpuY4VcxiwfM974fEhmNjzTgHJncu?cluster=devnet) · Demo video: in progress
 - Small print: built with parallel Claude Code sessions, each owning one part of the architecture.
 

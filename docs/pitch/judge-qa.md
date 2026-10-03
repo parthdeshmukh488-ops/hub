@@ -97,4 +97,5 @@ Open core:
 **How did you build this much in a week?**
 With parallel Claude Code sessions, each owning one part of the architecture, working from written contracts and decision records. Every claim in the README and the deck is checked against the status files those sessions keep, and against the tests. *([docs/workstreams/](../workstreams/README.md))*
 
-**[Team questions: Parth to add]**
+**Who is on the team?**
+Parth Deshmukh, on his own. He chose the problem, planned and steered the Claude Code sessions that built each part, and ran everything that needed devnet on his laptop. *([README](../../README.md#team))*

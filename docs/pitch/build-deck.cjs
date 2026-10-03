@@ -184,7 +184,7 @@ function brandMark(slide, x, y, d, size) {
   text(slide, "L", x, y, d, d, { size, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
 }
 
-const TEAM = "[Team: names and roles, to be filled in by Parth]";
+const TEAM = "Parth Deshmukh · solo builder";
 
 async function main() {
   const I = {};
@@ -237,7 +237,7 @@ async function main() {
       size: 10.5,
       color: C.muted,
     });
-    chip(s, TEAM, 0.6, 4.55, 4.3, 0.36, C.approval, C.approvalSoft, { size: 10 });
+    text(s, TEAM, 0.6, 4.55, 4.5, 0.3, { size: 11, bold: true });
     const h = screenshot(s, shots.hero, 5.4, 1.0, 4.0, 2040 / 1480);
     text(s, "The control panel after an attack (sample data)", 5.4, 1.0 + h + 0.1, 4.0, 0.25, {
       size: 9,
@@ -791,7 +791,7 @@ async function main() {
       color: C.muted,
       align: "center",
     });
-    chip(s, TEAM, 2.75, 3.3, 4.5, 0.36, C.approval, C.approvalSoft, { size: 10 });
+    text(s, TEAM, 2.75, 3.3, 4.5, 0.3, { size: 12, bold: true, align: "center" });
     const links = [
       { icon: I.github, label: "github.com/parthdeshmukh488-ops/hub", url: "https://github.com/parthdeshmukh488-ops/hub" },
       {
