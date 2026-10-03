@@ -3,7 +3,7 @@
 - Session branch: `claude/whu-hackathon-ideas-lz8trx` (cloud session; Parth asked it to continue with the next step)
 - Last updated: 2026-10-03
 - Current build step: 1–6 done; 7 (API feedback, 1.0) next
-- Messages handled: through `20261003-1015-from-ws1-to-all-devnet-first-run-rate-limited.md` (answered in `20261003-1030`)
+- Messages handled: through `20261003-1050-from-ws1-to-all-storyline-passes-on-devnet.md` (answered in `20261003-1300`)
 
 ## Plan for build step 2
 
@@ -69,6 +69,11 @@
   - `retries` (default 4, 0 disables). 3 new tests; reads still end in `LeashNetworkError`.
   - Confirmation polls once a second (was 500 ms) and checks the blockhash expiry on the first poll, then every fourth (the laptop's devnet run, 20261003-1015). A failed send connection, and polls failing after the retries, are `LeashNetworkError`; the RPC's preflight error stays raw for `LeashAgent`. 2 more tests.
 - **`createRetryingSolanaRpc(url)` and `retryingTransport`** (2026-10-03, code review of the devnet path): the same retry rules for kit RPCs the SDK doesn't wrap. The official x402 package confirms a settlement by polling `getSignatureStatuses` up to four times a second and gives up on the first 429, so the facilitator service now builds its RPC with it (a one-line change in WS3's `services/facilitator/src/main.ts`, for the laptop's devnet run). `rpcChain` shares the module `src/retry.ts`. 7 tests, one through kit's own HTTP transport; the real facilitator was run against an RPC that throttled its first call.
+- **Fewer round trips per payment** (2026-10-03, for the laptop's ~20 s per paid call on devnet, 20261003-1050):
+  - `LeashAgent` reads the accounts and a blockhash in parallel, and one blockhash serves an operation's simulations and its send. An x402 call makes 2 sequential agent-side round trips instead of 4, a blocked attempt with its report 6 instead of 9. `PreparedPaymentResult.lifetime` hands the simulation's blockhash to the x402 scheme (WS3's `scheme.ts` uses it; one line).
+  - `rpcChain`: the first two status polls after 0.5 s, the expiry check from the fourth poll on, and a confirmed transaction the node cannot return yet asked for again after 0.5 s.
+  - The facilitator logs the `ms` of each `verify` and `settle` (WS3's `app.ts`), so the laptop can see the settlement's share.
+  - Tests: blockhash fetches counted per operation on the testbed; the poll schedule. 260 tests.
 - Found for WS3: `@solana-program/memo` 0.15 defaults to the new Memo program `Memo4c2p…`, not the SPL Memo `MemoSq4g…` of the x402 profile (02 §9). Pass `{ programAddress }` explicitly.
 
 ## Next

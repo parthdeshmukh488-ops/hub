@@ -595,7 +595,7 @@ async function main() {
       "60 policy cases agree in TypeScript, in Rust and on the deployed binary",
       "x402 payments through the unmodified official facilitator, on devnet too",
       "Claude Code connects to the Leash MCP server",
-      "The whole story: on a local validator, in CI, and in one command",
+      "The whole story: on devnet, in CI, and in one command",
       "A control panel that updates live from the indexer's stream",
       "Pairing, approve, freeze and unfreeze in the web app",
       "Sentinel's alerts on a real phone, and the guardian's autofreeze",
@@ -609,7 +609,7 @@ async function main() {
       y += 0.35;
     }
     chip(s, "In progress", 6.2, 1.15, 1.45, 0.32, C.approval, C.approvalSoft, { icon: I.hourglass });
-    const doing = ["The full demo on devnet, and its recording"];
+    const doing = ["The demo video, recorded on devnet"];
     y = 1.62;
     for (const d of doing) {
       const h = d.length > 34 ? 0.42 : 0.22;
@@ -739,7 +739,7 @@ async function main() {
         head: "This week",
         sub: "for the Oct 4 submission · in progress",
         items: [
-          "The demo on devnet, and its recording",
+          "The demo video, recorded on devnet",
           "The web app with a real wallet on devnet",
         ],
       },
